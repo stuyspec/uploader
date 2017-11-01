@@ -1,6 +1,12 @@
 # spec-uploader
 A terminal-based uploader for uploading articles. Takes in a Volume Drive folder as input.
 
+## Prerequisites
+To run this CLI (command line interface), you'll need:
+- Python 2.6 or greater
+- The [pip](https://pypi.python.org/pypi/pip) package management tool.
+- Access to the internet and a web browser.
+
 ## Setup
 1. You need credentials to use the Drive API. Get the Google Console login credentials from one of the editors.
 2. Log in to the Google Console with the credentials, and navigate to the `spec-uploader` project.
