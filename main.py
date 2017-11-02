@@ -1,8 +1,10 @@
 from __future__ import print_function
 import httplib2
 import os
+import io
 
 from apiclient import discovery
+from apiclient.http import MediaIoBaseDownload
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
@@ -15,9 +17,9 @@ except ImportError:
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/drive-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly'
+SCOPES = 'https://www.googleapis.com/auth/drive'
 CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'Drive API Python Quickstart'
+APPLICATION_NAME = 'Spec-Uploader CLI'
 
 
 def get_credentials():
@@ -75,7 +77,15 @@ def main():
         try:
             if file.get('mimeType') == 'application/vnd.google-apps.document' and file.get('parents')[0] in folders:
                 sectionName = folders[file.get('parents')[0]]
-                print('%s: %s' % (sectionName, file['name']))
+                request = drive_service.files().export_media(fileId=file['id'],
+                                                             mimeType='text/plain')
+                fh = io.BytesIO()
+                downloader = MediaIoBaseDownload(fh, request)
+                done = False
+                while done is False:
+                    status, done = downloader.next_chunk()
+                    print("%s: %s %d%%" % (sectionName, file['name'], int(status.progress() * 100)))
+                # fh.getvalue()
         except TypeError: # same as before :(
             pass
     page_token = response.get('nextPageToken', None)
