@@ -64,7 +64,7 @@ def readArticle(text):
     title = metadata[0].strip() # gets first line of text
     if 'Title: ' in title:
         title = title[title.find('Title: ') + len('Title: '):]
-    title = raw_input('title: ({0})'.format(title)) or title # defaults to title
+    title = raw_input((Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL + '({0})').format(title)) or title # defaults to title
 
     contributors = []
     try:
@@ -76,7 +76,7 @@ def readArticle(text):
             byline = byline[len('By'):].strip()
 
         # splits string into words and punctuation
-        byline = re.findall(r"[\w']+|[.,!?;]", byline)
+        byline = re.findall(r"[\w']+|[.,!-?;]", byline)
         # remove nickname formatting e.g. "By Ying Zi (Jessy) Mei"
         nicknameRegex = re.compile(r"\([\w]*\)\s")
 
@@ -90,13 +90,13 @@ def readArticle(text):
         contributors.append(' '.join(byline[cutoff:]))  # clean up last one
         contributors = filter(None, contributors)  # removes empty strings
     except StopIteration: # no byline found
-        print(Fore.RED + 'No byline found. Header text:' + Fore.RESET)
+        print(Back.RED + Fore.WHITE + 'No byline found. Header text:' + Back.RESET + Fore.CYAN)
         for line in metadata:
             print(line.strip())
             if 'words' in line.lower(): # print heading up to word count
                 contributors = raw_input('enter contributors separated by ", ": ').split(', ')
                 break
-    byline = raw_input('contributors: ({0})'.format(', '.join(contributors))) or byline
+    byline = raw_input((Fore.GREEN + Style.BRIGHT + 'contributors: ' + Style.RESET_ALL + '[{0}]').format(', '.join(contributors))) or byline
 
 
 def getFoldersInFile(files, parentFolderId):
@@ -110,6 +110,8 @@ def getFoldersInFile(files, parentFolderId):
     return folders
 
 def main():
+    print("This utility will walk you through the uploading of all articles in the current Issue.")
+    print("Press ^C at any time to quit.\n")
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     drive_service = discovery.build('drive', 'v3', http=http)
@@ -136,12 +138,21 @@ def main():
             downloader = MediaIoBaseDownload(fh, request)
             done = False
             while done is False:
+                """background  = Back.BLACK
+                if sectionName == "NEWS": background = Back.RED
+                elif sectionName == "OPINIONS": background = Back.GREEN
+                elif sectionName == "FEATURES": background = Back.BLUE
+                elif sectionName == "A&E": background = Back.MAGENTA
+                elif sectionName == "HUMOR": background = Back.YELLOW
+                elif sectionName == "SPORTS": background = Back.WHITE
+                """
                 status, done = downloader.next_chunk()
-                print(Back.BLACK + Fore.WHITE + sectionName, end='')
-                print(Back.RESET + Fore.BLUE + ' ' + file['name'] + Fore.RESET, end=' ')
+                print(Fore.CYAN + Style.BRIGHT + sectionName, end='')
+                print(Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
                 print('%d%%' % int(status.progress() * 100))
 
             readArticle(fh.getvalue())
+            print('\n')
     page_token = response.get('nextPageToken', None)
     if page_token is None:
         return
