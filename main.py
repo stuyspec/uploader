@@ -53,6 +53,8 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
+# TODO: make Issue for terminal calculating columns wrong. see https://bugs.python.org/issue17337 and its attached S.O. post
+
 def readArticle(text):
     metadata = text.split('\n', 2)
     title = metadata[0] # gets first line of text
