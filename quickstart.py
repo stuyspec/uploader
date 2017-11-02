@@ -48,22 +48,26 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
-FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
-
 def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     drive_service = discovery.build('drive', 'v3', http=http)
+    page_token = None
+    response = drive_service.files().list(q="mimeType='application/vnd.google-apps.folder'",
+                                          spaces='drive',
+                                          fields='nextPageToken, files(id, name, trashed)',
+                                          pageToken=page_token).execute()
+    files = response.get('files', [])
+    SBC = next((file for file in files if file['name'] == 'SBC'), None)
+    print(SBC['name'])
+    for file in response.get('files', []):
+        if not file['trashed']:
+            print('Found file: %s (%s...)' % (file.get('name'), file.get('id')[:5]))
+    page_token = response.get('nextPageToken', None)
 
-    response = drive_service.files().list(fields='nextPageToken, files(id, name, mimeType, trashed)').execute()
-    items = response.get('files', [])
-    print([i['name'] for i in items if i['mimeType'] == FOLDER_MIME_TYPE])
-    if not items:
-        print('No files found.')
+    if page_token is None:
         return
-    for item in items:
-        if item['mimeType'] == FOLDER_MIME_TYPE and not item['trashed']:
-            print('%s is a folder' % item['name'])
+    return
 
 if __name__ == '__main__':
     main()
