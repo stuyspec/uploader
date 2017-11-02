@@ -15,6 +15,9 @@ try:
 except ImportError:
     flags = None
 
+from colorama import init, Fore, Back, Style
+init()
+
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/drive-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/drive'
@@ -50,6 +53,23 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
+def readArticle(text):
+    title = text.split('\n', 1)[0].strip() # gets first line of text
+    if 'Title: ' in title:
+        title = title[title.find('Title: ') + len('Title: '):]
+    #title = input(('Title (%s):' % title) or title)
+    print('Title (%s):' % title)
+
+def getFoldersInFile(files, parentFolderId):
+    folders = {}
+    # find first file in files with name 'SBC'
+
+    for file in files:
+        # check if parent folder is SBC and file type is folder
+        if file.get('parents', [None])[0] == parentFolderId and file.get('mimeType') == 'application/vnd.google-apps.folder':
+            folders[file['id']] = file['name']
+    return folders
+
 def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
@@ -57,37 +77,31 @@ def main():
 
     # Gets all folder names under SBC
     page_token = None
-    folders = []
     response = drive_service.files().list(q="(mimeType='application/vnd.google-apps.folder' or mimeType='application/vnd.google-apps.document') and not trashed",
                                           spaces='drive',
                                           fields='nextPageToken, files(id, name, parents, mimeType)',
                                           pageToken=page_token).execute()
-    files = response.get('files', [])
+    files = response.get('files', []) # if no key 'files', defaults to []
     SBC = next((file for file in files if file['name'] == 'SBC'), None)
-    for file in response.get('files', []):
-        try:
-            if file.get('parents')[0] == SBC.get('id') and file.get('mimeType') == 'application/vnd.google-apps.folder':
-                folders.append((file.get('id'), file.get('name')))
-        except TypeError: # cannot index a NoneType, file is a document...?
-            # print(file.get('name'))
-            pass
+    folders = getFoldersInFile(files, SBC['id'])
+    for file in files:
+        if file['mimeType'] == 'application/vnd.google-apps.document' and file.get('parents', [None])[0] in folders:
 
-    folders = dict(folders)
-    for file in response.get('files', []):
-        try:
-            if file.get('mimeType') == 'application/vnd.google-apps.document' and file.get('parents')[0] in folders:
-                sectionName = folders[file.get('parents')[0]]
-                request = drive_service.files().export_media(fileId=file['id'],
-                                                             mimeType='text/plain')
-                fh = io.BytesIO()
-                downloader = MediaIoBaseDownload(fh, request)
-                done = False
-                while done is False:
-                    status, done = downloader.next_chunk()
-                    print("%s: %s %d%%" % (sectionName, file['name'], int(status.progress() * 100)))
-                # fh.getvalue()
-        except TypeError: # same as before :(
-            pass
+            # find sectionName by getting folder with parentId
+            sectionName = folders[file.get('parents', [None])[0]].upper()
+
+            # create new download request
+            request = drive_service.files().export_media(fileId=file['id'],
+                                                         mimeType='text/plain')
+            fh = io.BytesIO()
+            downloader = MediaIoBaseDownload(fh, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+                print(Back.BLACK + Fore.WHITE + sectionName, end=' ')
+                print(Back.RESET + Fore.BLUE + file['name'] + Fore.RESET)
+                #print('%s: %s, %d%%' % (sectionName, file['name'], int(status.progress() * 100)))
+            readArticle(fh.getvalue())
     page_token = response.get('nextPageToken', None)
     if page_token is None:
         return
