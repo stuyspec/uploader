@@ -48,6 +48,8 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
+FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
+
 def main():
     """Shows basic usage of the Google Drive API.
 
@@ -56,17 +58,16 @@ def main():
     """
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
-    service = discovery.build('drive', 'v3', http=http)
+    drive_service = discovery.build('drive', 'v3', http=http)
 
-    results = service.files().list(
-        pageSize=10,fields="nextPageToken, files(id, name)").execute()
-    items = results.get('files', [])
+    response = drive_service.files().list(fields='nextPageToken, files(id, name, mimeType, trashed)').execute()
+    items = response.get('files', [])
     if not items:
         print('No files found.')
-    else:
-        print('Files:')
-        for item in items:
-            print('{0} ({1})'.format(item['name'], item['id']))
+        return
+    for item in items:
+        if item['mimeType'] == FOLDER_MIME_TYPE and not item['trashed']:
+            print('%s is a folder' % item['name'])
 
 if __name__ == '__main__':
     main()
