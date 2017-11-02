@@ -2,6 +2,7 @@ from __future__ import print_function
 import httplib2
 import os
 import io
+import re
 
 from apiclient import discovery
 from apiclient.http import MediaIoBaseDownload
@@ -56,19 +57,33 @@ def get_credentials():
 # TODO: make Issue for terminal calculating columns wrong. see https://bugs.python.org/issue17337 and its attached S.O. post
 
 def readArticle(text):
-    metadata = text.split('\n', 2)
+    metadata = text.split('\n', 6)
     title = metadata[0] # gets first line of text
     if 'Title: ' in title:
         title = title[title.find('Title: ') + len('Title: '):]
-    confirmation = raw_input('title: ({0})'.format(title[:-1]))
-
-    """
-    position = metadata[1].split('/', 2)
-    position = [x.strip() for x in metadata]
-    position = input(('Confirm Position (%s, %s)' % (position[1], position[2])) or position)
+    title = raw_input('title: ({0})'.format(title[:-1])) or title
 
     byline = next((line for line in metadata if line.find('By') >= 0))
-    """
+    print(byline)
+    if 'By:' in byline:
+        byline = byline[len('By:'):].strip()
+    else:
+        byline = byline[len('By'):].strip()
+
+    # splits string into words and punctuation
+    byline = re.findall(r"[\w']+|[.,!?;]", byline)
+    print(byline)
+    contributors = []
+    cutoff = 0
+    for i in range(0, len(byline)):
+        if byline[i] in ',&and':
+            contributors.append(' '.join(byline[cutoff:i]))
+            cutoff = i + 1
+    contributors.append(' '.join(byline[cutoff:])) # clean up last one
+    contributors = filter(None, contributors) # removes empty strings
+    hi = raw_input("%s" % contributors)
+
+
 def getFoldersInFile(files, parentFolderId):
     folders = {}
     # find first file in files with name 'SBC'
