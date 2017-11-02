@@ -54,12 +54,19 @@ def get_credentials():
     return credentials
 
 def readArticle(text):
-    title = text.split('\n', 1)[0].strip() # gets first line of text
+    metadata = text.split('\n', 2)
+    title = metadata[0] # gets first line of text
     if 'Title: ' in title:
         title = title[title.find('Title: ') + len('Title: '):]
-    #title = input(('Title (%s):' % title) or title)
-    print('Title (%s):' % title)
+    confirmation = raw_input('title: ({0})'.format(title[:-1]))
 
+    """
+    position = metadata[1].split('/', 2)
+    position = [x.strip() for x in metadata]
+    position = input(('Confirm Position (%s, %s)' % (position[1], position[2])) or position)
+
+    byline = next((line for line in metadata if line.find('By') >= 0))
+    """
 def getFoldersInFile(files, parentFolderId):
     folders = {}
     # find first file in files with name 'SBC'
@@ -98,9 +105,10 @@ def main():
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
-                print(Back.BLACK + Fore.WHITE + sectionName, end=' ')
-                print(Back.RESET + Fore.BLUE + file['name'] + Fore.RESET)
-                #print('%s: %s, %d%%' % (sectionName, file['name'], int(status.progress() * 100)))
+                print(Back.BLACK + Fore.WHITE + sectionName, end='')
+                print(Back.RESET + Fore.BLUE + ' ' + file['name'] + Fore.RESET, end=' ')
+                print('%d%%' % int(status.progress() * 100))
+
             readArticle(fh.getvalue())
     page_token = response.get('nextPageToken', None)
     if page_token is None:
