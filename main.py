@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import httplib2
 import os
@@ -55,14 +58,15 @@ def get_credentials():
     return credentials
 
 # TODO: make Issue for terminal calculating columns wrong. see https://bugs.python.org/issue17337 and its attached S.O. post
-
+# TODO: worldbeat
 def readArticle(text):
     metadata = text.split('\n')
     title = metadata[0].strip() # gets first line of text
     if 'Title: ' in title:
         title = title[title.find('Title: ') + len('Title: '):]
-    title = raw_input('title: ({0})'.format(title[:-1])) or title # defaults to title
+    title = raw_input('title: ({0})'.format(title)) or title # defaults to title
 
+    contributors = []
     try:
         byline = next((line for line in metadata if line.find('By') >= 0))
         print(byline)
@@ -73,21 +77,26 @@ def readArticle(text):
 
         # splits string into words and punctuation
         byline = re.findall(r"[\w']+|[.,!?;]", byline)
-        contributors = []
+        # remove nickname formatting e.g. "By Ying Zi (Jessy) Mei"
+        nicknameRegex = re.compile(r"\([\w]*\)\s")
+
         cutoff = 0
         for i in range(0, len(byline)):
-            if byline[i] in ',&and':
-                contributors.append((' '.join(byline[cutoff:i])).replace(' - ', '-'))
+            if byline[i] in ',&' or byline[i] == 'and':
+                name = (' '.join(byline[cutoff:i])).replace(' - ', '-')
+                name = nicknameRegex.sub('', name) # removes nicknames
+                contributors.append(name)
                 cutoff = i + 1
         contributors.append(' '.join(byline[cutoff:]))  # clean up last one
         contributors = filter(None, contributors)  # removes empty strings
-        byline = raw_input('contributors: ({0})'.format(', '.join(contributors))) or byline
     except StopIteration: # no byline found
-        print(Fore.RED + 'No byline found.' + Fore.RESET)
-        contributors = []
+        print(Fore.RED + 'No byline found. Header text:' + Fore.RESET)
         for line in metadata:
+            print(line.strip())
             if 'words' in line.lower(): # print heading up to word count
                 contributors = raw_input('enter contributors separated by ", ": ').split(', ')
+                break
+    byline = raw_input('contributors: ({0})'.format(', '.join(contributors))) or byline
 
 
 def getFoldersInFile(files, parentFolderId):
@@ -169,5 +178,5 @@ if __name__ == '__main__':
     Ultimately, open discussion is essential for honest and intelligent discourse. But honesty and intelligence stem from being informed and having tact, something that is much harder to come by. 
     """
 
-    readArticle(testing)
-    #main()
+
+    main()
