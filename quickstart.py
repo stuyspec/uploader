@@ -51,17 +51,13 @@ def get_credentials():
 FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
 
 def main():
-    """Shows basic usage of the Google Drive API.
-
-    Creates a Google Drive API service object and outputs the names and IDs
-    for up to 10 files.
-    """
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     drive_service = discovery.build('drive', 'v3', http=http)
 
     response = drive_service.files().list(fields='nextPageToken, files(id, name, mimeType, trashed)').execute()
     items = response.get('files', [])
+    print([i['name'] for i in items if i['mimeType'] == FOLDER_MIME_TYPE])
     if not items:
         print('No files found.')
         return
