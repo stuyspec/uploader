@@ -66,6 +66,7 @@ def readArticle(text):
         title = title[title.find('Title: ') + len('Title: '):]
     title = raw_input((Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL + '({0})').format(title)) or title # defaults to title
 
+    byline = None
     contributors = []
     try:
         byline = next((line for line in metadata if line.find('By') >= 0))
@@ -77,27 +78,31 @@ def readArticle(text):
 
         # splits string into words and punctuation
         byline = re.findall(r"[\w']+|[.,!-?;]", byline)
-        # remove nickname formatting e.g. "By Ying Zi (Jessy) Mei"
-        nicknameRegex = re.compile(r"\([\w]*\)\s")
-
         cutoff = 0
         for i in range(0, len(byline)):
             if byline[i] in ',&' or byline[i] == 'and':
-                name = (' '.join(byline[cutoff:i])).replace(' - ', '-')
-                name = nicknameRegex.sub('', name) # removes nicknames
+                name = cleanName(' '.join(byline[cutoff:i]))
                 contributors.append(name)
                 cutoff = i + 1
-        contributors.append(' '.join(byline[cutoff:]))  # clean up last one
+        contributors.append(cleanName(' '.join(byline[cutoff:])))  # clean up last one
         contributors = filter(None, contributors)  # removes empty strings
     except StopIteration: # no byline found
-        print(Back.RED + Fore.WHITE + 'No byline found. Header text:' + Back.RESET + Fore.CYAN)
+        print(Back.RED + Fore.WHITE + 'No byline found. Header text:' + Back.RESET + Fore.RED)
         for line in metadata:
             print(line.strip())
             if 'words' in line.lower(): # print heading up to word count
-                contributors = raw_input('enter contributors separated by ", ": ').split(', ')
+                contributors = raw_input((Fore.GREEN + Style.BRIGHT + 'enter contributors separated by ", ": ' + Style.RESET_ALL)).split(', ')
                 break
     byline = raw_input((Fore.GREEN + Style.BRIGHT + 'contributors: ' + Style.RESET_ALL + '[{0}]').format(', '.join(contributors))) or byline
 
+def cleanName(name):
+    name = name.replace(' - ', '-')
+
+    # remove nickname formatting e.g. "By Ying Zi (Jessy) Mei"
+    nicknameRegex = re.compile(r"\([\w]*\)\s")
+    name = nicknameRegex.sub('', name) # removes nicknames
+
+    return name
 
 def getFoldersInFile(files, parentFolderId):
     folders = {}
@@ -188,6 +193,5 @@ if __name__ == '__main__':
     
     Ultimately, open discussion is essential for honest and intelligent discourse. But honesty and intelligence stem from being informed and having tact, something that is much harder to come by. 
     """
-
 
     main()
