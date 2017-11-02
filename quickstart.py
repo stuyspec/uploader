@@ -67,10 +67,17 @@ def main():
             if file.get('parents')[0] == SBC.get('id') and file.get('mimeType') == 'application/vnd.google-apps.folder':
                 folders.append((file.get('id'), file.get('name')))
         except TypeError: # cannot index a NoneType, file is a document...?
-            print(file.get('name'))
-    print([tuple((id, name)) for id, name in folders])
+            # print(file.get('name'))
+            pass
 
-    for file in resp
+    folders = dict(folders)
+    for file in response.get('files', []):
+        try:
+            if file.get('mimeType') == 'application/vnd.google-apps.document' and file.get('parents')[0] in folders:
+                sectionName = folders[file.get('parents')[0]]
+                print('%s: %s' % (sectionName, file['name']))
+        except TypeError: # same as before :(
+            pass
     page_token = response.get('nextPageToken', None)
     if page_token is None:
         return
