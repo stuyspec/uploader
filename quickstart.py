@@ -52,22 +52,28 @@ def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     drive_service = discovery.build('drive', 'v3', http=http)
+
+    # Gets all folder names under SBC
     page_token = None
-    response = drive_service.files().list(q="mimeType='application/vnd.google-apps.folder'",
+    folders = []
+    response = drive_service.files().list(q="(mimeType='application/vnd.google-apps.folder' or mimeType='application/vnd.google-apps.document') and not trashed",
                                           spaces='drive',
-                                          fields='nextPageToken, files(id, name, trashed)',
+                                          fields='nextPageToken, files(id, name, parents, mimeType)',
                                           pageToken=page_token).execute()
     files = response.get('files', [])
     SBC = next((file for file in files if file['name'] == 'SBC'), None)
-    print(SBC['name'])
     for file in response.get('files', []):
-        if not file['trashed']:
-            print('Found file: %s (%s...)' % (file.get('name'), file.get('id')[:5]))
-    page_token = response.get('nextPageToken', None)
+        try:
+            if file.get('parents')[0] == SBC.get('id') and file.get('mimeType') == 'application/vnd.google-apps.folder':
+                folders.append((file.get('id'), file.get('name')))
+        except TypeError: # cannot index a NoneType, file is a document...?
+            print(file.get('name'))
+    print([tuple((id, name)) for id, name in folders])
 
+    for file in resp
+    page_token = response.get('nextPageToken', None)
     if page_token is None:
         return
-    return
 
 if __name__ == '__main__':
     main()
