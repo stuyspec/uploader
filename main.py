@@ -60,16 +60,22 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
-def readArticle(text):
+def readArticle(text, filename):
     metadata = text.split('\n')
     title = metadata[0].strip() # gets first line of text
     if 'Title: ' in title:
         title = title[title.find('Title: ') + len('Title: '):]
     if 'worldbeat' in title.lower():
-        print(Fore.RED + Style.BRIGHT + 'title: (Worldbeat); skipped')
+        print(Fore.RED + Style.BRIGHT + 'title: (Worldbeat); skipped.')
         return False
-    title = raw_input((Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL + '({0}) ').format(title.strip())) or title # defaults to title
+    title = raw_input((Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL + '({0}) ').format(title.strip())) or title.strip() # defaults to title
 
+
+    if 'survey' in filename or text.count('%') > 10:  # possibly a survey
+        surveyConfirmation = raw_input((Fore.RED + Style.BRIGHT + 'Is this article, with {0} counts of "%", a survey? (y/n) ').format(text.count('%')))
+        if surveyConfirmation == 'y':
+            print(Fore.RED + Style.BRIGHT + 'title: ({0}); survey skipped.'.format(title))
+            return False
     byline = None
     contributors = []
     try:
@@ -96,7 +102,7 @@ def readArticle(text):
             if 'words' in line.lower(): # print heading up to word count
                 contributors = raw_input((Fore.GREEN + Style.BRIGHT + 'enter contributors separated by ", ": ' + Style.RESET_ALL)).split(', ')
                 break
-    byline = raw_input((Fore.GREEN + Style.BRIGHT + 'contributors: ' + Style.RESET_ALL + '({0}) ').format(', '.join(contributors))) or byline
+    byline = raw_input((Fore.GREEN + Style.BRIGHT + 'contributors : ' + Style.RESET_ALL + '({0}) ').format(', '.join(contributors))) or byline
 
     try:
         summary = next((line for line in metadata if 'focus sentence:' in line.lower()))
@@ -116,6 +122,31 @@ def readArticle(text):
                 break
         summary = raw_input(Fore.GREEN + Style.BRIGHT + 'summary/focus (may leave blank): ' + Style.RESET_ALL) or None
     summary = summary.strip()
+
+    content = []
+    lineNum = len(metadata) - 1
+    try:
+        while metadata[lineNum].lower().find('outquote:') < 0 \
+            and metadata[lineNum].lower().find('focus sentence:') < 0:
+            content = [metadata[lineNum].strip()] + content
+            lineNum -= 1
+        content = filter(None, content) # removes empty strings
+    except IndexError: # no focus sentence or outquote ever reached
+        print(Back.RED
+              + Fore.WHITE
+              + 'No focus sentence or outquote; content could not be isolated. Copy content, then press ENTER. '
+              + Back.RESET
+              + Fore.RED)
+        print(text)
+        content = raw_input(Fore.GREEN + Style.BRIGHT + 'paste content: ' + Style.RESET_ALL) or None
+    content = raw_input((
+                            Fore.GREEN
+                            + Style.BRIGHT
+                            + 'content: '
+                            + Style.RESET_ALL
+                            + '({0} ... {1}) '
+                        ).format(content[0], content[-1])).split('\n') or content
+
     return True
 
 def cleanName(name):
@@ -158,9 +189,8 @@ def main():
                 print(Fore.CYAN + Style.BRIGHT + sectionName, end='')
                 print(Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
                 print('%d%%' % int(status.progress() * 100))
-
             #if not readArticle(fh.getvalue()): # process was interrupted
-            readArticle(fh.getvalue())
+            readArticle(fh.getvalue(), files['name'])
             print('\n')
     page_token = response.get('nextPageToken', None)
     if page_token is None:
