@@ -93,11 +93,17 @@ def getContributors(byline):
          '({0}) ').format(', '.join(contributors))) or byline # confirm contributors
     return contributors
 
+def getSummary(line):
+    line = re.sub(r"(?i)Focus sentence:?", '', line).strip()
+    return raw_input(
+        (Fore.GREEN + Style.BRIGHT + 'summary/focus: ' + Style.RESET_ALL +
+         '({0}) ').format(line)).strip() or line
+
 def manualArticleRead(content, message):
-    print(Back.RED + Fore.WHITE + Style.BRIGHT + message + Style.RESET \
+    print(Back.RED + Fore.WHITE + Style.BRIGHT + message \
           +' You have entered manual article-reading mode for headers. ' \
           + 'Input "m" to extend the article, input "f" to show the whole ' \
-          + 'article, or press ENTER to continue.' + Back.RESET + Fore.RED)
+          + 'article, or press ENTER to continue.' + Style.RESET_ALL + Fore.RED)
     content = content.split('\n')
     lineNum = 0
     while lineNum < len(content):
@@ -109,23 +115,9 @@ def manualArticleRead(content, message):
         elif showMore != 'm':
             break
 
-def readArticle(content, filename):
+def readArticle(content):
     data = content.split('\n')
-
     title = getTitle(data[0])
-
-    # If article is a survey, skip.
-    if 'survey' in filename or content.count('%') > 10:  # possibly a survey
-        while True:
-            surveyConfirmation = raw_input(
-                (Fore.RED + Style.BRIGHT +
-                 'Is this article, with {0} counts of "%", a survey? (y/n) ' +
-                 Style.RESET_ALL).format(content.count('%')))
-            if surveyConfirmation == 'y':
-                print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
-                return title
-            elif surveyConfirmation == 'n':
-                break
 
     try:
         byline = next((line for line in data if line.find('By') >= 0))
@@ -139,36 +131,17 @@ def readArticle(content, filename):
     try:
         summary = next((line for line in data
                         if 'focus sentence:' in line.lower()))
-        summary = summary.replace('Focus Sentence:', '').replace(
-            'Focus sentence:', '').strip()
+    except StopIteration:  # no summary found
+        manualArticleRead(content, 'No focus sentence found.')
         summary = raw_input(
-            (Fore.GREEN + Style.BRIGHT + 'summary/focus: ' + Style.RESET_ALL +
+            (Fore.GREEN + Style.BRIGHT + 'enter custom summary/focus (may leave blank): ' + Style.RESET_ALL +
              '({0}) ').format(summary)) or summary
-    except StopIteration:  # no focus sentence found
-        print(
-            Back.RED + Fore.WHITE +
-            'No focus sentence found. Header text (input "m" for more header text, ENTER to progress): '
-            + Back.RESET + Fore.RED)
-        lineNum = 0
-        while True:
-            print(*data[lineNum:lineNum + 5], sep='\n')
-            lineNum += 5
-            if lineNum >= len(data):
-                break
-            showMore = raw_input()
-            if showMore != 'm':
-                break
-        summary = raw_input(Fore.GREEN + Style.BRIGHT +
-                            'summary/focus (may leave blank): ' +
-                            Style.RESET_ALL) or None
-    if summary: summary = summary.strip()
+    summary = getSummary(summary)
 
     paragraphs = []
     lineNum = len(data) - 1
     try:
-        while not re.match(r'outquote(\(s\))?s?:', data[lineNum].lower()) \
-            and data[lineNum].lower().find('word count:') < 0 \
-            and data[lineNum].lower().find('focus sentence:') < 0:
+        while not re.match(r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)', data[lineNum]):
             paragraphs = [data[lineNum].strip()] + paragraphs
             lineNum -= 1
         paragraphs = filter(None, paragraphs)  # removes empty strings
@@ -236,12 +209,33 @@ def main():
                     Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
                 print('%d%%' % int(status.progress() * 100))
 
+            content = fh.getvalue()
+
             if 'worldbeat' in file['name'].lower():
                 print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.' + Style.RESET_ALL)
                 continue
 
-            status = readArticle(fh.getvalue(), file['name'])
-            if type(status) is str: unprocessedFiles.append(file['name'])
+            if 'survey' in file['name'] or content.count('%') > 10:  # possibly a survey
+                surveyConfirmation = ''
+                isSurvey = True
+                while surveyConfirmation == '':
+                    surveyConfirmation = raw_input(
+                        (Fore.RED + Style.BRIGHT +
+                         'Is this article, with {} counts of "%", a survey? (y/n) ' +
+                         Style.RESET_ALL).format(content.count('%')))
+                    if surveyConfirmation == 'y':
+                        print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
+                        unprocessedFiles.append(file['name'])
+                        break
+                    elif surveyConfirmation == 'n':
+                        isSurvey = False
+                        break
+                if isSurvey is False:
+                    continue  # continue to next file
+
+            status = readArticle(fh.getvalue())
+            if type(status) is str:  # readArticle failed, returned filename
+                unprocessedFiles.append(file['name'])
             print('\n')
 
     if len(unprocessedFiles) > 0:
