@@ -133,7 +133,6 @@ def readArticle(text, filename):
 
     content = []
     lineNum = len(metadata) - 1
-    # TODO TURN THIS INTO REGEX pls thx babe
     try:
         while not re.match(r'outquote(\(s\))?s?:', metadata[lineNum].lower()) \
             and metadata[lineNum].lower().find('word count:') < 0 \
