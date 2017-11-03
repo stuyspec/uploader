@@ -61,19 +61,60 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
+def getTitle(line):
+    if 'Title: ' in line:
+        line = line[line.find('Title: ') + len('Title: '):]
+    line = line.strip()
+    return raw_input(
+        (Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL +
+         '({}) ').format(line)) or line  # if no user input, defaults to line
+
+def getContributors(byline):
+    if 'By:' in byline:
+        byline = byline[len('By:'):]
+    else:
+        byline = byline[len('By'):]
+    byline = re.findall(r"[\w']+|[.,!-?;]", byline.strip())
+    contributors = []
+    cutoff = 0
+    """Looks through tokens from left to right until a separator is reached,
+    then joins the previous tokens into a name. 
+    """
+    for i in range(0, len(byline)):
+        if byline[i] in ',&' or byline[i] == 'and':
+            name = cleanName(' '.join(byline[cutoff:i]))
+            contributors.append(name)
+            cutoff = i + 1
+    contributors.append(cleanName(' '.join(
+        byline[cutoff:])))  # add last contributor
+    contributors = filter(None, contributors)  # removes empty strings
+    byline = raw_input(
+        (Fore.GREEN + Style.BRIGHT + 'contributors : ' + Style.RESET_ALL +
+         '({0}) ').format(', '.join(contributors))) or byline # confirm contributors
+    return contributors
+
+def manualArticleRead(content, message):
+    print(Back.RED + Fore.WHITE + Style.BRIGHT + message + Style.RESET \
+          +' You have entered manual article-reading mode for headers. ' \
+          + 'Input "m" to extend the article, input "f" to show the whole ' \
+          + 'article, or press ENTER to continue.' + Back.RESET + Fore.RED)
+    content = content.split('\n')
+    lineNum = 0
+    while lineNum < len(content):
+        print(*content[lineNum:lineNum + 5], sep='\n')
+        lineNum += 5
+        showMore = raw_input()
+        if showMore == 'f':
+            print(*content[lineNum:], sep='\n')
+        elif showMore != 'm':
+            break
 
 def readArticle(text, filename):
-    metadata = text.split('\n')
-    title = metadata[0].strip()  # gets first line of text
-    if 'Title: ' in title:
-        title = title[title.find('Title: ') + len('Title: '):]
-    if 'worldbeat' in title.lower():
-        print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.')
-        return title
-    title = raw_input(
-        (Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL +
-         '({0}) ').format(title.strip())) or title.strip()  # defaults to title
+    text = text.split('\n')
 
+    title = getTitle(text[0])
+
+    # If article is a survey, skip.
     if 'survey' in filename or text.count('%') > 10:  # possibly a survey
         while True:
             surveyConfirmation = raw_input(
@@ -85,40 +126,15 @@ def readArticle(text, filename):
                 return title
             elif surveyConfirmation == 'n':
                 break
-    byline = None
-    contributors = []
+
     try:
         byline = next((line for line in metadata if line.find('By') >= 0))
-        if 'By:' in byline:
-            byline = byline[len('By:'):].strip()
-        else:
-            byline = byline[len('By'):].strip()
-
-        # splits string into words and punctuation
-        byline = re.findall(r"[\w']+|[.,!-?;]", byline)
-        cutoff = 0
-        for i in range(0, len(byline)):
-            if byline[i] in ',&' or byline[i] == 'and':
-                name = cleanName(' '.join(byline[cutoff:i]))
-                contributors.append(name)
-                cutoff = i + 1
-        contributors.append(cleanName(' '.join(
-            byline[cutoff:])))  # clean up last one
-        contributors = filter(None, contributors)  # removes empty strings
     except StopIteration:  # no byline found
-        print(Back.RED + Fore.WHITE + 'No byline found. Header text: ' +
-              Back.RESET + Fore.RED)
-        for line in metadata:
-            print(line.strip())
-            if 'words' in line.lower():  # print heading up to word count
-                contributors = raw_input(
-                    (Fore.GREEN + Style.BRIGHT +
-                     'enter contributors separated by ", ": ' +
-                     Style.RESET_ALL)).split(', ')
-                break
-    byline = raw_input(
-        (Fore.GREEN + Style.BRIGHT + 'contributors : ' + Style.RESET_ALL +
-         '({0}) ').format(', '.join(contributors))) or byline
+        manualArticleRead(text, 'No byline found.')
+        byline = raw_input(Fore.GREEN + Style.BRIGHT \
+                                 + 'enter contributors separated by ", ": ' \
+                                 + Style.RESET_ALL)
+    contributors = getContributors(byline)
 
     try:
         summary = next((line for line in metadata
@@ -145,8 +161,7 @@ def readArticle(text, filename):
         summary = raw_input(Fore.GREEN + Style.BRIGHT +
                             'summary/focus (may leave blank): ' +
                             Style.RESET_ALL) or None
-    if summary:
-        summary = summary.strip()
+    if summary: summary = summary.strip()
 
     content = []
     lineNum = len(metadata) - 1
@@ -220,10 +235,15 @@ def main():
                 print(
                     Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
                 print('%d%%' % int(status.progress() * 100))
-            #if not readArticle(fh.getvalue()): # process was interrupted
+
+            if 'worldbeat' in file['name'].lower():
+                print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.' + Style.RESET_ALL)
+                continue
+
             status = readArticle(fh.getvalue(), file['name'])
             if type(status) is str: unprocessedFiles.append(file['name'])
             print('\n')
+
     if len(unprocessedFiles) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
               Back.RESET + Fore.RED)
