@@ -129,29 +129,26 @@ def readArticle(text, filename):
             if showMore != 'm':
                 break
         summary = raw_input(Fore.GREEN + Style.BRIGHT + 'summary/focus (may leave blank): ' + Style.RESET_ALL) or None
-    summary = summary.strip()
+    if summary:
+        summary = summary.strip()
 
     content = []
     lineNum = len(metadata) - 1
     try:
         while metadata[lineNum].lower().find('outquote:') < 0 \
+            and metadata[lineNum].lower().find('outquote(s):') < 0 \
             and metadata[lineNum].lower().find('focus sentence:') < 0:
             content = [metadata[lineNum].strip()] + content
             lineNum -= 1
         content = filter(None, content) # removes empty strings
     except IndexError: # no focus sentence or outquote ever reached
+        print(Fore.RED + text)
         print(Back.RED
               + Fore.WHITE
-              + '** No focus sentence or outquote; content could not be isolated. Copy content, then press ENTER. ** '
+              + 'No focus sentence or outquote; content could not be isolated. Article skipped.'
               + Back.RESET
               + Fore.RED)
-        print(text)
-        print(Back.RED
-              + Fore.WHITE
-              + '** No focus sentence or outquote; content could not be isolated. Copy content, then press ENTER. ** '
-              + Back.RESET
-              + Fore.RED)
-        content = raw_input(Fore.GREEN + Style.BRIGHT + 'paste content: ' + Style.RESET_ALL) or None
+        return title
     content = raw_input((
                             Fore.GREEN
                             + Style.BRIGHT
@@ -185,6 +182,8 @@ def main():
     files = response.get('files', []) # if no key 'files', defaults to []
     SBC = next((file for file in files if file['name'] == 'SBC'), None)
     folders = getFoldersInFile(files, SBC['id'])
+
+    unprocessedFiles = []
     for file in files:
         if file['mimeType'] == 'application/vnd.google-apps.document' and file.get('parents', [None])[0] in folders:
 
@@ -203,8 +202,16 @@ def main():
                 print(Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
                 print('%d%%' % int(status.progress() * 100))
             #if not readArticle(fh.getvalue()): # process was interrupted
-            readArticle(fh.getvalue(), file['name'])
+            status = readArticle(fh.getvalue(), file['name'])
+            if type(status) is str: unprocessedFiles.append(file['name'])
             print('\n')
+    if len(unprocessedFiles) > 0:
+        print(Back.RED
+              + Fore.WHITE
+              + 'The title of unprocessed files: '
+              + Back.RESET
+              + Fore.RED)
+        print(*unprocessedFiles, sep='\n')
     page_token = response.get('nextPageToken', None)
     if page_token is None:
         return
