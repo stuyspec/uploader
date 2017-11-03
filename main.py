@@ -71,7 +71,7 @@ def get_title(line):
 
 def get_contributors(byline):
     byline = re.sub(r"By:?", '', byline).strip()
-    byline = re.findall(r"[\w']+|[.,!-?;]", byline)
+    byline = re.findall(r"[\w']+|[.,!-?;]", bylineb)
     contributors = []
     cutoff = 0
     """Looks through tokens from left to right until a separator is reached,
@@ -133,7 +133,6 @@ def read_article(content):
 
     HEADER_LINE_PATTERN = re.compile(r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)')
     headerEndIndex = len(data) - next((index for index, value in enumerate(reversed(data)) if HEADER_LINE_PATTERN.match(value)), -1)
-
     if headerEndIndex == -1:
         print(Back.RED + Fore.WHITE
               + 'No focus sentence or outquote; content could not be isolated. Article skipped.'
@@ -150,8 +149,7 @@ def read_article(content):
 def cleanName(name):
     name = name.replace(' - ', '-')
     # remove nickname formatting e.g. "By Ying Zi (Jessy) Mei"
-    nicknameRegex = re.compile(r"\([\w\s-]*\)\s")
-    name = nicknameRegex.sub('', name)  # removes nicknames
+    name = re.sub(r"\([\w\s-]*\)\s", '', name)
     return name
 
 
