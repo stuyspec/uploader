@@ -109,18 +109,18 @@ def manualArticleRead(content, message):
         elif showMore != 'm':
             break
 
-def readArticle(text, filename):
-    text = text.split('\n')
+def readArticle(content, filename):
+    data = content.split('\n')
 
-    title = getTitle(text[0])
+    title = getTitle(data[0])
 
     # If article is a survey, skip.
-    if 'survey' in filename or text.count('%') > 10:  # possibly a survey
+    if 'survey' in filename or content.count('%') > 10:  # possibly a survey
         while True:
             surveyConfirmation = raw_input(
                 (Fore.RED + Style.BRIGHT +
                  'Is this article, with {0} counts of "%", a survey? (y/n) ' +
-                 Style.RESET_ALL).format(text.count('%')))
+                 Style.RESET_ALL).format(content.count('%')))
             if surveyConfirmation == 'y':
                 print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
                 return title
@@ -128,16 +128,16 @@ def readArticle(text, filename):
                 break
 
     try:
-        byline = next((line for line in metadata if line.find('By') >= 0))
+        byline = next((line for line in data if line.find('By') >= 0))
     except StopIteration:  # no byline found
-        manualArticleRead(text, 'No byline found.')
+        manualArticleRead(content, 'No byline found.')
         byline = raw_input(Fore.GREEN + Style.BRIGHT \
                                  + 'enter contributors separated by ", ": ' \
                                  + Style.RESET_ALL)
     contributors = getContributors(byline)
 
     try:
-        summary = next((line for line in metadata
+        summary = next((line for line in data
                         if 'focus sentence:' in line.lower()))
         summary = summary.replace('Focus Sentence:', '').replace(
             'Focus sentence:', '').strip()
@@ -151,9 +151,9 @@ def readArticle(text, filename):
             + Back.RESET + Fore.RED)
         lineNum = 0
         while True:
-            print(*metadata[lineNum:lineNum + 5], sep='\n')
+            print(*data[lineNum:lineNum + 5], sep='\n')
             lineNum += 5
-            if lineNum >= len(metadata):
+            if lineNum >= len(data):
                 break
             showMore = raw_input()
             if showMore != 'm':
@@ -163,25 +163,25 @@ def readArticle(text, filename):
                             Style.RESET_ALL) or None
     if summary: summary = summary.strip()
 
-    content = []
-    lineNum = len(metadata) - 1
+    paragraphs = []
+    lineNum = len(data) - 1
     try:
-        while not re.match(r'outquote(\(s\))?s?:', metadata[lineNum].lower()) \
-            and metadata[lineNum].lower().find('word count:') < 0 \
-            and metadata[lineNum].lower().find('focus sentence:') < 0:
-            content = [metadata[lineNum].strip()] + content
+        while not re.match(r'outquote(\(s\))?s?:', data[lineNum].lower()) \
+            and data[lineNum].lower().find('word count:') < 0 \
+            and data[lineNum].lower().find('focus sentence:') < 0:
+            paragraphs = [data[lineNum].strip()] + paragraphs
             lineNum -= 1
-        content = filter(None, content)  # removes empty strings
+        paragraphs = filter(None, paragraphs)  # removes empty strings
     except IndexError:  # no focus sentence or outquote ever reached
-        print(Fore.RED + text)
+        print(Fore.RED + content)
         print(
             Back.RED + Fore.WHITE +
             'No focus sentence or outquote; content could not be isolated. Article skipped.'
             + Back.RESET + Fore.RED)
         return title
-    content = raw_input((Fore.GREEN + Style.BRIGHT + 'content: ' +
+    paragraphs = raw_input((Fore.GREEN + Style.BRIGHT + 'content: ' +
                          Style.RESET_ALL + '({0} ... {1}) ').format(
-                             content[0], content[-1])).split('\n') or content
+                         paragraphs[0], paragraphs[-1])).split('\n') or paragraphs
 
     return True
 
