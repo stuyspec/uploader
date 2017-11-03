@@ -66,16 +66,24 @@ def readArticle(text, filename):
     if 'Title: ' in title:
         title = title[title.find('Title: ') + len('Title: '):]
     if 'worldbeat' in title.lower():
-        print(Fore.RED + Style.BRIGHT + 'title: (Worldbeat); skipped.')
-        return False
+        print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.')
+        return title
     title = raw_input((Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL + '({0}) ').format(title.strip())) or title.strip() # defaults to title
 
 
     if 'survey' in filename or text.count('%') > 10:  # possibly a survey
-        surveyConfirmation = raw_input((Fore.RED + Style.BRIGHT + 'Is this article, with {0} counts of "%", a survey? (y/n) ').format(text.count('%')))
-        if surveyConfirmation == 'y':
-            print(Fore.RED + Style.BRIGHT + 'title: ({0}); survey skipped.'.format(title))
-            return False
+        while True:
+            surveyConfirmation = raw_input((
+                                               Fore.RED
+                                               + Style.BRIGHT
+                                               + 'Is this article, with {0} counts of "%", a survey? (y/n) '
+                                               + Style.RESET_ALL
+                                           ).format(text.count('%')))
+            if surveyConfirmation == 'y':
+                print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
+                return title
+            elif surveyConfirmation == 'n':
+                break
     byline = None
     contributors = []
     try:
@@ -134,10 +142,15 @@ def readArticle(text, filename):
     except IndexError: # no focus sentence or outquote ever reached
         print(Back.RED
               + Fore.WHITE
-              + 'No focus sentence or outquote; content could not be isolated. Copy content, then press ENTER. '
+              + '** No focus sentence or outquote; content could not be isolated. Copy content, then press ENTER. ** '
               + Back.RESET
               + Fore.RED)
         print(text)
+        print(Back.RED
+              + Fore.WHITE
+              + '** No focus sentence or outquote; content could not be isolated. Copy content, then press ENTER. ** '
+              + Back.RESET
+              + Fore.RED)
         content = raw_input(Fore.GREEN + Style.BRIGHT + 'paste content: ' + Style.RESET_ALL) or None
     content = raw_input((
                             Fore.GREEN
@@ -190,7 +203,7 @@ def main():
                 print(Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
                 print('%d%%' % int(status.progress() * 100))
             #if not readArticle(fh.getvalue()): # process was interrupted
-            readArticle(fh.getvalue(), files['name'])
+            readArticle(fh.getvalue(), file['name'])
             print('\n')
     page_token = response.get('nextPageToken', None)
     if page_token is None:
