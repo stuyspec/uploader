@@ -134,9 +134,12 @@ def readArticle(text, filename):
 
     content = []
     lineNum = len(metadata) - 1
+    # TODO TURN THIS INTO REGEX
     try:
         while metadata[lineNum].lower().find('outquote:') < 0 \
             and metadata[lineNum].lower().find('outquote(s):') < 0 \
+            and metadata[lineNum].lower().find('outquotes:') < 0 \
+            and metadata[lineNum].lower().find('word count:') < 0 \
             and metadata[lineNum].lower().find('focus sentence:') < 0:
             content = [metadata[lineNum].strip()] + content
             lineNum -= 1
