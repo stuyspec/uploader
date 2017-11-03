@@ -6,6 +6,7 @@ import httplib2
 import os
 import io
 import re
+import requests
 
 from apiclient import discovery
 from apiclient.http import MediaIoBaseDownload
@@ -112,36 +113,40 @@ def manual_article_read(content, message):
         elif showMore != 'm':
             break
 
-def read_article(content):
-    data = content.split('\n')
-    data = [line.strip() for line in data]
-    title = get_title(data[0])
+def post_article(content):
+    input = content.split('\n')
+    input = [line.strip() for line in input]
 
+    post_data = {}
 
-    byline = next((line for line in data if line.find('By') >= 0), None) # defaults to None
+    post_data['title'] = get_title(input[0])
+
+    byline = next((line for line in input if line.find('By') >= 0), None) # defaults to None
     if not byline:
         manual_article_read(content, 'No byline found.')
         byline = raw_input(Fore.GREEN + Style.BRIGHT \
                                  + 'enter contributors separated by ", ": ' \
                                  + Style.RESET_ALL)
-    contributors = get_contributors(byline)
+    post_data['contributors'] = get_contributors(byline)
 
-    summary = next((line for line in data if 'focus sentence:' in line.lower()), None)
+    summary = next((line for line in input if 'focus sentence:' in line.lower()), None)
     if not summary:
         manual_article_read(content, 'No focus sentence found.')
-    summary = get_summary(summary)
+    post_data['summary'] = get_summary(summary)
 
-    HEADER_LINE_PATTERN = re.compile(r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)')
-    headerEndIndex = len(data) - next((index for index, value in enumerate(reversed(data)) if HEADER_LINE_PATTERN.match(value)), -1)
+    HEADER_LINE_PATTERN = re.compile(r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|article:?')
+    headerEndIndex = len(input) - next((index for index, value in enumerate(reversed(input)) if HEADER_LINE_PATTERN.match(value)), -1)
     if headerEndIndex == -1:
         print(Back.RED + Fore.WHITE
               + 'No focus sentence or outquote; content could not be isolated. Article skipped.'
               + Back.RESET + Fore.RED)
-        return title
-    paragraphs = filter(None, data[headerEndIndex:])
-    paragraphs = raw_input((Fore.GREEN + Style.BRIGHT + 'content: ' +
+        return post_data['title']
+    paragraphs = filter(None, input[headerEndIndex:])
+    post_data['paragraphs'] = raw_input((Fore.GREEN + Style.BRIGHT + 'content: ' +
                          Style.RESET_ALL + '({} ... {}) ').format(
                          paragraphs[0], paragraphs[-1])).split('\n') or paragraphs
+
+    r = requests.post("https://requestb.in/sky5ktsk", data=post_data)
 
     return True
 
@@ -220,7 +225,7 @@ def main():
                     print('\n')
                     continue  # continue to next file
 
-            status = read_article(fh.getvalue())
+            status = post_article(fh.getvalue())
             if type(status) is str:  # readArticle failed, returned filename
                 unprocessedFiles.append(file['name'])
             print('\n')
@@ -247,6 +252,6 @@ def getFoldersInFile(files, parentFolderId):
 if __name__ == '__main__':
     if args.read_article:
         with open(args.read_article) as file:
-            read_article(file.read())
+            post_article(file.read())
     else:
         main()
