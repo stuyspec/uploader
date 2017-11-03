@@ -136,7 +136,7 @@ def post_article(content):
     post_data['contributors'] = get_contributors(byline)
 
     summary = next((line for line in input
-                    if 'focus sentence:' in line.lower()), None)
+                    if 'focus sentence:' in line.lower()), '')
     if not summary:
         manual_article_read(content, 'No focus sentence found.')
     post_data['summary'] = get_summary(summary)
