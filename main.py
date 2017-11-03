@@ -61,7 +61,7 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
-def getTitle(line):
+def get_title(line):
     if 'Title: ' in line:
         line = line[line.find('Title: ') + len('Title: '):]
     line = line.strip()
@@ -69,7 +69,7 @@ def getTitle(line):
         (Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL +
          '({}) ').format(line)) or line  # if no user input, defaults to line
 
-def getContributors(byline):
+def get_contributors(byline):
     if 'By:' in byline:
         byline = byline[len('By:'):]
     else:
@@ -93,13 +93,13 @@ def getContributors(byline):
          '({0}) ').format(', '.join(contributors))) or byline # confirm contributors
     return contributors
 
-def getSummary(line):
-    line = re.sub(r"(?i)Focus sentence:?", '', line).strip()
+def get_summary(line):
+    line = re.sub(r"(?i)Focus Sentence:?", '', line).strip()
     return raw_input(
         (Fore.GREEN + Style.BRIGHT + 'summary/focus: ' + Style.RESET_ALL +
          '({0}) ').format(line)).strip() or line
 
-def manualArticleRead(content, message):
+def manual_article_read(content, message):
     print(Back.RED + Fore.WHITE + Style.BRIGHT + message \
           +' You have entered manual article-reading mode for headers. ' \
           + 'Input "m" to extend the article, input "f" to show the whole ' \
@@ -115,45 +115,36 @@ def manualArticleRead(content, message):
         elif showMore != 'm':
             break
 
-def readArticle(content):
+def read_article(content):
     data = content.split('\n')
-    title = getTitle(data[0])
+    data = [line.strip() for line in data]
+    title = get_title(data[0])
 
-    try:
-        byline = next((line for line in data if line.find('By') >= 0))
-    except StopIteration:  # no byline found
-        manualArticleRead(content, 'No byline found.')
+
+    byline = next((line for line in data if line.find('By') >= 0), None) # defaults to None
+    if not byline:
+        manual_article_read(content, 'No byline found.')
         byline = raw_input(Fore.GREEN + Style.BRIGHT \
                                  + 'enter contributors separated by ", ": ' \
                                  + Style.RESET_ALL)
-    contributors = getContributors(byline)
+    contributors = get_contributors(byline)
 
-    try:
-        summary = next((line for line in data
-                        if 'focus sentence:' in line.lower()))
-    except StopIteration:  # no summary found
-        manualArticleRead(content, 'No focus sentence found.')
-        summary = raw_input(
-            (Fore.GREEN + Style.BRIGHT + 'enter custom summary/focus (may leave blank): ' + Style.RESET_ALL +
-             '({0}) ').format(summary)) or summary
-    summary = getSummary(summary)
+    summary = next((line for line in data if 'focus sentence:' in line.lower()), None)
+    if not summary:
+        manual_article_read(content, 'No focus sentence found.')
+    summary = get_summary(summary)
 
-    paragraphs = []
-    lineNum = len(data) - 1
-    try:
-        while not re.match(r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)', data[lineNum]):
-            paragraphs = [data[lineNum].strip()] + paragraphs
-            lineNum -= 1
-        paragraphs = filter(None, paragraphs)  # removes empty strings
-    except IndexError:  # no focus sentence or outquote ever reached
-        print(Fore.RED + content)
-        print(
-            Back.RED + Fore.WHITE +
-            'No focus sentence or outquote; content could not be isolated. Article skipped.'
-            + Back.RESET + Fore.RED)
+    HEADER_LINE_PATTERN = re.compile(r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)')
+    headerEndIndex = len(data) - next((index for index, value in enumerate(reversed(data)) if HEADER_LINE_PATTERN.match(value)), -1)
+
+    if headerEndIndex == -1:
+        print(Back.RED + Fore.WHITE
+              + 'No focus sentence or outquote; content could not be isolated. Article skipped.'
+              + Back.RESET + Fore.RED)
         return title
+    paragraphs = filter(None, data[headerEndIndex:])
     paragraphs = raw_input((Fore.GREEN + Style.BRIGHT + 'content: ' +
-                         Style.RESET_ALL + '({0} ... {1}) ').format(
+                         Style.RESET_ALL + '({} ... {}) ').format(
                          paragraphs[0], paragraphs[-1])).split('\n') or paragraphs
 
     return True
@@ -217,7 +208,7 @@ def main():
 
             if 'survey' in file['name'] or content.count('%') > 10:  # possibly a survey
                 surveyConfirmation = ''
-                isSurvey = True
+                isSurvey = False
                 while surveyConfirmation == '':
                     surveyConfirmation = raw_input(
                         (Fore.RED + Style.BRIGHT +
@@ -226,14 +217,15 @@ def main():
                     if surveyConfirmation == 'y':
                         print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
                         unprocessedFiles.append(file['name'])
+                        isSurvey = True
                         break
                     elif surveyConfirmation == 'n':
-                        isSurvey = False
                         break
-                if isSurvey is False:
+                if isSurvey:
+                    print('\n')
                     continue  # continue to next file
 
-            status = readArticle(fh.getvalue())
+            status = read_article(fh.getvalue())
             if type(status) is str:  # readArticle failed, returned filename
                 unprocessedFiles.append(file['name'])
             print('\n')
@@ -260,6 +252,6 @@ def getFoldersInFile(files, parentFolderId):
 if __name__ == '__main__':
     if args.read_article:
         with open(args.read_article) as file:
-            readArticle(file.read())
+            read_article(file.read())
     else:
         main()
