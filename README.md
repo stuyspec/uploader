@@ -1,5 +1,5 @@
 # spec-uploader
-A terminal-based uploader for uploading articles. Takes in a Volume Drive folder as input.
+A CLI for uploading articles from Google Drive Volume folders to our Rails API. Written in Python.
 
 ## Prerequisites
 To run this CLI (command line interface), you'll need:
