@@ -31,7 +31,6 @@ SCOPES = 'https://www.googleapis.com/auth/drive'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Spec-Uploader CLI'
 
-
 def get_credentials():
     """Gets valid user credentials from storage.
 
@@ -134,7 +133,7 @@ def readArticle(text, filename):
 
     content = []
     lineNum = len(metadata) - 1
-    # TODO TURN THIS INTO REGEX
+    # TODO TURN THIS INTO REGEX pls thx babe
     try:
         while metadata[lineNum].lower().find('outquote:') < 0 \
             and metadata[lineNum].lower().find('outquote(s):') < 0 \
