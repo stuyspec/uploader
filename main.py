@@ -62,6 +62,7 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
+
 def get_title(line):
     if 'Title: ' in line:
         line = line[line.find('Title: ') + len('Title: '):]
@@ -69,6 +70,7 @@ def get_title(line):
     return raw_input(
         (Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL +
          '({}) ').format(line)) or line  # if no user input, defaults to line
+
 
 def get_contributors(byline):
     byline = re.sub(r"By:?", '', byline).strip()
@@ -87,15 +89,17 @@ def get_contributors(byline):
         byline[cutoff:])))  # add last contributor
     contributors = filter(None, contributors)  # removes empty strings
     byline = raw_input(
-        (Fore.GREEN + Style.BRIGHT + 'contributors : ' + Style.RESET_ALL +
-         '({0}) ').format(', '.join(contributors))) or byline # confirm contributors
+        (Fore.GREEN + Style.BRIGHT +
+         'contributors : ' + Style.RESET_ALL + '({0}) ').format(
+             ', '.join(contributors))) or byline  # confirm contributors
     return contributors
+
 
 def get_summary(line):
     line = re.sub(r"(?i)Focus Sentence:?", '', line).strip()
-    return raw_input(
-        (Fore.GREEN + Style.BRIGHT + 'summary/focus: ' + Style.RESET_ALL +
-         '({0}) ').format(line)).strip() or line
+    return raw_input((Fore.GREEN + Style.BRIGHT + 'summary/focus: ' +
+                      Style.RESET_ALL + '({0}) ').format(line)).strip() or line
+
 
 def manual_article_read(content, message):
     print(Back.RED + Fore.WHITE + Style.BRIGHT + message \
@@ -113,6 +117,7 @@ def manual_article_read(content, message):
         elif showMore != 'm':
             break
 
+
 def post_article(content):
     input = content.split('\n')
     input = [line.strip() for line in input]
@@ -121,7 +126,8 @@ def post_article(content):
 
     post_data['title'] = get_title(input[0])
 
-    byline = next((line for line in input if line.find('By') >= 0), None) # defaults to None
+    byline = next((line for line in input
+                   if line.find('By') >= 0), None)  # defaults to None
     if not byline:
         manual_article_read(content, 'No byline found.')
         byline = raw_input(Fore.GREEN + Style.BRIGHT \
@@ -129,22 +135,29 @@ def post_article(content):
                                  + Style.RESET_ALL)
     post_data['contributors'] = get_contributors(byline)
 
-    summary = next((line for line in input if 'focus sentence:' in line.lower()), None)
+    summary = next((line for line in input
+                    if 'focus sentence:' in line.lower()), None)
     if not summary:
         manual_article_read(content, 'No focus sentence found.')
     post_data['summary'] = get_summary(summary)
 
-    HEADER_LINE_PATTERN = re.compile(r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|article:?')
-    headerEndIndex = len(input) - next((index for index, value in enumerate(reversed(input)) if HEADER_LINE_PATTERN.match(value)), -1)
+    HEADER_LINE_PATTERN = re.compile(
+        r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|article:?'
+    )
+    headerEndIndex = len(input) - next(
+        (index for index, value in enumerate(reversed(input))
+         if HEADER_LINE_PATTERN.match(value)), -1)
     if headerEndIndex == -1:
-        print(Back.RED + Fore.WHITE
-              + 'No focus sentence or outquote; content could not be isolated. Article skipped.'
-              + Back.RESET + Fore.RED)
+        print(
+            Back.RED + Fore.WHITE +
+            'No focus sentence or outquote; content could not be isolated. Article skipped.'
+            + Back.RESET + Fore.RED)
         return post_data['title']
     paragraphs = filter(None, input[headerEndIndex:])
-    post_data['paragraphs'] = raw_input((Fore.GREEN + Style.BRIGHT + 'content: ' +
-                         Style.RESET_ALL + '({} ... {}) ').format(
-                         paragraphs[0], paragraphs[-1])).split('\n') or paragraphs
+    post_data['paragraphs'] = raw_input(
+        (Fore.GREEN + Style.BRIGHT +
+         'content: ' + Style.RESET_ALL + '({} ... {}) ').format(
+             paragraphs[0], paragraphs[-1])).split('\n') or paragraphs
 
     r = requests.post("https://requestb.in/sky5ktsk", data=post_data)
 
@@ -203,17 +216,19 @@ def main():
             content = fh.getvalue()
 
             if 'worldbeat' in file['name'].lower():
-                print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.' + Style.RESET_ALL)
+                print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.' +
+                      Style.RESET_ALL)
                 continue
 
-            if 'survey' in file['name'] or content.count('%') > 10:  # possibly a survey
+            if 'survey' in file['name'] or content.count(
+                    '%') > 10:  # possibly a survey
                 surveyConfirmation = ''
                 isSurvey = False
                 while surveyConfirmation == '':
-                    surveyConfirmation = raw_input(
-                        (Fore.RED + Style.BRIGHT +
-                         'Is this article, with {} counts of "%", a survey? (y/n) ' +
-                         Style.RESET_ALL).format(content.count('%')))
+                    surveyConfirmation = raw_input((
+                        Fore.RED + Style.BRIGHT +
+                        'Is this article, with {} counts of "%", a survey? (y/n) '
+                        + Style.RESET_ALL).format(content.count('%')))
                     if surveyConfirmation == 'y':
                         print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
                         unprocessedFiles.append(file['name'])
