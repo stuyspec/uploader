@@ -70,11 +70,8 @@ def get_title(line):
          '({}) ').format(line)) or line  # if no user input, defaults to line
 
 def get_contributors(byline):
-    if 'By:' in byline:
-        byline = byline[len('By:'):]
-    else:
-        byline = byline[len('By'):]
-    byline = re.findall(r"[\w']+|[.,!-?;]", byline.strip())
+    byline = re.sub(r"By:?", '', byline).strip()
+    byline = re.findall(r"[\w']+|[.,!-?;]", byline)
     contributors = []
     cutoff = 0
     """Looks through tokens from left to right until a separator is reached,
