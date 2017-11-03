@@ -65,16 +65,15 @@ def readArticle(text):
     title = metadata[0].strip() # gets first line of text
     if 'Title: ' in title:
         title = title[title.find('Title: ') + len('Title: '):]
-    if 'worldbeat' in title.lower()
+    if 'worldbeat' in title.lower():
         print(Fore.RED + Style.BRIGHT + 'title: (Worldbeat); skipped')
         return False
-    title = raw_input((Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL + '({0})').format(title)) or title # defaults to title
+    title = raw_input((Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL + '({0}) ').format(title.strip())) or title # defaults to title
 
     byline = None
     contributors = []
     try:
         byline = next((line for line in metadata if line.find('By') >= 0))
-        print(byline)
         if 'By:' in byline:
             byline = byline[len('By:'):].strip()
         else:
@@ -97,13 +96,13 @@ def readArticle(text):
             if 'words' in line.lower(): # print heading up to word count
                 contributors = raw_input((Fore.GREEN + Style.BRIGHT + 'enter contributors separated by ", ": ' + Style.RESET_ALL)).split(', ')
                 break
-    byline = raw_input((Fore.GREEN + Style.BRIGHT + 'contributors: ' + Style.RESET_ALL + '[{0}]').format(', '.join(contributors))) or byline
+    byline = raw_input((Fore.GREEN + Style.BRIGHT + 'contributors: ' + Style.RESET_ALL + '({0}) ').format(', '.join(contributors))) or byline
 
     try:
         summary = next((line for line in metadata if 'focus sentence:' in line.lower()))
-        summary = summary.replace('Focus Sentence:', '').replace('Focus sentence:').strip()
+        summary = summary.replace('Focus Sentence:', '').replace('Focus sentence:', '').strip()
         summary = raw_input(
-            (Fore.GREEN + Style.BRIGHT + 'summary/focus: ' + Style.RESET_ALL + '({0})').format(summary)) or summary
+            (Fore.GREEN + Style.BRIGHT + 'summary/focus: ' + Style.RESET_ALL + '({0}) ').format(summary)) or summary
     except StopIteration: # no focus sentence found
         print(Back.RED + Fore.WHITE + 'No focus sentence found. Header text (input "m" for more header text, ENTER to progress): ' + Back.RESET + Fore.RED)
         lineNum = 0
