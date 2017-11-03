@@ -71,7 +71,7 @@ def get_title(line):
 
 def get_contributors(byline):
     byline = re.sub(r"By:?", '', byline).strip()
-    byline = re.findall(r"[\w']+|[.,!-?;]", bylineb)
+    byline = re.findall(r"[\w']+|[.,!-?;]", byline)
     contributors = []
     cutoff = 0
     """Looks through tokens from left to right until a separator is reached,
@@ -79,10 +79,10 @@ def get_contributors(byline):
     """
     for i in range(0, len(byline)):
         if byline[i] in ',&' or byline[i] == 'and':
-            name = cleanName(' '.join(byline[cutoff:i]))
+            name = clean_name(' '.join(byline[cutoff:i]))
             contributors.append(name)
             cutoff = i + 1
-    contributors.append(cleanName(' '.join(
+    contributors.append(clean_name(' '.join(
         byline[cutoff:])))  # add last contributor
     contributors = filter(None, contributors)  # removes empty strings
     byline = raw_input(
@@ -146,7 +146,7 @@ def read_article(content):
     return True
 
 
-def cleanName(name):
+def clean_name(name):
     name = name.replace(' - ', '-')
     # remove nickname formatting e.g. "By Ying Zi (Jessy) Mei"
     name = re.sub(r"\([\w\s-]*\)\s", '', name)
