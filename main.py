@@ -199,7 +199,6 @@ def main():
 
             # find sectionName by getting folder with parentId
             sectionName = folders[file.get('parents', [None])[0]].upper()
-
             # create new download request
             request = drive_service.files().export_media(
                 fileId=file['id'], mimeType='text/plain')
@@ -211,6 +210,8 @@ def main():
                 print(Fore.CYAN + Style.BRIGHT + sectionName, end='')
                 print(
                     Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
+
+                # spaces to override " loading..."
                 print('%d%%' % int(status.progress() * 100))
 
             content = fh.getvalue()
