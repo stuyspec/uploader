@@ -144,16 +144,16 @@ def post_article(content):
     HEADER_LINE_PATTERN = re.compile(
         r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|article:?'
     )
-    headerEndIndex = len(input) - next(
+    header_end_index = len(input) - next(
         (index for index, value in enumerate(reversed(input))
          if HEADER_LINE_PATTERN.match(value)), -1)
-    if headerEndIndex == -1:
+    if header_end_index == -1:
         print(
             Back.RED + Fore.WHITE +
             'No focus sentence or outquote; content could not be isolated. Article skipped.'
             + Back.RESET + Fore.RED)
         return post_data['title']
-    paragraphs = filter(None, input[headerEndIndex:])
+    paragraphs = filter(None, input[header_end_index:])
     post_data['paragraphs'] = raw_input(
         (Fore.GREEN + Style.BRIGHT +
          'content: ' + Style.RESET_ALL + '({} ... {}) ').format(
@@ -197,8 +197,8 @@ def main():
         if file['mimeType'] == 'application/vnd.google-apps.document' and file.get(
                 'parents', [None])[0] in folders:
 
-            # find sectionName by getting folder with parentId
-            sectionName = folders[file.get('parents', [None])[0]].upper()
+            # find section_name by getting folder with parentId
+            section_name = folders[file.get('parents', [None])[0]].upper()
             # create new download request
             request = drive_service.files().export_media(
                 fileId=file['id'], mimeType='text/plain')
@@ -207,7 +207,7 @@ def main():
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
-                print(Fore.CYAN + Style.BRIGHT + sectionName, end='')
+                print(Fore.CYAN + Style.BRIGHT + section_name, end='')
                 print(
                     Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
 
@@ -224,7 +224,7 @@ def main():
             if 'survey' in file['name'] or content.count(
                     '%') > 10:  # possibly a survey
                 survey_confirmation = ''
-                isSurvey = False
+                is_survey = False
                 while survey_confirmation == '':
                     survey_confirmation = raw_input((
                         Fore.RED + Style.BRIGHT +
@@ -233,11 +233,11 @@ def main():
                     if survey_confirmation == 'y':
                         print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
                         unprocessed_files.append(file['name'])
-                        isSurvey = True
+                        is_survey = True
                         break
                     elif survey_confirmation == 'n':
                         break
-                if isSurvey:
+                if is_survey:
                     print('\n')
                     continue  # continue to next file
 
