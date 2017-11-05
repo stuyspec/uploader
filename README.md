@@ -12,3 +12,7 @@ To run this CLI (command line interface), you'll need:
 2. Log in to the Google Console with the credentials, and navigate to the `spec-uploader` project.
 3. Go to APIs & services. Select the Credentials tab, and download the `spec-uploader-cli` OAuth client ID.
 4. Move this file to your working directory (spec-uploader repository) and rename it to client_secret.json The file is .gitignored.
+5. To install required packages, install (pip)[https://pip.pypa.io/en/stable/installing] if you have not already, and, in the project directory, type:
+```
+pip install -r requirements.txt
+```
