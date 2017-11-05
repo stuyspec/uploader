@@ -70,8 +70,9 @@ def main():
             print(sections, section_name)
             section_id = next(
                 (s for s in sections
-                    if s['name'].lower() == section_name.lower()
-                 or section_name == 'A&E'
+                    if (s['name'].lower() == section_name.lower() or
+                        section_name == 'A&E'
+                        and s['name'] == "Arts & Entertainment")
                  )
             )['id']
             # create new download request
