@@ -112,6 +112,6 @@ def read_article(text):
              paragraphs[0], paragraphs[-1]))
     if paragraphs_input != '':
         paragraphs = paragraphs_input.split('\n')
-    data['content'] = '</p><p>'.join(paragraphs)
+    data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
     return data
