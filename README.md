@@ -19,4 +19,9 @@ pip install -r requirements.txt
 5. Go to APIs & services. Select the Credentials tab, and download the `spec-uploader-cli` OAuth client ID.
 6. Move this file to the `cli-uploader` repo and rename it to `client_secret.json`.
 
-7. You are now ready to run the uploader! Use the flag `--local` to `POST` articles to `localhost:30
+### Rails API
+1. We need something to upload to. If you are testing/developing this project rather than uploading from it, you will need a test API for your garbage data.
+2. Follow the instructions on the [Rails API repo](http://github.com/stuyspec/stuy-spec-api) to install/localhost.
+
+
+You are now ready to run the uploader! Use the flag `--local` to `POST` articles to the Rails API (`localhost:3000`).
