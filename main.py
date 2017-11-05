@@ -10,6 +10,7 @@ import json
 from apiclient import discovery
 from apiclient.http import MediaIoBaseDownload
 from oauth2client import tools
+from promise import Promise
 
 from read_article import read_article
 from credentials import get_credentials
@@ -126,15 +127,23 @@ def main():
 
             article_attributes = [ 'title', 'content', 'summary', 'content' ]
             article_post_data = {
-                key: value for key, value in article_data.items() if key in article_attributes
+                key: value for key, value in article_data.items()
+                               if key in article_attributes
             }
             for attr in ('volume', 'issue', 'section_id'):
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
-            print(article_post_data)
-            article_request = requests.post(STUY_SPEC_API_URL + '/articles',
-                                            data=json.dumps(article_post_data),
-                                            headers={'Content-Type': 'application/json'})
-            article_id = json.loads(article_request.text)
+
+            promise = Promise(
+                lambda resolve, reject: post_article(resolve, reject,
+                                                     article_post_data)
+            ).then(lambda article_id: post_contributors(article_id,
+                                                        article_data.
+                                                            .get('contributors',
+                                                                 [])
+                                                        ))
+            P
+            article_id = json.loads(article_request.text).get('id', -1)
+
             #print(article_id)
             print('\n')
 
@@ -145,6 +154,38 @@ def main():
     page_token = response.get('nextPageToken', None)
     if page_token is None:
         return
+
+def post_article(resolve, reject, data):
+    article_response = requests.post(STUY_SPEC_API_URL + '/articles',
+                                    data=json.dumps(data),
+                                    headers={'Content-Type': 'application/json'})
+    article_response_json = article_response.json()
+    try:
+        article_response.raise_for_status()
+        resolve(article_response_json['text'].get('id', -1))
+    except requests.HTTPError as e:
+        reject('HTTP ERROR %d' % e.code)
+
+
+def post_contributors(article_id, contributors):
+    for c in contributors:
+        c_name = c.split(' ')
+        c_post_data = {
+            'first_name': ' '.join(c_name[:-1])
+            'last_name': c_name[-1]
+        }
+        c_request = requests.post(STUY_SPEC_API_URL + '/users',
+                                  data=json.dumps(c_post_data),
+                                  headers={'Content-Type': 'application/json'})
+    contributors_response = requests.post(STUY_SPEC_API_URL + '/articles',
+                                          data=json.dumps(data),
+                                          headers={'Content-Type': 'application/json'})
+    contributors_response_json = article_response.json()
+    try:
+        article_response.raise_for_status()
+        resolve(article_response_json['text'].get('id', -1))
+    except requests.HTTPError as e:
+        reject('HTTP ERROR %d' % e.code)
 
 
 def get_folders_in_file(files, parent_folder_id):
