@@ -167,25 +167,21 @@ def post_article(resolve, reject, data):
         reject('HTTP ERROR %d' % e.code)
 
 
+def name_split(name):
+    name = name.split(' ')
+    return {
+        'first_name': ' '.join(c_name[:-1])
+        'last_name': c_name[-1]
+    }
+
+
 def post_contributors(article_id, contributors):
-    for c in contributors:
-        c_name = c.split(' ')
-        c_post_data = {
-            'first_name': ' '.join(c_name[:-1])
-            'last_name': c_name[-1]
-        }
-        c_request = requests.post(STUY_SPEC_API_URL + '/users',
-                                  data=json.dumps(c_post_data),
-                                  headers={'Content-Type': 'application/json'})
-    contributors_response = requests.post(STUY_SPEC_API_URL + '/articles',
-                                          data=json.dumps(data),
+    contributors = [name_split(c) for c in contributors]
+    contributors_response = requests.post(STUY_SPEC_API_URL + '/users',
+                                          data=json.dumps(contributors),
                                           headers={'Content-Type': 'application/json'})
-    contributors_response_json = article_response.json()
-    try:
-        article_response.raise_for_status()
-        resolve(article_response_json['text'].get('id', -1))
-    except requests.HTTPError as e:
-        reject('HTTP ERROR %d' % e.code)
+    contributors_response.raise_for_status()
+    return [c['id'] for c in contributors_response.json()['text']]
 
 
 def get_folders_in_file(files, parent_folder_id):
