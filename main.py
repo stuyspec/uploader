@@ -190,9 +190,9 @@ def main():
         pageToken=page_token).execute()
     files = response.get('files', [])  # if no key 'files', defaults to []
     SBC = next((file for file in files if file['name'] == 'SBC'), None)
-    folders = getFoldersInFile(files, SBC['id'])
+    folders = get_folders_in_file(files, SBC['id'])
 
-    unprocessedFiles = []
+    unprocessed_files = []
     for file in files:
         if file['mimeType'] == 'application/vnd.google-apps.document' and file.get(
                 'parents', [None])[0] in folders:
@@ -223,19 +223,19 @@ def main():
 
             if 'survey' in file['name'] or content.count(
                     '%') > 10:  # possibly a survey
-                surveyConfirmation = ''
+                survey_confirmation = ''
                 isSurvey = False
-                while surveyConfirmation == '':
-                    surveyConfirmation = raw_input((
+                while survey_confirmation == '':
+                    survey_confirmation = raw_input((
                         Fore.RED + Style.BRIGHT +
                         'Is this article, with {} counts of "%", a survey? (y/n) '
                         + Style.RESET_ALL).format(content.count('%')))
-                    if surveyConfirmation == 'y':
+                    if survey_confirmation == 'y':
                         print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
-                        unprocessedFiles.append(file['name'])
+                        unprocessed_files.append(file['name'])
                         isSurvey = True
                         break
-                    elif surveyConfirmation == 'n':
+                    elif survey_confirmation == 'n':
                         break
                 if isSurvey:
                     print('\n')
@@ -243,23 +243,23 @@ def main():
 
             status = post_article(fh.getvalue())
             if type(status) is str:  # readArticle failed, returned filename
-                unprocessedFiles.append(file['name'])
+                unprocessed_files.append(file['name'])
             print('\n')
 
-    if len(unprocessedFiles) > 0:
+    if len(unprocessed_files) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
               Back.RESET + Fore.RED)
-        print(*unprocessedFiles, sep='\n')
+        print(*unprocessed_files, sep='\n')
     page_token = response.get('nextPageToken', None)
     if page_token is None:
         return
 
 
-def getFoldersInFile(files, parentFolderId):
+def get_folders_in_file(files, parent_folder_id):
     folders = {}
     for file in files:
         # check if parent folder is SBC and file type is folder
-        if file.get('parents', [None])[0] == parentFolderId and file.get(
+        if file.get('parents', [None])[0] == parent_folder_id and file.get(
                 'mimeType') == 'application/vnd.google-apps.folder':
             folders[file['id']] = file['name']
     return folders
