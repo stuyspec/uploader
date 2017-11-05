@@ -65,9 +65,18 @@ def manual_article_read(content, message):
         elif show_more != 'm':
             break
 
+# TODO: outquotes
 
-def read_article(content):
-    input = content.split('\n')
+def get_header_end(input):
+    HEADER_LINE_PATTERN = re.compile(
+        r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|article:?'
+    )
+    return len(input) - next(
+        (index for index, value in enumerate(reversed(input))
+         if HEADER_LINE_PATTERN.match(value)), -1)
+
+def read_article(text):
+    input = text.split('\n')
     input = [line.strip() for line in input]
 
     data = {}
@@ -77,7 +86,7 @@ def read_article(content):
     byline = next((line for line in input
                    if line.find('By') >= 0), None)  # defaults to None
     if not byline:
-        manual_article_read(content, 'No byline found.')
+        manual_article_read(text, 'No byline found.')
         byline = raw_input(Fore.GREEN + Style.BRIGHT \
                                  + 'enter contributors separated by ", ": ' \
                                  + Style.RESET_ALL)
@@ -86,15 +95,10 @@ def read_article(content):
     summary = next((line for line in input
                     if 'focus sentence:' in line.lower()), '')
     if not summary:
-        manual_article_read(content, 'No focus sentence found.')
+        manual_article_read(text, 'No focus sentence found.')
     data['summary'] = get_summary(summary)
 
-    HEADER_LINE_PATTERN = re.compile(
-        r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|article:?'
-    )
-    header_end_index = len(input) - next(
-        (index for index, value in enumerate(reversed(input))
-         if HEADER_LINE_PATTERN.match(value)), -1)
+    header_end_index = get_header_end(input)
     if header_end_index == -1:
         print(
             Back.RED + Fore.WHITE +
@@ -102,9 +106,12 @@ def read_article(content):
             + Back.RESET + Fore.RED)
         return data['title']
     paragraphs = filter(None, input[header_end_index:])
-    data['paragraphs'] = raw_input(
+    paragraphs_input = raw_input(
         (Fore.GREEN + Style.BRIGHT +
          'content: ' + Style.RESET_ALL + '({} ... {}) ').format(
-             paragraphs[0], paragraphs[-1])).split('\n') or paragraphs
+             paragraphs[0], paragraphs[-1]))
+    if paragraphs_input != '':
+        paragraphs = paragraphs_input.split('\n')
+    data['content'] = '</p><p>'.join(paragraphs)
 
     return data
