@@ -22,6 +22,7 @@ try:
         description='Automatically upload Spectator articles.',
         parents=[tools.argparser])
     parser.add_argument('--read-article', help='reads article in file')
+    parser.add_argument('--local', help='post data to localhost:3000 (for testing purposes)')
     args = parser.parse_args()
 except ImportError:
     flags = None
@@ -34,7 +35,7 @@ init()
 SCOPES = 'https://www.googleapis.com/auth/drive'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Spec-Uploader CLI'
-
+STUY_SPEC_API_URL = 'http://NOT_DEPLOYED_YET.com'
 
 def get_credentials():
     """Gets valid user credentials from storage.
@@ -139,7 +140,7 @@ def main():
             if type(post_data) is str:  # readArticle failed, returned filename
                 unprocessed_files.append(file['name'])
                 continue
-            r = requests.post("https://requestb.in/sky5ktsk", data=post_data)
+            r = requests.post(STUY_SPEC_API_URL, data=post_data)
             print('\n')
 
     if len(unprocessed_files) > 0:
@@ -165,5 +166,7 @@ if __name__ == '__main__':
     if args.read_article:
         with open(args.read_article) as file:
             post_article(file.read())
+    elif args.local:
+        STUY_SPEC_API_URL = 'localhost:3000'
     else:
         main()
