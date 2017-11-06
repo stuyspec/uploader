@@ -12,10 +12,11 @@ from apiclient.http import MediaIoBaseDownload
 from oauth2client import tools
 from promise import Promise
 
-from read_article import read_article
+from articles import read_article
 from backups import get_email_by_name
 from credentials import get_credentials
 from utils import generate_password
+from users import authenticate_user, update_user
 
 args = None
 try:
@@ -33,12 +34,13 @@ except ImportError:
 from colorama import init, Fore, Back, Style
 init()
 
+global STUY_SPEC_API_URL
+
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/drive-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/drive'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Spec-Uploader CLI'
-STUY_SPEC_API_URL = 'http://NOT_DEPLOYED_YET.com'
 
 
 def main():
@@ -167,9 +169,8 @@ def post_article(data):
     article_response = requests.post(STUY_SPEC_API_URL + '/articles',
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'})
-    article_response_json = article_response.json()
     article_response.raise_for_status()
-    return article_response_json.get('id', -1)
+    return article_response.json().get('id', -1)
 
 
 def name_split(name):
@@ -187,23 +188,17 @@ def post_contributors(article_id, contributors):
     for c in range(len(contributors)):
         name = contributors[c].split(' ')
         password = generate_password(16)  # generates password of length 16
-        auth_data = {
+        auth_params = {
             'email': get_email_by_name(name),
             'password': password,
             'password_confirmation': password,
         }
         create_user_promise = Promise(
-            lambda resolve, reject: resolve(authenticate_user(auth_data))
+            lambda resolve, reject: resolve(authenticate_user(auth_params))
         )\
-            .then(lambda user_id: update_user(user_id, name_split(name)))\
-            .then
-        c_response = requests.post(STUY_SPEC_API_URL + '/users',
-                                   data=json.dumps(c),
-                                   headers={
-                                       'Content-Type': 'application/json'
-                                   })
-        c_response.raise_for_status()
-        contributor_ids.append(c_response.json().get('id', -1))
+            .then(lambda user_id: print(user_id))
+            #.then(lambda user_id: update_user(user_id, name_split(name)))\
+            #.then(lambda user_id: contributor_ids.append(user_id))
     return (
         article_id,
         contributor_ids
@@ -241,4 +236,5 @@ if __name__ == '__main__':
         STUY_SPEC_API_URL = 'http://localhost:' + args.local
         main()
     else:
+        STUY_SPEC_API_URL = 'http://NOT_DEPLOYED_YET.com'
         main()
