@@ -183,10 +183,21 @@ def name_split(name):
     }
 
 
+def contributor_exists(name='', users=[], user_roles=[], contributor_role_id=-1):
+
+
+
 def label_existing_contributors(contributors):
     users = requests.get(constants.API_USERS_ENDPOINT).json()
-    roles = requests.get(constants.API_ROLES_ENDPOINT).json()
     user_roles = requests.get(constants.API_USER_ROLES_ENDPOINT).json
+
+    roles = requests.get(constants.API_ROLES_ENDPOINT).json()
+    contributor_role_id = next((r for r in roles if r['title'] == 'Contributor'))
+
+    return [
+        (c, contributor_exists(c, users, user_roles, contributor_role_id))
+        for c in contributors
+    ]
 
 
 
