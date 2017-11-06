@@ -129,11 +129,13 @@ def main():
                 key: value for key, value in article_data.items() if key in article_attributes
             }
             for attr in ('volume', 'issue', 'section_id'):
-                article_post_data[attr] = locals()[attr]  # adds specified local variables
+                article_post_data[attr] = int(locals()[attr])  # adds specified local variables
             print(article_post_data)
-            article_request = requests.post(STUY_SPEC_API_URL + '/articles', data=article_post_data)
+            article_request = requests.post(STUY_SPEC_API_URL + '/articles',
+                                            data=json.dumps(article_post_data),
+                                            headers={'Content-Type': 'application/json'})
             article_id = json.loads(article_request.text)
-            print(article_id)
+            #print(article_id)
             print('\n')
 
     if len(unprocessed_files) > 0:
