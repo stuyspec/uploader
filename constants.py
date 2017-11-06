@@ -19,3 +19,6 @@ def init(SUBDOMAIN='not-deployed.yet'):
 
     global API_USER_ROLES_ENDPOINT
     API_ROLES_ENDPOINT = 'http://{}/user_roles'.format(SUBDOMAIN)
+
+    global API_AUTH_ENDPOINT
+    API_AUTH_ENDPOINT = 'http://{}/auth'.format(SUBDOMAIN)
