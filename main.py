@@ -136,13 +136,14 @@ def main():
             promise = Promise(
                 lambda resolve, reject: post_article(resolve, reject,
                                                      article_post_data)
-            ).then(lambda article_id: post_contributors(article_id,
+            )
+            """.then(lambda article_id: post_contributors(article_id,
                                                         article_data
                                                             .get('contributors',
                                                                  [])
                                                         )
                    ).then(lambda contributor_data: post_authorships(contributor_data)
-                          )
+                          )"""
             #print(article_id)
             print('\n')
 
