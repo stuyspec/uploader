@@ -8,11 +8,15 @@ To run this CLI (command line interface), you'll need:
 - Access to the internet and a web browser.
 
 ## Setup
-1. You need credentials to use the Drive API. Get the Google Console login credentials from one of the editors.
-2. Log in to the Google Console with the credentials, and navigate to the `spec-uploader` project.
-3. Go to APIs & services. Select the Credentials tab, and download the `spec-uploader-cli` OAuth client ID.
-4. Move this file to your working directory (spec-uploader repository) and rename it to client_secret.json The file is .gitignored.
-5. To install required packages, install (pip)[https://pip.pypa.io/en/stable/installing] if you have not already, and, in the project directory, type:
+### CLI-Uploader
+1. Clone this repository, and `cd` into the project directory.
+2. To install required packages, install [`pip`](https://pip.pypa.io/en/stable/installing) if you have not already, and, in the project directory, type:
 ```
 pip install -r requirements.txt
 ```
+3. You'll need credentials to call the Drive Client API. Get the Google Console login credentials by contacting the current maintainer at [`jkao1@stuy.edu`](mailto:jkao1@stuy.edu).
+4. Log in to the Google Console with the credentials, and navigate to the `spec-uploader` project.
+5. Go to APIs & services. Select the Credentials tab, and download the `spec-uploader-cli` OAuth client ID.
+6. Move this file to the `cli-uploader` repo and rename it to `client_secret.json`.
+
+7. You are now ready to run the uploader! Use the flag `--local` to `POST` articles to `localhost:30
