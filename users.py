@@ -12,4 +12,4 @@ def authenticate_user(auth_params):
     return devise_response.json().get('id', -1)
 
 def update_user(user_id):
-    print('update_user(user_id) has not been completed')
+    print('update_user(%d) has not been completed' % user_id)
