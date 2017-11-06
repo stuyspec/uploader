@@ -24,4 +24,4 @@ pip install -r requirements.txt
 2. Follow the instructions on the [Rails API repo](http://github.com/stuyspec/stuy-spec-api) to install/localhost.
 
 
-You are now ready to run the uploader! Use the flag `--local` to `POST` articles to the Rails API (`localhost:3000`).
+You are now ready to run the uploader! Use the flag `--local 3000` to `POST` articles to the Rails API (`localhost:3000`).
