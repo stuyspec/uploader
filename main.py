@@ -32,12 +32,9 @@ try:
 except ImportError:
     flags = None
 
-
 from colorama import Fore, Back, Style
 import colorama
 colorama.init()
-
-global STUY_SPEC_API_URL
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/drive-python-quickstart.json
@@ -66,7 +63,7 @@ def main():
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
 
-    sections_response = requests.get(STUY_SPEC_API_URL + '/sections')
+    sections_response = requests.get(constants.STUY_SPEC_API_URL + '/sections')
     sections = json.loads(sections_response.text)
 
     unprocessed_files = []
@@ -169,7 +166,7 @@ def main():
         return
 
 def post_article(data):
-    article_response = requests.post(STUY_SPEC_API_URL + '/articles',
+    article_response = requests.post(constants.STUY_SPEC_API_URL + '/articles',
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'})
     article_response.raise_for_status()
@@ -213,7 +210,7 @@ def post_authorships(contributor_data):
     authorship_post_data = [
         {'article_id': article_id, 'user_id': c_id} for c_id in contributor_ids
     ]
-    authorships_response = requests.post(STUY_SPEC_API_URL + '/authorships',
+    authorships_response = requests.post(constants.STUY_SPEC_API_URL + '/authorships',
                                          data=json.dumps(authorship_post_data),
                                          headers={
                                              'Content-Type': 'application/json'
@@ -238,6 +235,7 @@ if __name__ == '__main__':
             read_article(file.read())
     elif args.local:
         constants.STUY_SPEC_API_URL = 'http://localhost:' + args.local
+        main()
     else:
         STUY_SPEC_API_URL = 'http://NOT_DEPLOYED_YET.com'
         main()
