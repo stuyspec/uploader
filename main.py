@@ -135,7 +135,13 @@ def main():
             promise = Promise(
                 lambda resolve, reject: resolve(post_article(article_post_data))
             )\
-                .then(lambda article_id: print(article_id))
+                .then(lambda article_id: post_contributors(article_id,
+                                                           article_data.get(
+                                                               'contributors',
+                                                               []
+                                                           ))
+                      )\
+                .then(lambda contributor_data: print(contributor_data))
             """
             promise = Promise(
                 lambda resolve, reject: post_article(resolve, reject,
@@ -173,15 +179,21 @@ def name_split(name):
 
 
 def post_contributors(article_id, contributors):
-    print('posting contributors')
     contributors = [name_split(c) for c in contributors]
-    contributors_response = requests.post(STUY_SPEC_API_URL + '/users',
-                                          data=json.dumps(contributors),
-                                          headers={'Content-Type': 'application/json'})
-    contributors_response.raise_for_status()
+    contributor_ids = []
+    for c in contributors:
+        print(c)
+        c_response = requests.post(STUY_SPEC_API_URL + '/users',
+                                   data=json.dumps(c),
+                                   headers={
+                                       'Content-Type': 'application/json',
+                                       'X-CSRF-Token': 'token'
+                                   })
+        c_response.raise_for_status()
+        contributor_ids.append(c_response.json().get('id', -1))
     return (
         article_id,
-        [c['id'] for c in contributors_response.json()]
+        contributor_ids
     )
 
 
