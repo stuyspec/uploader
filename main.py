@@ -17,6 +17,7 @@ from backups import get_email_by_name
 from credentials import get_credentials
 from utils import generate_password
 from users import authenticate_user, update_user
+import constants
 
 args = None
 try:
@@ -31,8 +32,10 @@ try:
 except ImportError:
     flags = None
 
-from colorama import init, Fore, Back, Style
-init()
+
+from colorama import Fore, Back, Style
+import colorama
+colorama.init()
 
 global STUY_SPEC_API_URL
 
@@ -229,12 +232,12 @@ def get_folders_in_file(files, parent_folder_id):
 
 
 if __name__ == '__main__':
+    constants.init()
     if args.read_article:
         with open(args.read_article) as file:
             read_article(file.read())
     elif args.local:
-        STUY_SPEC_API_URL = 'http://localhost:' + args.local
-        main()
+        constants.STUY_SPEC_API_URL = 'http://localhost:' + args.local
     else:
         STUY_SPEC_API_URL = 'http://NOT_DEPLOYED_YET.com'
         main()
