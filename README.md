@@ -1,4 +1,4 @@
-# spec-uploader
+# cli-uploader
 A CLI for uploading articles from Google Drive Volume folders to our Rails API. Written in Python.
 
 ## Prerequisites
