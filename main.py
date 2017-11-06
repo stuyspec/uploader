@@ -18,6 +18,7 @@ from credentials import get_credentials
 from utils import generate_password
 from users import authenticate_user, update_user
 import constants
+import backups
 
 args = None
 try:
@@ -177,27 +178,28 @@ def name_split(name):
     name = name.split(' ')
     if len(name) < 2: name *= 2  # first and last name are the same
     return {
-        'first_name': ' '.join(name[:-1]),
-        'last_name': name[-1]
+        'firstname': ' '.join(name[:-1]),
+        'lastname': name[-1]
 
     }
 
 
 def post_contributors(article_id, contributors):
     contributor_ids = []
-    for c in range(len(contributors)):
-        name = contributors[c].split(' ')
+    for c in range(0, len(contributors)):
+        name = name_split(contributors[c])
         password = generate_password(16)  # generates password of length 16
         auth_params = {
-            'email': get_email_by_name(name),
+            'email': backups.get_email_by_name(name),
             'password': password,
             'password_confirmation': password,
         }
+        print(auth_params)
         create_user_promise = Promise(
             lambda resolve, reject: resolve(authenticate_user(auth_params))
         )\
             .then(lambda user_id: print(user_id))
-            #.then(lambda user_id: update_user(user_id, name_split(name)))\
+            #.then(lambda user_id: update_user(user_id, name))\
             #.then(lambda user_id: contributor_ids.append(user_id))
     return (
         article_id,
@@ -210,7 +212,8 @@ def post_authorships(contributor_data):
     authorship_post_data = [
         {'article_id': article_id, 'user_id': c_id} for c_id in contributor_ids
     ]
-    authorships_response = requests.post(constants.STUY_SPEC_API_URL + '/authorships',
+    authorships_response = requests.post(constants.STUY_SPEC_API_URL
+                                         + '/authorships',
                                          data=json.dumps(authorship_post_data),
                                          headers={
                                              'Content-Type': 'application/json'
@@ -230,6 +233,7 @@ def get_folders_in_file(files, parent_folder_id):
 
 if __name__ == '__main__':
     constants.init()
+    backups.init()
     if args.read_article:
         with open(args.read_article) as file:
             read_article(file.read())

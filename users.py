@@ -3,6 +3,7 @@ import json
 import constants
 
 def authenticate_user(auth_params):
+    print('authenticating')
     devise_response = requests.post(constants.STUY_SPEC_API_URL + '/auth',
                                     data=json.dumps(auth_params),
                                     headers={
