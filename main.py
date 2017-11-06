@@ -16,9 +16,9 @@ from articles import read_article
 from backups import get_email_by_name
 from credentials import get_credentials
 from utils import generate_password
-from users import authenticate_user, update_user
 import constants
 import backups
+import users
 
 args = None
 try:
@@ -173,59 +173,6 @@ def post_article(data):
     return article_response.json().get('id', -1)
 
 
-def name_split(name):
-    name = name.split(' ')
-    if len(name) < 2: name *= 2  # first and last name are the same
-    return {
-        'firstname': ' '.join(name[:-1]),
-        'lastname': name[-1]
-
-    }
-
-
-def contributor_exists(name='', users=[], user_roles=[], contributor_role_id=-1):
-
-
-
-def label_existing_contributors(contributors):
-    users = requests.get(constants.API_USERS_ENDPOINT).json()
-    user_roles = requests.get(constants.API_USER_ROLES_ENDPOINT).json
-
-    roles = requests.get(constants.API_ROLES_ENDPOINT).json()
-    contributor_role_id = next((r for r in roles if r['title'] == 'Contributor'))
-
-    return [
-        (c, contributor_exists(c, users, user_roles, contributor_role_id))
-        for c in contributors
-    ]
-
-
-
-def post_contributors(article_id, contributors):
-    contributor_ids = []
-
-    contributors = label_existing_contributors(contributors)
-    for c in range(0, len(contributors)):
-        name = name_split(contributors[c])
-        password = generate_password(16)  # generates password of length 16
-        auth_params = {
-            'email': backups.get_email_by_name(name),
-            'password': password,
-            'password_confirmation': password,
-        }
-        print(auth_params)
-        create_user_promise = Promise(
-            lambda resolve, reject: resolve(authenticate_user(auth_params))
-        )\
-            .then(lambda user_id: print(user_id))
-            #.then(lambda user_id: update_user(user_id, name))\
-            #.then(lambda user_id: contributor_ids.append(user_id))
-    return (
-        article_id,
-        contributor_ids
-    )
-
-
 def post_authorships(contributor_data):
     article_id, contributor_ids = contributor_data
     authorship_post_data = [
@@ -251,6 +198,7 @@ def get_folders_in_file(files, parent_folder_id):
 
 if __name__ == '__main__':
     backups.init()
+    users.init()
     if args.local:
         constants.init('localhost:{}'.format(args.local))
     else:
