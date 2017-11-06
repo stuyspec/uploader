@@ -23,8 +23,7 @@ try:
         parents=[tools.argparser])
     parser.add_argument('--read-article', help='reads article in file')
     parser.add_argument('--local', help='post data to a specified port (for testing purposes)')
-    parser.add_argument('-s', action='store_true')
-
+    parser.add_argument('-s', action='store_true', help='stop POSTing articles')
     args = parser.parse_args()
 except ImportError:
     flags = None
@@ -134,15 +133,16 @@ def main():
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
 
             promise = Promise(
+                lambda resolve, reject: resolve(post_article(article_post_data))
+            )\
+                .then(lambda article_id: print(article_id))
+            """
+            promise = Promise(
                 lambda resolve, reject: post_article(resolve, reject,
                                                      article_post_data)
-            ).then(lambda article_id: post_contributors(article_id,
-                                                        article_data
-                                                            .get('contributors',
-                                                                 [])
-                                                        )
-                   )
-            """.then(lambda contributor_data: post_authorships(contributor_data)
+            ).then(lambda article_id: print(article_id))
+            #.then(lambda article_id: post_contributors(article_id, article_data.get('contributors', [])))
+            .then(lambda contributor_data: post_authorships(contributor_data)
                   )"""
             # print(article_id)
             print('\n')
@@ -155,16 +155,16 @@ def main():
     if page_token is None:
         return
 
-def post_article(resolve, reject, data):
+def post_article(data):
     article_response = requests.post(STUY_SPEC_API_URL + '/articles',
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'})
     article_response_json = article_response.json()
-    try:
-        article_response.raise_for_status()
-        resolve(article_response_json['text'].get('id', -1))
-    except requests.HTTPError as e:
-        reject('HTTP ERROR %d' % e.code)
+    print(3)
+    article_response.raise_for_status()
+    print(article_response_json)
+    print('article_id:' + article_response_json.get('id', -1))
+    return article_response_json['text'].get('id', -1)
 
 
 def name_split(name):
@@ -176,6 +176,7 @@ def name_split(name):
 
 
 def post_contributors(article_id, contributors):
+    print('posting contributors')
     contributors = [name_split(c) for c in contributors]
     contributors_response = requests.post(STUY_SPEC_API_URL + '/users',
                                           data=json.dumps(contributors),
