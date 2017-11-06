@@ -13,7 +13,9 @@ from oauth2client import tools
 from promise import Promise
 
 from read_article import read_article
+from backups import get_email_by_name
 from credentials import get_credentials
+from utils import generate_password
 
 args = None
 try:
@@ -172,22 +174,33 @@ def post_article(data):
 
 def name_split(name):
     name = name.split(' ')
+    if len(name) < 2: name *= 2  # first and last name are the same
     return {
         'first_name': ' '.join(name[:-1]),
         'last_name': name[-1]
+
     }
 
 
 def post_contributors(article_id, contributors):
-    contributors = [name_split(c) for c in contributors]
     contributor_ids = []
-    for c in contributors:
-        print(c)
+    for c in range(len(contributors)):
+        name = contributors[c].split(' ')
+        password = generate_password(16)  # generates password of length 16
+        auth_data = {
+            'email': get_email_by_name(name),
+            'password': password,
+            'password_confirmation': password,
+        }
+        create_user_promise = Promise(
+            lambda resolve, reject: resolve(authenticate_user(auth_data))
+        )\
+            .then(lambda user_id: update_user(user_id, name_split(name)))\
+            .then
         c_response = requests.post(STUY_SPEC_API_URL + '/users',
                                    data=json.dumps(c),
                                    headers={
-                                       'Content-Type': 'application/json',
-                                       'X-CSRF-Token': 'token'
+                                       'Content-Type': 'application/json'
                                    })
         c_response.raise_for_status()
         contributor_ids.append(c_response.json().get('id', -1))
@@ -204,7 +217,9 @@ def post_authorships(contributor_data):
     ]
     authorships_response = requests.post(STUY_SPEC_API_URL + '/authorships',
                                          data=json.dumps(authorship_post_data),
-                                         headers={'Content-Type': 'application/json'})
+                                         headers={
+                                             'Content-Type': 'application/json'
+                                         })
     return authorships_response.json()
 
 
