@@ -22,6 +22,8 @@ try:
         parents=[tools.argparser])
     parser.add_argument('--read-article', help='reads article in file')
     parser.add_argument('--local', help='post data to a specified port (for testing purposes)')
+    parser.add_argument('-s', action='store_true')
+
     args = parser.parse_args()
 except ImportError:
     flags = None
@@ -67,7 +69,6 @@ def main():
 
             # find section_name by getting folder with parentId
             section_name = folders[file.get('parents', [None])[0]]
-            print(sections, section_name)
             section_id = next(
                 (s for s in sections
                     if (s['name'].lower() == section_name.lower() or
@@ -118,19 +119,20 @@ def main():
                     continue  # continue to next file
 
             article_data = read_article(fh.getvalue())
-            if type(article_data) is str:  # read_article failed, returned title file
+            if type(article_data) is str or args.s:
+                # read_article failed and returned file title or flag s, stop post.
                 unprocessed_files.append(file['name'])
                 continue
 
-            article_attributes = [ 'title', 'content', 'summary' ]
+            article_attributes = [ 'title', 'content', 'summary', 'content' ]
             article_post_data = {
                 key: value for key, value in article_data.items() if key in article_attributes
             }
             for attr in ('volume', 'issue', 'section_id'):
-                article_post_data = locals()[attr]  # adds specified local variables
-
+                article_post_data[attr] = locals()[attr]  # adds specified local variables
+            print(article_post_data)
             article_request = requests.post(STUY_SPEC_API_URL + '/articles', data=article_post_data)
-            article_id = json.loads(article_request)
+            article_id = json.loads(article_request.text)
             print(article_id)
             print('\n')
 
