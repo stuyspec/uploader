@@ -137,13 +137,12 @@ def main():
                 lambda resolve, reject: post_article(resolve, reject,
                                                      article_post_data)
             ).then(lambda article_id: post_contributors(article_id,
-                                                        article_data.
+                                                        article_data
                                                             .get('contributors',
                                                                  [])
-                                                        ))
-            P
-            article_id = json.loads(article_request.text).get('id', -1)
-
+                                                        )
+                   ).then(lambda contributor_data: post_authorships(contributor_data)
+                          )
             #print(article_id)
             print('\n')
 
@@ -170,8 +169,8 @@ def post_article(resolve, reject, data):
 def name_split(name):
     name = name.split(' ')
     return {
-        'first_name': ' '.join(c_name[:-1])
-        'last_name': c_name[-1]
+        'first_name': ' '.join(name[:-1]),
+        'last_name': name[-1]
     }
 
 
@@ -181,7 +180,21 @@ def post_contributors(article_id, contributors):
                                           data=json.dumps(contributors),
                                           headers={'Content-Type': 'application/json'})
     contributors_response.raise_for_status()
-    return [c['id'] for c in contributors_response.json()['text']]
+    return (
+        article_id,
+        [c['id'] for c in contributors_response.json()['text']]
+    )
+
+
+def post_authorships(contributor_data):
+    article_id, contributor_ids = contributor_data
+    authorship_post_data = [
+        {'article_id': article_id, 'user_id': c_id} for c_id in contributor_ids
+    ]
+    authorships_response = requests.post(STUY_SPEC_API_URL + '/authorships',
+                                         data=json.dumps(authorship_post_data),
+                                         headers={'Content-Type': 'application/json'})
+    return authorships_response.json()['text']
 
 
 def get_folders_in_file(files, parent_folder_id):
