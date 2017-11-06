@@ -160,11 +160,8 @@ def post_article(data):
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'})
     article_response_json = article_response.json()
-    print(3)
     article_response.raise_for_status()
-    print(article_response_json)
-    print('article_id:' + article_response_json.get('id', -1))
-    return article_response_json['text'].get('id', -1)
+    return article_response_json.get('id', -1)
 
 
 def name_split(name):
@@ -184,7 +181,7 @@ def post_contributors(article_id, contributors):
     contributors_response.raise_for_status()
     return (
         article_id,
-        [c['id'] for c in contributors_response.json()['text']]
+        [c['id'] for c in contributors_response.json()]
     )
 
 
@@ -196,7 +193,7 @@ def post_authorships(contributor_data):
     authorships_response = requests.post(STUY_SPEC_API_URL + '/authorships',
                                          data=json.dumps(authorship_post_data),
                                          headers={'Content-Type': 'application/json'})
-    return authorships_response.json()['text']
+    return authorships_response.json()
 
 
 def get_folders_in_file(files, parent_folder_id):
