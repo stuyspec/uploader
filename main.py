@@ -13,12 +13,8 @@ from oauth2client import tools
 from promise import Promise
 
 from articles import read_article
-from backups import get_email_by_name
 from credentials import get_credentials
-from utils import generate_password
-import constants
-import backups
-import users
+import constants, backups, users
 
 args = None
 try:
@@ -139,11 +135,11 @@ def main():
             promise = Promise(
                 lambda resolve, reject: resolve(post_article(article_post_data))
             )\
-                .then(lambda article_id: post_contributors(article_id,
-                                                           article_data.get(
-                                                               'contributors',
-                                                               []
-                                                           ))
+                .then(lambda article_id: users.post_contributors(article_id,
+                                                                 article_data.get(
+                                                                     'contributors',
+                                                                     []
+                                                                 ))
                       )\
                 .then(lambda contributor_data: print(contributor_data))
             """
