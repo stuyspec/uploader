@@ -26,7 +26,6 @@ try:
     parser = argparse.ArgumentParser(
         description='Automatically upload Spectator articles.',
         parents=[tools.argparser])
-    parser.add_argument('--read-article', help='reads article in file')
     parser.add_argument('--local', help='post data to a specified port (for testing purposes)')
     parser.add_argument('-s', action='store_true', help='stop POSTing articles')
     args = parser.parse_args()
@@ -64,8 +63,8 @@ def main():
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
 
-    sections_response = requests.get(constants.STUY_SPEC_API_URL + '/sections')
-    sections = json.loads(sections_response.text)
+    sections_response = requests.get(constants.API_SECTIONS_ENDPOINT)
+    sections = sections_response.json()
 
     unprocessed_files = []
     for file in files:
@@ -167,7 +166,7 @@ def main():
         return
 
 def post_article(data):
-    article_response = requests.post(constants.STUY_SPEC_API_URL + '/articles',
+    article_response = requests.post(constants.API_ARTICLES_ENDPOINT,
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'})
     article_response.raise_for_status()
@@ -184,8 +183,17 @@ def name_split(name):
     }
 
 
+def label_existing_contributors(contributors):
+    users = requests.get(constants.API_USERS_ENDPOINT).json()
+    roles = requests.get(constants.API_ROLES_ENDPOINT).json()
+    user_roles = requests.get(constants.API_USER_ROLES_ENDPOINT).json
+
+
+
 def post_contributors(article_id, contributors):
     contributor_ids = []
+
+    contributors = label_existing_contributors(contributors)
     for c in range(0, len(contributors)):
         name = name_split(contributors[c])
         password = generate_password(16)  # generates password of length 16
@@ -212,8 +220,7 @@ def post_authorships(contributor_data):
     authorship_post_data = [
         {'article_id': article_id, 'user_id': c_id} for c_id in contributor_ids
     ]
-    authorships_response = requests.post(constants.STUY_SPEC_API_URL
-                                         + '/authorships',
+    authorships_response = requests.post(constants.API_AUTHORSHIPS_ENDPOINT,
                                          data=json.dumps(authorship_post_data),
                                          headers={
                                              'Content-Type': 'application/json'
@@ -232,14 +239,9 @@ def get_folders_in_file(files, parent_folder_id):
 
 
 if __name__ == '__main__':
-    constants.init()
     backups.init()
-    if args.read_article:
-        with open(args.read_article) as file:
-            read_article(file.read())
-    elif args.local:
-        constants.STUY_SPEC_API_URL = 'http://localhost:' + args.local
-        main()
+    if args.local:
+        constants.init('localhost:{}'.format(args.local))
     else:
-        STUY_SPEC_API_URL = 'http://NOT_DEPLOYED_YET.com'
-        main()
+        constants.init('not-deployed.yet')
+    main()
