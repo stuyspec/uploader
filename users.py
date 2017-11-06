@@ -2,8 +2,9 @@ import requests
 import json
 import constants
 
+# TODO: MAKE SURE THE USER DOESN'T ALREADY EXIST, CONTINUE THE USER PROMISE
+
 def authenticate_user(auth_params):
-    print('authenticating')
     devise_response = requests.post(constants.STUY_SPEC_API_URL + '/auth',
                                     data=json.dumps(auth_params),
                                     headers={
