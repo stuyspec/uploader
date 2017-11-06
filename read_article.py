@@ -50,18 +50,18 @@ def get_summary(line):
                       Style.RESET_ALL + '({0}) ').format(line)).strip() or line
 
 def manual_article_read(content, message):
-    print(Back.RED + Fore.WHITE + Style.BRIGHT + message \
-          +' You have entered manual article-reading mode for headers. ' \
-          + 'Input "m" to extend the article, input "f" to show the whole ' \
+    print(Back.RED + Fore.WHITE + Style.BRIGHT + message
+          +' You have entered manual article-reading mode for headers. '
+          + 'Input "m" to extend the article, input "f" to show the whole '
           + 'article, or press ENTER to continue.' + Style.RESET_ALL + Fore.RED)
     content = content.split('\n')
     lineNum = 0
     while lineNum < len(content):
-        print(*content[lineNum:lineNum + 5], sep='\n')
+        print('\n'.join(content[lineNum:lineNum + 5]))
         lineNum += 5
         show_more = raw_input()
         if show_more == 'f':
-            print(*content[lineNum:], sep='\n')
+            print('\n'.join(content[lineNum:]))
         elif show_more != 'm':
             break
 

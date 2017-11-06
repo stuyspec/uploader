@@ -5,6 +5,7 @@ from __future__ import print_function
 import httplib2
 import io
 import requests
+import json
 
 from apiclient import discovery
 from apiclient.http import MediaIoBaseDownload
@@ -13,13 +14,14 @@ from oauth2client import tools
 from read_article import read_article
 from credentials import get_credentials
 
+args = None
 try:
     import argparse
     parser = argparse.ArgumentParser(
         description='Automatically upload Spectator articles.',
         parents=[tools.argparser])
     parser.add_argument('--read-article', help='reads article in file')
-    parser.add_argument('--local', help='post data to localhost:3000 (for testing purposes)')
+    parser.add_argument('--local', help='post data to a specified port (for testing purposes)')
     args = parser.parse_args()
 except ImportError:
     flags = None
@@ -52,13 +54,26 @@ def main():
     SBC = next((file for file in files if file['name'] == 'SBC'), None)
     folders = get_folders_in_file(files, SBC['id'])
 
+    volume = 107 #int(raw_input('Volume (number): '))
+    issue = 1 #int(raw_input('Issue: '))
+
+    sections_response = requests.get(STUY_SPEC_API_URL + '/sections')
+    sections = json.loads(sections_response.text)
+
     unprocessed_files = []
     for file in files:
         if file['mimeType'] == 'application/vnd.google-apps.document' and file.get(
                 'parents', [None])[0] in folders:
 
             # find section_name by getting folder with parentId
-            section_name = folders[file.get('parents', [None])[0]].upper()
+            section_name = folders[file.get('parents', [None])[0]]
+            print(sections, section_name)
+            section_id = next(
+                (s for s in sections
+                    if s['name'].lower() == section_name.lower()
+                 or section_name == 'A&E'
+                 )
+            )['id']
             # create new download request
             request = drive_service.files().export_media(
                 fileId=file['id'], mimeType='text/plain')
@@ -67,7 +82,7 @@ def main():
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
-                print(Fore.CYAN + Style.BRIGHT + section_name, end='')
+                print(Fore.CYAN + Style.BRIGHT + section_name.upper(), end='')
                 print(
                     Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
 
@@ -101,11 +116,21 @@ def main():
                     print('\n')
                     continue  # continue to next file
 
-            post_data = read_article(fh.getvalue())
-            if type(post_data) is str:  # readArticle failed, returned filename
+            article_data = read_article(fh.getvalue())
+            if type(article_data) is str:  # read_article failed, returned title file
                 unprocessed_files.append(file['name'])
                 continue
-            r = requests.post(STUY_SPEC_API_URL, data=post_data)
+
+            article_attributes = [ 'title', 'content', 'summary' ]
+            article_post_data = {
+                key: value for key, value in article_data.items() if key in article_attributes
+            }
+            for attr in ('volume', 'issue', 'section_id'):
+                article_post_data = locals()[attr]  # adds specified local variables
+
+            article_request = requests.post(STUY_SPEC_API_URL + '/articles', data=article_post_data)
+            article_id = json.loads(article_request)
+            print(article_id)
             print('\n')
 
     if len(unprocessed_files) > 0:
@@ -132,6 +157,7 @@ if __name__ == '__main__':
         with open(args.read_article) as file:
             read_article(file.read())
     elif args.local:
-        STUY_SPEC_API_URL = 'localhost:3000'
+        STUY_SPEC_API_URL = 'http://localhost:' + args.local
+        main()
     else:
         main()
