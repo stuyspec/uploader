@@ -1,5 +1,6 @@
 from promise import Promise
 from colorama import Fore, Back, Style
+from slugify import slugify
 
 import requests
 import json
@@ -51,7 +52,11 @@ def make_contributor(user_id):
     user_role_json = user_role_response.json()
     global user_roles
     user_roles.append(user_role_json)
-    return user_role_response.json().get('id', -1)
+    print(Fore.MAGENTA + Style.BRIGHT
+          + 'Created Contributor with id {}.'
+              .format(user_id)
+          + Style.RESET_ALL)
+    return user_id
 
 
 def get_contributor_id(name):
@@ -80,16 +85,18 @@ def label_existing_contributors(contributors):
 
 
 def authenticate_new_user(name_dict):
-    print(name_dict)
-    email = backups.get_email_by_name(name_dict)
-    while not email:
-        email = raw_input(
-            (Fore.MAGENTA + Style.BRIGHT + 'no email found for '
-            + '{firstname} {lastname}. email: '.format(**name_dict)
-            + Style.RESET_ALL))
+    try:
+        email = backups.get_email_by_name(name_dict)
+    except LookupError:
+        email = ''
+        while email == '':
+            email = raw_input(
+                (Fore.MAGENTA + Style.BRIGHT + 'no email found for '
+                + '{first_name} {last_name}. email: '.format(**name_dict)
+                + Style.RESET_ALL))
     password = utils.generate_password(16)  # generates password of length 16
     auth_params = {
-        'email': backups.get_email_by_name(name_dict),
+        'email': email,
         'password': password,
         'password_confirmation': password,
     }
@@ -115,20 +122,26 @@ def name_to_dict(name):
 
 
 def create_contributor(name):
-    name_dict = name_to_dict(name)
+    name_dict = utils.merge_two_dicts(
+        name_to_dict(name),
+        {
+            'slug': slugify(name)
+        }
+    )
+
     create_contributor_promise = Promise(
         lambda resolve, reject: resolve(authenticate_new_user(name_dict))
     )\
         .then(lambda user_id: update_user(user_id, name_dict))\
-        .then(lambda user_id: make_contributor(user_id))
-    print(Fore.MAGENTA + Style.BRIGHT
-          + 'Created new contributor {}.'.format(name) + Style.RESET_ALL)
+        .then(lambda user_id: make_contributor(user_id))\
+        .then(lambda user_id: user_id)
     return create_contributor_promise.get()
 
 
 def post_contributors(article_id, contributors):
     contributors = label_existing_contributors(contributors)
     contributor_ids = []
+    print(contributors)
     for name, contributor_id in contributors:
         if contributor_id == -1:
             contributor_ids.append(create_contributor(name))

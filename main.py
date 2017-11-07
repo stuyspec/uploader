@@ -132,7 +132,7 @@ def main():
             for attr in ('volume', 'issue', 'section_id'):
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
 
-            promise = Promise(
+            article_promise = Promise(
                 lambda resolve, reject: resolve(post_article(article_post_data))
             )\
                 .then(lambda article_id:
@@ -142,11 +142,12 @@ def main():
                                                   []
                                               )))\
                 .then(lambda authorship_data:
-                      authorships.post_authorships(authorship_data))
-
-            print(Fore.GREEN + Style.BRIGHT
-                  + 'Successfully wrote {}.\n'.format(article_post_data['title'])
-                  + Style.RESET_ALL)
+                      authorships.post_authorships(authorship_data))\
+                .then(lambda article_id:
+                      print(Fore.GREEN + Style.BRIGHT
+                            + 'Successfully wrote Article {}: {}.\n'
+                                .format(article_id, article_post_data['title'])
+                            + Style.RESET_ALL))
 
     if len(unprocessed_files) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +

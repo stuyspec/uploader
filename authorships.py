@@ -1,6 +1,7 @@
 import requests, json
 import constants
 
+
 def post_authorships(authorship_data):
     print(authorship_data)
     article_id, contributor_ids = authorship_data
@@ -14,5 +15,4 @@ def post_authorships(authorship_data):
                                             'Content-Type': 'application/json'
                                         })
         update_response.raise_for_status()
-        print('created authorship for %d' % c)
     return article_id
