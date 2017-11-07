@@ -52,10 +52,6 @@ def make_contributor(user_id):
     user_role_json = user_role_response.json()
     global user_roles
     user_roles.append(user_role_json)
-    print(Fore.MAGENTA + Style.BRIGHT
-          + 'Created Contributor with id {}.'
-              .format(user_id)
-          + Style.RESET_ALL)
     return user_id
 
 
@@ -91,9 +87,9 @@ def authenticate_new_user(name_dict):
         email = ''
         while email == '':
             email = raw_input(
-                (Fore.MAGENTA + Style.BRIGHT + 'no email found for '
-                + '{first_name} {last_name}. email: '.format(**name_dict)
-                + Style.RESET_ALL))
+                (Fore.YELLOW + Style.BRIGHT + 'no email found for '
+                + '{first_name} {last_name}. '.format(**name_dict) + Fore.GREEN
+                + 'email: ' + Style.RESET_ALL))
     password = utils.generate_password(16)  # generates password of length 16
     auth_params = {
         'email': email,
@@ -124,9 +120,7 @@ def name_to_dict(name):
 def create_contributor(name):
     name_dict = utils.merge_two_dicts(
         name_to_dict(name),
-        {
-            'slug': slugify(name)
-        }
+        {'slug': slugify(name)}
     )
 
     create_contributor_promise = Promise(
@@ -141,12 +135,19 @@ def create_contributor(name):
 def post_contributors(article_id, contributors):
     contributors = label_existing_contributors(contributors)
     contributor_ids = []
-    print(contributors)
     for name, contributor_id in contributors:
+        print('\n')
         if contributor_id == -1:
-            contributor_ids.append(create_contributor(name))
+            new_contributor_id = create_contributor(name)
+            contributor_ids.append(new_contributor_id)
+            print(Fore.YELLOW + Style.BRIGHT + 'Created Contributor #{}: {}.'
+                    .format(new_contributor_id, name) + Style.RESET_ALL)
+
         else:
             contributor_ids.append(contributor_id)
+            print(Fore.YELLOW + Style.BRIGHT + 'Confirmed Contributor #{}: {}.'
+                  .format(contributor_id, name) + Style.RESET_ALL)
+
     return (
         article_id,
         contributor_ids
