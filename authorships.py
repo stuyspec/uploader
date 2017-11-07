@@ -3,7 +3,6 @@ import constants
 
 
 def post_authorships(authorship_data):
-    print(authorship_data)
     article_id, contributor_ids = authorship_data
     for c in contributor_ids:
         update_response = requests.post(constants.API_AUTHORSHIPS_ENDPOINT,
