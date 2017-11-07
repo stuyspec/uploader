@@ -14,7 +14,7 @@ from promise import Promise
 
 from articles import read_article
 from credentials import get_credentials
-import constants, backups, users
+import constants, backups, users, authorships
 
 args = None
 try:
@@ -141,16 +141,9 @@ def main():
                                                                      []
                                                                  ))
                       )\
-                .then(lambda authorship_data: print(authorship_data))
-            """
-            promise = Promise(
-                lambda resolve, reject: post_article(resolve, reject,
-                                                     article_post_data)
-            ).then(lambda article_id: print(article_id))
-            #.then(lambda article_id: post_contributors(article_id, article_data.get('contributors', [])))
-            .then(lambda contributor_data: post_authorships(contributor_data)
-                  )"""
-            # print(article_id)
+                .then(lambda article_id, contributor_ids:
+                    authorships.post_authorships(article_id, contributor_ids))\
+                .then(lambda article_id: print(article_id))
             print('\n')
 
     if len(unprocessed_files) > 0:
