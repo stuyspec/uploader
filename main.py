@@ -12,9 +12,8 @@ from apiclient.http import MediaIoBaseDownload
 from oauth2client import tools
 from promise import Promise
 
-from articles import read_article
 from credentials import get_credentials
-import constants, backups, users, authorships
+import constants, backups, users, authorships, articles
 
 args = None
 try:
@@ -118,7 +117,7 @@ def main():
                     print('\n')
                     continue  # continue to next file
 
-            article_data = read_article(fh.getvalue())
+            article_data = articles.read_article(fh.getvalue())
             if type(article_data) is str or args.s:
                 # read_article failed and returned file title or flag s, stop post.
                 unprocessed_files.append(file['name'])
@@ -133,7 +132,7 @@ def main():
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
 
             article_promise = Promise(
-                lambda resolve, reject: resolve(post_article(article_post_data))
+                lambda resolve, reject: resolve(articles.post_article(article_post_data))
             )\
                 .then(lambda article_id:
                       users.post_contributors(article_id,
@@ -157,26 +156,6 @@ def main():
     if page_token is None:
         return
 
-def post_article(data):
-    article_response = requests.post(constants.API_ARTICLES_ENDPOINT,
-                                    data=json.dumps(data),
-                                    headers={'Content-Type': 'application/json'})
-    article_response.raise_for_status()
-    return article_response.json().get('id', -1)
-
-
-def post_authorships(contributor_data):
-    article_id, contributor_ids = contributor_data
-    authorship_post_data = [
-        {'article_id': article_id, 'user_id': c_id} for c_id in contributor_ids
-    ]
-    authorships_response = requests.post(constants.API_AUTHORSHIPS_ENDPOINT,
-                                         data=json.dumps(authorship_post_data),
-                                         headers={
-                                             'Content-Type': 'application/json'
-                                         })
-    return authorships_response.json()
-
 
 def get_folders_in_file(files, parent_folder_id):
     folders = {}
@@ -188,6 +167,7 @@ def get_folders_in_file(files, parent_folder_id):
     return folders
 
 
+# DO NOT CHANGE THE ORDER OF THESE INIT'S
 if __name__ == '__main__':
     colorama.init()
     if args.local is not None:
@@ -195,5 +175,6 @@ if __name__ == '__main__':
     else:
         constants.init('not-deployed.yet')
     backups.init()
+    articles.init()
     users.init()
     main()
