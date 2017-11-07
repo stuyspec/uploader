@@ -193,10 +193,10 @@ def get_folders_in_file(files, parent_folder_id):
 
 
 if __name__ == '__main__':
-    backups.init()
-    users.init()
-    if args.local:
+    if args.local is not None:
         constants.init('localhost:{}'.format(args.local))
     else:
         constants.init('not-deployed.yet')
+    backups.init()
+    users.init()
     main()
