@@ -1,8 +1,16 @@
 from colorama import init, Fore, Back, Style
-
-import re
-
 init()
+
+import re, requests, json
+import constants, backups, utils
+
+articles = []
+
+
+def init():
+    """Initiates globals with API data"""
+    global articles
+    articles = requests.get(constants.API_ARTICLES_ENDPOINT).json()
 
 
 def get_title(line):
@@ -115,3 +123,11 @@ def read_article(text):
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
     return data
+
+
+def post_article(data):
+    article_response = requests.post(constants.API_ARTICLES_ENDPOINT,
+                                    data=json.dumps(data),
+                                    headers={'Content-Type': 'application/json'})
+    article_response.raise_for_status()
+    return article_response.json().get('id', -1)
