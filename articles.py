@@ -130,4 +130,7 @@ def post_article(data):
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'})
     article_response.raise_for_status()
-    return article_response.json().get('id', -1)
+    article = article_response.json()
+    global articles
+    articles.append(article)
+    return article.get('id', -1)
