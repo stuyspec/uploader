@@ -9,6 +9,7 @@ users = []
 user_roles = []
 roles = []
 
+
 def init():
     """Initiates globals with API data"""
     global users, user_roles, roles
@@ -27,7 +28,10 @@ def update_user(user_id, data):
                                        'Content-Type': 'application/json'
                                    })
     update_response.raise_for_status()
-    return update_response.json().get('id', -1)
+    updated_user_json = update_response.json()
+    global users
+    users.append(updated_user_json)
+    return updated_user_json.get('id', -1)
 
 
 def make_contributor(user_id):
@@ -44,20 +48,10 @@ def make_contributor(user_id):
                                            'Content-Type': 'application/json'
                                        })
     user_role_response.raise_for_status()
+    user_role_json = user_role_response.json()
+    global user_roles
+    user_roles.append(user_role_json)
     return user_role_response.json().get('id', -1)
-
-
-def user_is_contributor(user_id):
-    print(3)
-    contributor_role_id = next(
-        (r for r in roles if r['title'] == 'Contributor'),
-        -1
-    )['id']
-    for u in user_roles:
-        print(u)
-        if u['user_id'] == user_id and u['role_id'] == contributor_role_id:
-            return True
-    return False
 
 
 def get_contributor_id(name):
@@ -67,14 +61,12 @@ def get_contributor_id(name):
         -1
     )['id']
     for u in users:
-        print(u)
         if ('{first_name} {last_name}'.format(**u) == name
             and next((
                 user_role for user_role in user_roles
                 if (user_role['user_id'] == u['id']
                     and user_role['role_id'] == contributor_role_id)
-            ), None)):
-            print(u)
+                ), None)):
             return u['id']
     return -1
 
@@ -88,6 +80,7 @@ def label_existing_contributors(contributors):
 
 
 def authenticate_new_user(name_dict):
+    print(name_dict)
     email = backups.get_email_by_name(name_dict)
     while not email:
         email = raw_input(
@@ -106,7 +99,9 @@ def authenticate_new_user(name_dict):
                                         'Content-Type': 'application/json'
                                     })
     devise_response.raise_for_status()
-    devise_json = devise_response.json().get('data', {})
+    print(Fore.YELLOW + Style.BRIGHT
+          + 'Authenticated new user with e-mail {}.'.format(email)
+          + Style.RESET_ALL)
     return devise_response.json().get('data', {}).get('id', -1)
 
 
@@ -126,8 +121,8 @@ def create_contributor(name):
     )\
         .then(lambda user_id: update_user(user_id, name_dict))\
         .then(lambda user_id: make_contributor(user_id))
-    print(Fore.YELLOW + Style.BRIGHT + 'Created new contributor {}.'
-          .format(name) + Style.RESET_ALL)
+    print(Fore.MAGENTA + Style.BRIGHT
+          + 'Created new contributor {}.'.format(name) + Style.RESET_ALL)
     return create_contributor_promise.get()
 
 
@@ -139,7 +134,6 @@ def post_contributors(article_id, contributors):
             contributor_ids.append(create_contributor(name))
         else:
             contributor_ids.append(contributor_id)
-    print(contributor_ids)
     return (
         article_id,
         contributor_ids

@@ -124,7 +124,7 @@ def main():
                 unprocessed_files.append(file['name'])
                 continue
 
-            article_attributes = [ 'title', 'content', 'summary', 'content' ]
+            article_attributes = ['title', 'content', 'summary', 'content']
             article_post_data = {
                 key: value for key, value in article_data.items()
                                if key in article_attributes
@@ -135,16 +135,18 @@ def main():
             promise = Promise(
                 lambda resolve, reject: resolve(post_article(article_post_data))
             )\
-                .then(lambda article_id: users.post_contributors(article_id,
-                                                                 article_data.get(
-                                                                     'contributors',
-                                                                     []
-                                                                 ))
-                      )\
-                .then(lambda article_id, contributor_ids:
-                    authorships.post_authorships(article_id, contributor_ids))\
-                .then(lambda article_id: print(article_id))
-            print('\n')
+                .then(lambda article_id:
+                      users.post_contributors(article_id,
+                                              article_data.get(
+                                                  'contributors',
+                                                  []
+                                              )))\
+                .then(lambda authorship_data:
+                      authorships.post_authorships(authorship_data))
+
+            print(Fore.GREEN + Style.BRIGHT
+                  + 'Successfully wrote {}.\n'.format(article_post_data['title'])
+                  + Style.RESET_ALL)
 
     if len(unprocessed_files) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
