@@ -193,6 +193,7 @@ def get_folders_in_file(files, parent_folder_id):
 
 
 if __name__ == '__main__':
+    colorama.init()
     if args.local is not None:
         constants.init('localhost:{}'.format(args.local))
     else:
