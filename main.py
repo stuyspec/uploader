@@ -141,7 +141,7 @@ def main():
                                                                      []
                                                                  ))
                       )\
-                .then(lambda contributor_data: print(contributor_data))
+                .then(lambda authorship_data: print(authorship_data))
             """
             promise = Promise(
                 lambda resolve, reject: post_article(resolve, reject,

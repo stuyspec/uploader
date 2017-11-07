@@ -36,10 +36,10 @@ def make_contributor(user_id):
         -1
     )['id']
     user_role_response = requests.post(constants.API_USER_ROLES_ENDPOINT,
-                                       data={
+                                       data=json.dumps({
                                            'user_id': user_id,
                                            'role_id': contributor_role_id
-                                       },
+                                       }),
                                        headers={
                                            'Content-Type': 'application/json'
                                        })
@@ -67,12 +67,14 @@ def get_contributor_id(name):
         -1
     )['id']
     for u in users:
+        print(u)
         if ('{first_name} {last_name}'.format(**u) == name
             and next((
                 user_role for user_role in user_roles
                 if (user_role['user_id'] == u['id']
                     and user_role['role_id'] == contributor_role_id)
-            )) is not None):
+            ), None)):
+            print(u)
             return u['id']
     return -1
 
@@ -105,8 +107,6 @@ def authenticate_new_user(name_dict):
                                     })
     devise_response.raise_for_status()
     devise_json = devise_response.json().get('data', {})
-    print('Authenticated new user with email {}'
-          .format(devise_json.get('email')))
     return devise_response.json().get('data', {}).get('id', -1)
 
 
@@ -134,12 +134,12 @@ def create_contributor(name):
 def post_contributors(article_id, contributors):
     contributors = label_existing_contributors(contributors)
     contributor_ids = []
-
     for name, contributor_id in contributors:
         if contributor_id == -1:
             contributor_ids.append(create_contributor(name))
         else:
             contributor_ids.append(contributor_id)
+    print(contributor_ids)
     return (
         article_id,
         contributor_ids
