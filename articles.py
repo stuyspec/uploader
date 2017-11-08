@@ -1,16 +1,18 @@
 from colorama import init, Fore, Back, Style
 init()
 
-import re, requests, json
-import constants, backups, utils
+import re, requests, json, ast
+import constants
 
 articles = []
-
+backup_articles = []
 
 def init():
     """Initiates globals with API data"""
-    global articles
+    global articles, backup_articles
     articles = requests.get(constants.API_ARTICLES_ENDPOINT).json()
+    with open('wp-articles-backup.txt', 'r') as f:
+        backup_users = ast.literal_eval(f.read()).values()  # safer than eval()
 
 
 def get_title(line):
