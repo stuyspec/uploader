@@ -4,22 +4,31 @@ from slugify import slugify
 
 import requests
 import json
-import constants, backups, utils
+import constants, utils
+import ast
 
 users = []
 user_roles = []
 roles = []
-
+backup_users = []
 
 def init():
     """Initiates globals with API data"""
-    global users, user_roles, roles
+    global users, user_roles, roles, backup_users
     users = requests.get(constants.API_USERS_ENDPOINT).json()
     user_roles = requests.get(constants.API_USER_ROLES_ENDPOINT).json()
     roles = requests.get(constants.API_ROLES_ENDPOINT).json()
+    with open('wp-users-backup.txt', 'r') as f:
+        backup_users = ast.literal_eval(f.read()).values()  # safer than eval()
 
 
-# TODO: this needs you to put in default password
+def get_email_by_name(name_dict):
+    for user in backup_users:
+        if (name_dict['first_name'] == user['firstname']
+            and name_dict['last_name'] == user['lastname']):
+            return user['email']
+    raise LookupError('no email found')
+
 
 def update_user(user_id, data):
     update_response = requests.put(constants.API_USERS_ENDPOINT
@@ -82,7 +91,7 @@ def label_existing_contributors(contributors):
 
 def authenticate_new_user(name_dict):
     try:
-        email = backups.get_email_by_name(name_dict)
+        email = get_email_by_name(name_dict)
     except LookupError:
         email = ''
         while email == '':
