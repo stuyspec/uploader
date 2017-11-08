@@ -13,7 +13,7 @@ from oauth2client import tools
 from promise import Promise
 
 from credentials import get_credentials
-import constants, backups, users, authorships, articles
+import constants, users, authorships, articles
 
 args = None
 try:
@@ -21,8 +21,7 @@ try:
     parser = argparse.ArgumentParser(
         description='Automatically upload Spectator articles.',
         parents=[tools.argparser])
-    parser.add_argument('--local', help='post data to a specified port (for testing purposes)')
-    parser.add_argument('-s', action='store_true', help='stop POSTing articles')
+    parser.add_argument('--local', help='post data to a specified port')
     args = parser.parse_args()
 except ImportError:
     flags = None
@@ -43,16 +42,25 @@ def main():
     http = credentials.authorize(httplib2.Http())
     drive_service = discovery.build('drive', 'v3', http=http)
 
-    # Gets all folder names under SBC
     page_token = None
     response = drive_service.files().list(
-        q=
-        "(mimeType='application/vnd.google-apps.folder' or mimeType='application/vnd.google-apps.document') and not trashed",
+        q= "(mimeType='application/vnd.google-apps.folder'"
+        + " or mimeType='application/vnd.google-apps.document')"
+        + " and not trashed",
         spaces='drive',
         fields='nextPageToken, files(id, name, parents, mimeType)',
         pageToken=page_token).execute()
-    files = response.get('files', [])  # if no key 'files', defaults to []
-    SBC = next((file for file in files if file['name'] == 'SBC'), None)
+    files = response.get('files', [])
+
+    SBC = next(
+        (f for f in files
+         if (f['name'] == 'SBC'
+             and f['mimeType'] == 'application/vnd.google-apps.document')),
+        None
+    )
+    if not SBC:
+        print("No SBC folder found.")
+        return
     folders = get_folders_in_file(files, SBC['id'])
 
     volume = 107 #int(raw_input('Volume (number): '))
@@ -65,6 +73,8 @@ def main():
     for file in files:
         if file['mimeType'] == 'application/vnd.google-apps.document' and file.get(
                 'parents', [None])[0] in folders:
+
+            # TODO SHOULD GO INTO ARTICLES
 
             # find section_name by getting folder with parentId
             section_name = folders[file.get('parents', [None])[0]]
@@ -174,7 +184,6 @@ if __name__ == '__main__':
         constants.init('localhost:{}'.format(args.local))
     else:
         constants.init('not-deployed.yet')
-    backups.init()
     articles.init()
     users.init()
     main()
