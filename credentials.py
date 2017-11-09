@@ -3,6 +3,13 @@ from oauth2client.file import Storage
 
 import os
 
+# If modifying these scopes, delete your previously saved credentials
+# at ~/.credentials/drive-python-quickstart.json
+SCOPES = 'https://www.googleapis.com/auth/drive'
+CLIENT_SECRET_FILE = 'client_secret.json'
+APPLICATION_NAME = 'Spec-Uploader CLI'
+
+
 def get_credentials():
     """Gets valid user credentials from storage.
 
