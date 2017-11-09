@@ -1,7 +1,7 @@
 from colorama import Fore, Back, Style
 
 import requests
-import constants
+import constants, utils
 
 sections = []
 
@@ -16,13 +16,18 @@ def choose_subsection(section_id):
         section for section in sections if section['parent_id'] == section_id
     ]
     print(Fore.GREEN + Style.BRIGHT +
-          'Optional subsections (choose subsections like "p/q/r")-> '
+          'Optional subsection ->'
           + Style.RESET_ALL)
     for i in range(len(subsections)):
         print('  [{}] {}'.format(i, subsections[i]['name']))
-    index_choices = raw_input(Fore.GREEN + Style.BRIGHT + 'subsections: '
-                             + Style.RESET_ALL)
-    if index_choices != '':
+
+    index_choice = 'default'
+    while not utils.represents_int(index_choice) or index_choice == '':
+        index_choice = raw_input(Fore.GREEN + Style.BRIGHT
+                                 + 'subsection (leave blank if none): '
+                                 + Style.RESET_ALL)
+    return 
+    if index_choice != '':
         return [
             subsections[int(i)]['id'] for i in index_choices.split('/')
         ]
