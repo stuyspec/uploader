@@ -13,7 +13,7 @@ from oauth2client import tools
 from promise import Promise
 
 from credentials import get_credentials
-import constants, users, authorships, articles
+import constants, users, authorships, articles, sections
 
 args = None
 try:
@@ -30,11 +30,8 @@ from colorama import Fore, Back, Style
 import colorama
 colorama.init()
 
-# If modifying these scopes, delete your previously saved credentials
-# at ~/.credentials/drive-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/drive'
-CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'Spec-Uploader CLI'
+
+
 
 
 def main():
@@ -65,9 +62,6 @@ def main():
 
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
-
-    sections_response = requests.get(constants.API_SECTIONS_ENDPOINT)
-    sections = sections_response.json()
 
     unprocessed_files = []
     for file in files:
@@ -128,6 +122,7 @@ def main():
                     continue  # continue to next file
 
             article_data = articles.read_article(fh.getvalue())
+            section_id = sections.choose_subsection(section_id) or section_id
             if type(article_data) is str or args.s:
                 # read_article failed and returned file title or flag s, stop post.
                 unprocessed_files.append(file['name'])
@@ -184,6 +179,7 @@ if __name__ == '__main__':
         constants.init('localhost:{}'.format(args.local))
     else:
         constants.init('not-deployed.yet')
+    sections.init()
     articles.init()
     users.init()
     main()
