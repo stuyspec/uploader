@@ -28,10 +28,6 @@ except ImportError:
 
 from colorama import Fore, Back, Style
 import colorama
-colorama.init()
-
-
-
 
 
 def main():
@@ -48,11 +44,10 @@ def main():
         fields='nextPageToken, files(id, name, parents, mimeType)',
         pageToken=page_token).execute()
     files = response.get('files', [])
-
     SBC = next(
         (f for f in files
-         if (f['name'] == 'SBC'
-             and f['mimeType'] == 'application/vnd.google-apps.document')),
+         if f['mimeType'] == 'application/vnd.google-apps.folder' and f[
+             'name'] == 'SBC'),
         None
     )
     if not SBC:
@@ -72,13 +67,7 @@ def main():
 
             # find section_name by getting folder with parentId
             section_name = folders[file.get('parents', [None])[0]]
-            section_id = next(
-                (s for s in sections
-                    if (s['name'].lower() == section_name.lower() or
-                        section_name == 'A&E'
-                        and s['name'] == "Arts & Entertainment")
-                 )
-            )['id']
+            section_id = sections.get_section_name_by_id(section_name)
             # create new download request
             request = drive_service.files().export_media(
                 fileId=file['id'], mimeType='text/plain')
@@ -90,8 +79,6 @@ def main():
                 print(Fore.CYAN + Style.BRIGHT + section_name.upper(), end='')
                 print(
                     Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
-
-                # spaces to override " loading..."
                 print('%d%%' % int(status.progress() * 100))
 
             content = fh.getvalue()
