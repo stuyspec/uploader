@@ -21,7 +21,7 @@ def get_title(line):
     line = line.strip()
     return raw_input(
         (Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL +
-         '({}) ').format(line)) or line  # if no user input, defaults to line
+         '({}) ').format(line)) or line
 
 
 def clean_name(name):
