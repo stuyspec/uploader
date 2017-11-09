@@ -26,11 +26,10 @@ def choose_subsection(section_id):
         index_choice = raw_input(Fore.GREEN + Style.BRIGHT
                                  + 'subsection (leave blank if none): '
                                  + Style.RESET_ALL)
-    return 
-    if index_choice != '':
-        return [
-            subsections[int(i)]['id'] for i in index_choices.split('/')
-        ]
+    return section_id \
+        if index_choice == '' \
+        else subsections[int(index_choice)]['id']
+
 
 def get_section_name_by_id(section_name):
     return next(
