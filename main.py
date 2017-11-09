@@ -110,8 +110,8 @@ def main():
 
             article_data = articles.read_article(fh.getvalue())
             section_id = sections.choose_subsection(section_id) or section_id
-            if type(article_data) is str or args.s:
-                # read_article failed and returned file title or flag s, stop post.
+            if type(article_data) is str:
+                # read_article failed and returned file title
                 unprocessed_files.append(file['name'])
                 continue
 
