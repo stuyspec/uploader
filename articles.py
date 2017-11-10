@@ -15,6 +15,18 @@ def init():
         backup_users = ast.literal_eval(f.read()).values()  # safer than eval()
 
 
+def file_article_exists(file_content):
+    for existing_article in articles:
+        if existing_article['title'] not in file_content:
+            continue
+        last_pgraph = existing_article['content'][-1]
+        if last_pgraph[
+            last_pgraph.rfind('<p>') + len('<p>'):-len('</p>')
+           ] in file_content:
+            return True
+    return False
+
+
 def get_title(line):
     if 'Title: ' in line:
         line = line[line.find('Title: ') + len('Title: '):]
