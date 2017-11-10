@@ -8,8 +8,9 @@ sections = []
 def init():
     """Initiates globals with API data"""
     global sections
+    print('[0%] Loading sections.\r'), # comma lets next print overwrite.
     sections = requests.get(constants.API_SECTIONS_ENDPOINT).json()
-
+    print('[100%] Loaded sections.')
 
 def choose_subsection(section_id):
     subsections = [
