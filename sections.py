@@ -16,7 +16,7 @@ def choose_subsection(section_id):
     subsections = [
         section for section in sections if section['parent_id'] == section_id
     ]
-    if len(subsections) == 0:
+    if len(subsections) == 0 or subsections[0]['name'] == 'Staff Editorials':
         return section_id
     print(Fore.GREEN + Style.BRIGHT +
           'Optional subsection ->'
@@ -24,7 +24,7 @@ def choose_subsection(section_id):
     for i in range(len(subsections)):
         print('  [{}] {}'.format(i, subsections[i]['name']))
 
-    index_choice = ''
+    index_choice = 'default'
     while not utils.represents_int(index_choice):
         if index_choice == '':
             break
