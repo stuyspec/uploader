@@ -58,10 +58,10 @@ def main():
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
 
-    unprocessed_files = []
+    unprocessed_file_names = []
     for file in files:
-        if file['mimeType'] == 'application/vnd.google-apps.document' and file.get(
-                'parents', [None])[0] in folders:
+        if (file['mimeType'] == 'application/vnd.google-apps.document' and
+            file['parents'][0] in folders):  # better way to verify parents?
 
             # TODO SHOULD GO INTO ARTICLES
 
@@ -83,6 +83,11 @@ def main():
 
             content = fh.getvalue()
 
+            if articles.file_article_exists(content):
+                print(Fore.RED + Style.BRIGHT + '{} already exists.' +
+                      Style.RESET_ALL)
+                continue
+
             if 'worldbeat' in file['name'].lower():
                 print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.' +
                       Style.RESET_ALL)
@@ -99,7 +104,7 @@ def main():
                         + Style.RESET_ALL).format(content.count('%')))
                     if survey_confirmation == 'y':
                         print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
-                        unprocessed_files.append(file['name'])
+                        unprocessed_file_names.append(file['name'])
                         is_survey = True
                         break
                     elif survey_confirmation == 'n':
@@ -112,7 +117,7 @@ def main():
             section_id = sections.choose_subsection(section_id) or section_id
             if type(article_data) is str:
                 # read_article failed and returned file title
-                unprocessed_files.append(file['name'])
+                unprocessed_file_names.append(file['name'])
                 continue
 
             article_attributes = ['title', 'content', 'summary', 'content']
@@ -140,10 +145,10 @@ def main():
                                 .format(article_id, article_post_data['title'])
                             + Style.RESET_ALL))
 
-    if len(unprocessed_files) > 0:
+    if len(unprocessed_file_names) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
               Back.RESET + Fore.RED)
-        print(*unprocessed_files, sep='\n')
+        print(*unprocessed_file_names, sep='\n')
     page_token = response.get('nextPageToken', None)
     if page_token is None:
         return
