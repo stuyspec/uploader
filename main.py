@@ -2,15 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import httplib2
-import io
-import requests
-import json
-
 from apiclient import discovery
 from apiclient.http import MediaIoBaseDownload
 from oauth2client import tools
 from promise import Promise
+from termcolor import cprint
+from pyfiglet import figlet_format
+import httplib2
+import io
 
 from credentials import get_credentials
 import constants, users, authorships, articles, sections
@@ -34,6 +33,9 @@ def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     drive_service = discovery.build('drive', 'v3', http=http)
+
+    print('\n')
+    print(figlet_format('SPEC CLI', font='slant'))
 
     page_token = None
     response = drive_service.files().list(
@@ -61,7 +63,8 @@ def main():
     unprocessed_file_names = []
     for file in files:
         if (file['mimeType'] == 'application/vnd.google-apps.document' and
-            file['parents'][0] in folders):  # better way to verify parents?
+            file.get('parents', [None])[0] in folders):  # better way to verify parents?
+            print('\n')
 
             # TODO SHOULD GO INTO ARTICLES
 
@@ -84,8 +87,8 @@ def main():
             content = fh.getvalue()
 
             if articles.file_article_exists(content):
-                print(Fore.RED + Style.BRIGHT + '{} already exists.' +
-                      Style.RESET_ALL)
+                print(Fore.RED + Style.BRIGHT + '{} already exists.'
+                        .format(file['name']) + Style.RESET_ALL)
                 continue
 
             if 'worldbeat' in file['name'].lower():
@@ -110,7 +113,6 @@ def main():
                     elif survey_confirmation == 'n':
                         break
                 if is_survey:
-                    print('\n')
                     continue  # continue to next file
 
             article_data = articles.read_article(fh.getvalue())
@@ -141,10 +143,9 @@ def main():
                       authorships.post_authorships(authorship_data))\
                 .then(lambda article_id:
                       print(Fore.GREEN + Style.BRIGHT
-                            + 'Successfully wrote Article {}: {}.\n'
+                            + 'Successfully wrote Article {}: {}.'
                                 .format(article_id, article_post_data['title'])
                             + Style.RESET_ALL))
-
     if len(unprocessed_file_names) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
               Back.RESET + Fore.RED)
