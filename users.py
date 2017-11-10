@@ -145,8 +145,8 @@ def create_contributor(name):
 def post_contributors(article_id, contributors):
     contributors = label_existing_contributors(contributors)
     contributor_ids = []
+    print('\n')
     for name, contributor_id in contributors:
-        print('\n')
         if contributor_id == -1:
             new_contributor_id = create_contributor(name)
             contributor_ids.append(new_contributor_id)
@@ -157,7 +157,7 @@ def post_contributors(article_id, contributors):
             contributor_ids.append(contributor_id)
             print(Fore.YELLOW + Style.BRIGHT + 'Confirmed Contributor #{}: {}.'
                   .format(contributor_id, name) + Style.RESET_ALL)
-
+    print('\n')
     return (
         article_id,
         contributor_ids
