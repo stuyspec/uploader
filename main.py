@@ -9,7 +9,7 @@ from promise import Promise
 from termcolor import cprint
 from pyfiglet import figlet_format
 import httplib2
-import io
+import io, re
 
 from credentials import get_credentials
 import constants, users, authorships, articles, sections
@@ -27,6 +27,8 @@ except ImportError:
 
 from colorama import Fore, Back, Style
 import colorama
+
+# todo: text/html has hope. special styles are stored within spans in p's.
 
 
 def main():
@@ -46,10 +48,14 @@ def main():
         fields='nextPageToken, files(id, name, parents, mimeType)',
         pageToken=page_token).execute()
     files = response.get('files', [])
+    Issue1 = next((
+        f for f in files if f['name'] == 'Issue 1'
+    ), None)
     SBC = next(
         (f for f in files
-         if f['mimeType'] == 'application/vnd.google-apps.folder' and f[
-             'name'] == 'SBC'),
+         if (f['mimeType'] == 'application/vnd.google-apps.folder' and
+             f['name'] == 'SBC' and
+             f.get('parents', [None])[0] == Issue1['id'])),
         None
     )
     if not SBC:
@@ -59,7 +65,6 @@ def main():
 
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
-
     unprocessed_file_names = []
     for file in files:
         if (file['mimeType'] == 'application/vnd.google-apps.document' and
@@ -68,10 +73,22 @@ def main():
 
             # TODO SHOULD GO INTO ARTICLES
 
-            # find section_name by getting folder with parentId
-            section_name = folders[file.get('parents', [None])[0]]
+            if re.match(r'(?i)staff\s?ed', file['name']):
+                section_name = "Opinions"
+            else:
+                section_name = folders[file.get('parents', [None])[0]]
+
+            if 'worldbeat' in file['name'].lower():
+                print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.' +
+                      Style.RESET_ALL)
+                continue
+
+            if 'survey' in file['name'].lower():
+                print(Fore.RED + Style.BRIGHT + 'Survey skipped.' +
+                      Style.RESET_ALL)
+                continue
+
             section_id = sections.get_section_name_by_id(section_name)
-            # create new download request
             request = drive_service.files().export_media(
                 fileId=file['id'], mimeType='text/plain')
             fh = io.BytesIO()
@@ -91,12 +108,7 @@ def main():
                         .format(file['name']) + Style.RESET_ALL)
                 continue
 
-            if 'worldbeat' in file['name'].lower():
-                print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.' +
-                      Style.RESET_ALL)
-                continue
-
-            if 'survey' in file['name'] or content.count(
+            if content.count(
                     '%') > 10:  # possibly a survey
                 survey_confirmation = ''
                 is_survey = False
