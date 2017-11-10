@@ -9,13 +9,15 @@ backup_articles = []
 
 def init():
     """Initiates globals with API data"""
+    print('[0%] Loading articles.\r'),  # comma lets next print overwrite.
     global articles, backup_articles
     articles = requests.get(constants.API_ARTICLES_ENDPOINT).json()
     with open('wp-articles-backup.txt', 'r') as f:
         backup_users = ast.literal_eval(f.read()).values()  # safer than eval()
-
+    print('[100%] Loaded articles.')
 
 def file_article_exists(file_content):
+    file_content = unicode(file_content, 'utf-8')
     for existing_article in articles:
         if existing_article['title'] not in file_content:
             continue
