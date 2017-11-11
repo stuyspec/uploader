@@ -65,18 +65,24 @@ def main():
 
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
+    for f in files:
+        if f['parents']:
+            print(f['name'] + ':')
+            for p in f['parents']:
+                p = next((f for f in file if f['id'] == p), None)
+                if 'folder' in p['mimeType']:
+                    p_type = 'folder'
+                elif 'document' in p['mimeType']:
+                    p_type = 'document'
+                else:
+                    p_type = p['mimeType']
+                print('  {} {}'.format(p_type, p['name']))
+    return
     unprocessed_file_names = []
     for file in files:
         if (file['mimeType'] == 'application/vnd.google-apps.document' and
             file.get('parents', [None])[0] in folders):  # better way to verify parents?
             print('\n')
-
-            # TODO SHOULD GO INTO ARTICLES
-
-            if re.match(r'(?i)staff\s?ed', file['name']):
-                section_name = "Opinions"
-            else:
-                section_name = folders[file.get('parents', [None])[0]]
 
             if 'worldbeat' in file['name'].lower():
                 print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.' +
@@ -88,7 +94,13 @@ def main():
                       Style.RESET_ALL)
                 continue
 
+            section_name = folders[file.get('parents', [None])[0]]
+            if re.match(r'(?i)staff\s?ed', file['name']):
+                section_name = "Staff Editorials"
+            else:
+                section_name = folders[file.get('parents', [None])[0]]
             section_id = sections.get_section_name_by_id(section_name)
+
             request = drive_service.files().export_media(
                 fileId=file['id'], mimeType='text/plain')
             fh = io.BytesIO()
