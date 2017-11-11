@@ -19,8 +19,10 @@ def init():
     users = requests.get(constants.API_USERS_ENDPOINT).json()
     user_roles = requests.get(constants.API_USER_ROLES_ENDPOINT).json()
     roles = requests.get(constants.API_ROLES_ENDPOINT).json()
-    with open('wp-users-backup.txt', 'r') as f:
-        backup_users = ast.literal_eval(f.read()).values()  # safer than eval()
+    with open('backups/wp-users-backup.txt', 'r') as wp, \
+         open('backups/drive-features-writers-2017-2018.txt', 'r') as features:
+        backup_users = ast.literal_eval(wp.read()).values()  # safer than eval()
+        backup_users += ast.literal_eval(features.read())
     print('[100%] Loaded users.')
 
 def get_email_by_name(name_dict):
@@ -149,7 +151,6 @@ def create_contributor(name):
 def post_contributors(article_id, contributors):
     contributors = label_existing_contributors(contributors)
     contributor_ids = []
-    print(contributors)
     for name, contributor_id in contributors:
         if contributor_id == -1:
             new_contributor_id = create_contributor(name)
