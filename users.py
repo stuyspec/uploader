@@ -175,3 +175,25 @@ def post_contributors(article_id, contributors):
         article_id,
         contributor_ids
     )
+
+
+def clean_content(content):
+    content = content.replace('<span style="font-weight: 400;">', "<p>")
+    content = content.replace("</span>\r\n\r\n", "</p>")
+    return content
+
+def summary(content):
+    content = clean_content(content).replace("<p>","").replace("</p>","")
+    return " ".join(content.split()[:24]) + "... "
+
+def contributors(authors):
+    contributors_list = []
+    return contributors_list
+
+def read_article_backup(article_dict):
+    info = {}
+    wp_entry = article_dict.values()[0]
+    info["title"] = wp_entry["title"]
+    info["contributors"] = contributors(wp_entry["authors"])
+    info["summary"] = summary(wp_entry["content"])
+    return info
