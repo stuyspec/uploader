@@ -21,9 +21,12 @@ def init():
     user_roles = requests.get(constants.API_USER_ROLES_ENDPOINT).json()
     roles = requests.get(constants.API_ROLES_ENDPOINT).json()
     with open('backups/wp-users-backup.txt', 'r') as wp, \
-         open('backups/drive-features-writers-2017-2018.txt', 'r') as features:
-        backup_users = ast.literal_eval(wp.read()).values()  # safer than eval()
-        backup_users += ast.literal_eval(features.read())
+        open('backups/drive-features-writers-2017-2018.txt', 'r') \
+                as features, \
+        open('backups/drive-opinions-writers-2017-2018.txt', 'r') as opinions:
+        backup_users = ast.literal_eval(wp.read()).values() \
+                       + ast.literal_eval(features.read()) \
+                       + ast.literal_eval(opinions.read())
     print('[100%] Loaded users.')
 
 
