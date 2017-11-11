@@ -2,7 +2,7 @@ from colorama import init, Fore, Back, Style
 init()
 
 import re, requests, json, ast
-import constants
+import constants, utils
 
 articles = []
 backup_articles = []
@@ -100,12 +100,9 @@ def get_header_end(input):
          if HEADER_LINE_PATTERN.match(value)), -1)
 
 def read_article(text):
-    input = text.split('\n')
-    input = [line.strip() for line in input]
+    input = [line.strip() for line in text.split('\n')]
 
-    data = {}
-
-    data['title'] = get_title(input[0])
+    data = {'title': get_title(input[0])}
 
     byline = next((line for line in input
                    if line.find('By') >= 0), None)  # defaults to None
@@ -136,6 +133,44 @@ def read_article(text):
              paragraphs[0], paragraphs[-1]))
     if paragraphs_input != '':
         paragraphs = paragraphs_input.split('\n')
+    data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
+
+    return data
+
+
+def choose_content_line(content):
+    print(Back.RED + Fore.WHITE + Style.BRIGHT + 'Beginning of content could '
+          + 'not be found. Input "m" to extend the article. Press ENTER to '
+          + 'continue. Then, input a line number to indicate where content '
+          + 'starts.' + Style.RESET_ALL + Fore.RED)
+    content = content.split('\n')
+    lineNum = 0
+    while lineNum + 5 < len(content):
+        if lineNum % 5 == 0:
+            user_option = raw_input()
+            if utils.represents_int(user_option):
+                return int(user_option)
+            elif user_option != 'm':
+                break
+        print('[{}] {}\n'.format(lineNum, content[lineNum]))
+        lineNum += 1
+    return -1
+
+
+def read_staff_ed(text):
+    input = [line.strip() for line in text.split('\n')]
+
+    data = {
+        'title': get_title(input[0]),
+        'contributors': ["The Editorial Board"]
+    }
+
+    paragraphs = filter(None, input[choose_content_line(text):])
+    paragraphs_input = raw_input(
+        (Fore.GREEN + Style.BRIGHT +
+         'content: ' + Style.RESET_ALL + '({} ... {}) ').format(
+            paragraphs[0], paragraphs[-1]))
+    data['summary'] = paragraphs[0]
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
     return data

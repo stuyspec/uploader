@@ -61,7 +61,9 @@ def main():
     if not SBC:
         print("No SBC folder found.")
         return
-    SBC_folders = get_folders_in_file(files, SBC['id'])
+    SBC_folders = get_folders_in_file(files, SBC['id']).update({
+        SBC['id']: SBC['name']
+    })
 
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
@@ -69,7 +71,7 @@ def main():
     unprocessed_file_names = []
     for file in files:
         if (file['mimeType'] == 'application/vnd.google-apps.document' and
-            file.get('parents', [None])[0] in SBC_folders):
+                file.get('parents', [None])[0] in SBC_folders):
             print('\n')
 
             file_unwanted = None
@@ -124,7 +126,11 @@ def main():
                 if is_survey:
                     continue  # continue to next file
 
-            article_data = articles.read_article(fh.getvalue())
+            if re.match(r'(?i)staff\s?ed', file['name']):
+                article_data = articles.read_staff_ed(fh.getvalue())
+            else:
+                article_data = articles.read_article(fh.getvalue())
+
             section_id = sections.choose_subsection(section_id) or section_id
             if type(article_data) is str:
                 # read_article failed and returned file title
