@@ -12,6 +12,7 @@ user_roles = []
 roles = []
 backup_users = []
 
+
 def init():
     """Initiates globals with API data"""
     print('[0%] Loading users.\r'),  # comma lets next print overwrite.
@@ -24,6 +25,7 @@ def init():
         backup_users = ast.literal_eval(wp.read()).values()  # safer than eval()
         backup_users += ast.literal_eval(features.read())
     print('[100%] Loaded users.')
+
 
 def get_email_by_name(name_dict):
     for user in backup_users:
