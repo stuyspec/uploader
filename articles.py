@@ -2,7 +2,7 @@ from colorama import init, Fore, Back, Style
 init()
 
 import re, requests, json, ast
-import constants, utils
+import constants, utils, users
 
 articles = []
 backup_articles = []
