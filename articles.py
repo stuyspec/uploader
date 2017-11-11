@@ -142,9 +142,9 @@ def choose_content_line(content):
     """Takes list of paragraphs and returns user input for starting content
     line"""
     print(Back.RED + Fore.WHITE + Style.BRIGHT + 'Beginning of content could '
-          + 'not be found. Input "m" to extend the article. Press ENTER to '
-          + 'continue. Then, input a line number to indicate where content '
-          + 'starts.' + Style.RESET_ALL + Fore.RED)
+          + 'not be found. Press ENTER to extend the article. Input a line '
+          + 'number to indicate where content starts and exit the manual '
+          + 'reader.' + Style.RESET_ALL + Fore.RED)
     lineNum = 0
     while lineNum + 5 < len(content):
         if lineNum > 0 and lineNum % 5 == 0:

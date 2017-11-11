@@ -72,8 +72,9 @@ def get_contributor_id(name):
         -1
     )['id']
     for u in users:
-        if u['lastname'] == '' and u['firstname'] == name:
+        if u['last_name'] == '' and u['first_name'] == name:
             # the case for "The {section_name} Department"
+            print(u)
             return u['id']
         if ('{first_name} {last_name}'.format(**u) == name
             and next((
@@ -148,6 +149,7 @@ def create_contributor(name):
 def post_contributors(article_id, contributors):
     contributors = label_existing_contributors(contributors)
     contributor_ids = []
+    print(contributors)
     for name, contributor_id in contributors:
         if contributor_id == -1:
             new_contributor_id = create_contributor(name)
