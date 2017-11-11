@@ -61,9 +61,8 @@ def main():
     if not SBC:
         print("No SBC folder found.")
         return
-    SBC_folders = get_folders_in_file(files, SBC['id']).update({
-        SBC['id']: SBC['name']
-    })
+    SBC_folders = get_folders_in_file(files, SBC['id'])
+    SBC_folders[SBC['id']] = SBC['name']
 
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))

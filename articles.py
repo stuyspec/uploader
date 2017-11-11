@@ -139,33 +139,34 @@ def read_article(text):
 
 
 def choose_content_line(content):
+    """Takes list of paragraphs and returns user input for starting content
+    line"""
     print(Back.RED + Fore.WHITE + Style.BRIGHT + 'Beginning of content could '
           + 'not be found. Input "m" to extend the article. Press ENTER to '
           + 'continue. Then, input a line number to indicate where content '
           + 'starts.' + Style.RESET_ALL + Fore.RED)
-    content = content.split('\n')
     lineNum = 0
     while lineNum + 5 < len(content):
-        if lineNum % 5 == 0:
+        if lineNum > 0 and lineNum % 5 == 0:
             user_option = raw_input()
             if utils.represents_int(user_option):
                 return int(user_option)
             elif user_option != 'm':
                 break
-        print('[{}] {}\n'.format(lineNum, content[lineNum]))
+        print('[{}] {}'.format(lineNum, content[lineNum]))
         lineNum += 1
     return -1
 
 
 def read_staff_ed(text):
-    input = [line.strip() for line in text.split('\n')]
+    input = filter(None, [line.strip() for line in text.split('\n')])
 
     data = {
         'title': get_title(input[0]),
         'contributors': ["The Editorial Board"]
     }
 
-    paragraphs = filter(None, input[choose_content_line(text):])
+    paragraphs = filter(None, input[choose_content_line(input):])
     paragraphs_input = raw_input(
         (Fore.GREEN + Style.BRIGHT +
          'content: ' + Style.RESET_ALL + '({} ... {}) ').format(
