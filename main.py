@@ -61,46 +61,34 @@ def main():
     if not SBC:
         print("No SBC folder found.")
         return
-    folders = get_folders_in_file(files, SBC['id'])
+    SBC_folders = get_folders_in_file(files, SBC['id'])
 
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
-    for f in files:
-        if f['parents']:
-            print(f['name'] + ':')
-            for p in f['parents']:
-                p = next((f for f in file if f['id'] == p), None)
-                if 'folder' in p['mimeType']:
-                    p_type = 'folder'
-                elif 'document' in p['mimeType']:
-                    p_type = 'document'
-                else:
-                    p_type = p['mimeType']
-                print('  {} {}'.format(p_type, p['name']))
-    return
+
     unprocessed_file_names = []
     for file in files:
         if (file['mimeType'] == 'application/vnd.google-apps.document' and
-            file.get('parents', [None])[0] in folders):  # better way to verify parents?
+            file.get('parents', [None])[0] in SBC_folders):
             print('\n')
 
-            if 'worldbeat' in file['name'].lower():
-                print(Fore.RED + Style.BRIGHT + 'Worldbeat skipped.' +
-                      Style.RESET_ALL)
+            file_unwanted = None
+            for unwanted_keyword in ['worldbeat', 'survey']:
+                if unwanted_keyword in file['name'].lower():
+                    file_unwanted = file
+                    print(Fore.RED + Style.BRIGHT + unwanted_keyword.upper()
+                          + 'Worldbeat skipped.' + Style.RESET_ALL)
+            if file_unwanted:
                 continue
 
-            if 'survey' in file['name'].lower():
-                print(Fore.RED + Style.BRIGHT + 'Survey skipped.' +
-                      Style.RESET_ALL)
-                continue
-
-            section_name = folders[file.get('parents', [None])[0]]
             if re.match(r'(?i)staff\s?ed', file['name']):
                 section_name = "Staff Editorials"
             else:
-                section_name = folders[file.get('parents', [None])[0]]
+                section_name = SBC_folders[file.get('parents', [None])[0]]
             section_id = sections.get_section_name_by_id(section_name)
 
+            print(Fore.CYAN + Style.BRIGHT + section_name.upper() + Fore.BLUE
+                  + ' ' + file['name'] + Style.RESET_ALL + '\r'),
             request = drive_service.files().export_media(
                 fileId=file['id'], mimeType='text/plain')
             fh = io.BytesIO()
@@ -116,12 +104,11 @@ def main():
             content = fh.getvalue()
 
             if articles.file_article_exists(content):
-                print(Fore.RED + Style.BRIGHT + '{} already exists.'
+                print(Fore.RED + Style.BRIGHT + '{} already exists. TODO: update'
                         .format(file['name']) + Style.RESET_ALL)
                 continue
 
-            if content.count(
-                    '%') > 10:  # possibly a survey
+            if content.count('%') > 10:  # possibly a survey
                 survey_confirmation = ''
                 is_survey = False
                 while survey_confirmation == '':
