@@ -77,7 +77,7 @@ def main():
                 if unwanted_keyword in file['name'].lower():
                     file_unwanted = file
                     print(Fore.RED + Style.BRIGHT + unwanted_keyword.upper()
-                          + 'Worldbeat skipped.' + Style.RESET_ALL)
+                          + ' skipped.' + Style.RESET_ALL)
             if file_unwanted:
                 continue
 
@@ -87,8 +87,6 @@ def main():
                 section_name = SBC_folders[file.get('parents', [None])[0]]
             section_id = sections.get_section_name_by_id(section_name)
 
-            print(Fore.CYAN + Style.BRIGHT + section_name.upper() + Fore.BLUE
-                  + ' ' + file['name'] + Style.RESET_ALL + '\r'),
             request = drive_service.files().export_media(
                 fileId=file['id'], mimeType='text/plain')
             fh = io.BytesIO()
@@ -96,16 +94,16 @@ def main():
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
-                print(Fore.CYAN + Style.BRIGHT + section_name.upper(), end='')
-                print(
-                    Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
+                print(Fore.CYAN + Style.BRIGHT + section_name.upper()
+                      + Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL,
+                      end=' ')
                 print('%d%%' % int(status.progress() * 100))
 
             content = fh.getvalue()
 
             if articles.file_article_exists(content):
                 print(Fore.RED + Style.BRIGHT + '{} already exists. TODO: update'
-                        .format(file['name']) + Style.RESET_ALL)
+                        .format(file['name'].encode("utf-8")) + Style.RESET_ALL)
                 continue
 
             if content.count('%') > 10:  # possibly a survey
