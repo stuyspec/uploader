@@ -38,7 +38,7 @@ def choose_subsection(section_id):
         else subsections[int(index_choice)]['id']
 
 
-def get_section_name_by_id(section_name):
+def get_section_id_by_name(section_name):
     return next(
         (s for s in sections
          if (s['name'].lower() == section_name.lower() or
