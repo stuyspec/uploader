@@ -11,25 +11,30 @@ users = []
 user_roles = []
 roles = []
 backup_users = []
-wp_user_dict = {}
+wp_users_dict = {}
 
 
 def init():
     """Initiates globals with API data"""
     print('[0%] Loading users.\r'),  # comma lets next print overwrite.
-    global users, user_roles, roles, backup_users, backup_user_dict
+    global users, user_roles, roles, backup_users, wp_users_dict
     users = requests.get(constants.API_USERS_ENDPOINT).json()
     user_roles = requests.get(constants.API_USER_ROLES_ENDPOINT).json()
     roles = requests.get(constants.API_ROLES_ENDPOINT).json()
+
     with open('backups/wp-users-backup.txt', 'r') as wp:
-        backup_user_dict = ast.literal_eval(wp.read())
+        wp_users_dict = ast.literal_eval(wp.read())
+
     with open('backups/wp-users-backup.txt', 'r') as wp, \
         open('backups/drive-features-writers-2017-2018.txt', 'r') \
                 as features, \
-        open('backups/drive-opinions-writers-2017-2018.txt', 'r') as opinions:
+        open('backups/drive-opinions-writers-2017-2018.txt', 'r') \
+                as opinions, \
+        open('backups/drive-news-writers-2016-2017.txt', 'r') as news:
         backup_users = ast.literal_eval(wp.read()).values() \
                        + ast.literal_eval(features.read()) \
-                       + ast.literal_eval(opinions.read())
+                       + ast.literal_eval(opinions.read()) \
+                       + ast.literal_eval(news.read())
     print('[100%] Loaded users.')
 
 
