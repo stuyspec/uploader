@@ -174,11 +174,10 @@ def read_staff_ed(text):
         'contributors': ["The Editorial Board"]
     }
 
-    paragraphs = filter(None, input[choose_content_line(input):])
-    paragraphs_input = raw_input(
-        (Fore.GREEN + Style.BRIGHT +
-         'content: ' + Style.RESET_ALL + '({} ... {}) ').format(
-            paragraphs[0], paragraphs[-1]))
+    paragraphs = filter(
+        None,
+        input[identify_line_manually(input, 'content start'):]
+    )
     data['summary'] = paragraphs[0]
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
