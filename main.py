@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from apiclient.http import MediaIoBaseDownload
 from oauth2client import tools
 from promise import Promise
 import io, re
@@ -41,7 +40,6 @@ def main():
     Issue = drive.get_file(r"Issue\s?1", 'folder')
     SBC = drive.get_file(r"SBC", 'folder', Issue['id'])
     SBC_folders = drive.get_children(SBC['id'], 'folder')
-    SBC_folders.append(SBC)
 
     art_folder = drive.get_file(r"(?i)art", 'folder', Issue['id'])
     photo_folder = drive.get_file(r"(?i)(photo\s?color)",
@@ -52,14 +50,16 @@ def main():
                                       'folder',
                                       Issue['id'])
 
-    volume = 107 #int(raw_input('Volume (number): '))
-    issue = 1 #int(raw_input('Issue: '))
-
+    volume = 107  # int(raw_input('Volume (number): '))
+    issue = 1  # int(raw_input('Issue: '))
     unprocessed_file_names = []
-    for file in files:
-        if (file['mimeType'] == 'application/vnd.google-apps.document' and
-                file.get('parents', [None])[0] in SBC_folders):
-            print('\n')
+
+    for section in SBC_folders:
+
+        section_id = sections.get_section_id_by_name(section['name'])
+        articles = drive.get_children(section['id'], 'document')
+
+        for file in articles:
 
             file_unwanted = None
             for unwanted_keyword in ['worldbeat', 'survey']:
@@ -67,42 +67,27 @@ def main():
                     file_unwanted = file
                     print(Fore.RED + Style.BRIGHT + unwanted_keyword.upper()
                           + ' skipped.' + Style.RESET_ALL)
+                    file_unwanted = file
             if file_unwanted:
                 continue
 
-            if re.match(r'(?i)staff\s?ed', file['name']):
-                section_name = "Staff Editorials"
-            else:
-                section_name = SBC_folders[file.get('parents', [None])[0]]
-            section_id = sections.get_section_name_by_id(section_name)
+            print(Fore.CYAN + Style.BRIGHT + section['name'].upper()
+                  + Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
+            article_text = drive.download_document(file)
 
-            request = drive_service.files().export_media(
-                fileId=file['id'], mimeType='text/plain')
-            fh = io.BytesIO()
-            downloader = MediaIoBaseDownload(fh, request)
-            done = False
-            while done is False:
-                status, done = downloader.next_chunk()
-                print(Fore.CYAN + Style.BRIGHT + section_name.upper()
-                      + Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL,
-                      end=' ')
-                print('%d%%' % int(status.progress() * 100))
-
-            content = fh.getvalue()
-            
-            if articles.file_article_exists(content):
+            if articles.file_article_exists(article_text):
                 print(Fore.RED + Style.BRIGHT + '{} already exists. TODO: update'
                         .format(file['name'].encode("utf-8")) + Style.RESET_ALL)
                 continue
 
-            if content.count('%') > 10:  # possibly a survey
+            if article_text.count('%') > 10:  # possibly a survey
                 survey_confirmation = ''
                 is_survey = False
                 while survey_confirmation == '':
                     survey_confirmation = raw_input((
                         Fore.RED + Style.BRIGHT +
                         'Is this article, with {} counts of "%", a survey? (y/n) '
-                        + Style.RESET_ALL).format(content.count('%')))
+                        + Style.RESET_ALL).format(article_text.count('%')))
                     if survey_confirmation == 'y':
                         print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
                         unprocessed_file_names.append(file['name'])
@@ -114,9 +99,9 @@ def main():
                     continue  # continue to next file
 
             if re.match(r'(?i)staff\s?ed', file['name']):
-                article_data = articles.read_staff_ed(fh.getvalue())
+                article_data = articles.read_staff_ed(article_text)
             else:
-                article_data = articles.read_article(fh.getvalue())
+                article_data = articles.read_article(article_text)
 
             section_id = sections.choose_subsection(section_id) or section_id
             if type(article_data) is str:
@@ -155,9 +140,6 @@ def main():
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
               Back.RESET + Fore.RED)
         print(*unprocessed_file_names, sep='\n')
-    page_token = response.get('nextPageToken', None)
-    if page_token is None:
-        return
 
 
 # NEEDS A BACK FUNCTION TODO
