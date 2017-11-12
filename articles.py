@@ -147,14 +147,18 @@ def read_article(text):
 
     outquote_index = -1
     for line_number in range(len(input)):
-        if re.match(r"(?i)outquote\(?s\)?:?", input[line_number]):
+        if re.findall(r"(?i)outquote\(?s\)?:?", input[line_number]):
             outquote_index = line_number
             break
     if outquote_index == -1:
         outquote_index = identify_line_manually(input, 'outquote start')
+
     while (outquote_index < content_start_index
            and 'focus sentence:' not in input[outquote_index].lower()):
-        # find, analyze, and append outquotes
+        line = re.sub(r"(?i)outquote\(?s\)?:?", '', input[outquote_index])\
+                   .strip()
+        if line != '':
+            data['outquotes'].append(line)
         outquote_index += 1
 
     return data
