@@ -40,7 +40,8 @@ def find_matching_folder_in(parent_id, files, name_pattern):
 def main():
     Issue = drive.get_file(r"Issue\s?1", 'folder')
     SBC = drive.get_file(r"SBC", 'folder', Issue['id'])
-    SBC_folders = drive.get_children(SBC['id'], 'folder').append(SBC)
+    SBC_folders = drive.get_children(SBC['id'], 'folder')
+    SBC_folders.append(SBC)
 
     art_folder = drive.get_file(r"(?i)art", 'folder', Issue['id'])
     photo_folder = drive.get_file(r"(?i)(photo\s?color)",
@@ -51,8 +52,6 @@ def main():
                                       'folder',
                                       Issue['id'])
 
-    print(Issue, SBC, SBC_folders, art_folder, photo_folder)
-    return
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
 
