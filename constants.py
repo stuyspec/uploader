@@ -8,6 +8,7 @@ API_SECTIONS_ENDPOINT = 'http://{}/sections'.format(SUBDOMAIN)
 API_USERS_ENDPOINT = 'http://{}/users'.format(SUBDOMAIN)
 API_ROLES_ENDPOINT = 'http://{}/roles'.format(SUBDOMAIN)
 API_USER_ROLES_ENDPOINT = 'http://{}/user_roles'.format(SUBDOMAIN)
+API_OUTQUOTES_ENDPOINT = 'http://{}/outquotes'.format(SUBDOMAIN)
 API_AUTH_ENDPOINT = 'http://{}/auth'.format(SUBDOMAIN)
 
 def init(SUBDOMAIN):
@@ -34,6 +35,9 @@ def init(SUBDOMAIN):
 
     global API_USER_ROLES_ENDPOINT
     API_USER_ROLES_ENDPOINT = 'http://{}/user_roles'.format(SUBDOMAIN)
+
+    global API_OUTQUOTES_ENDPOINT
+    API_OUTQUOTES_ENDPOINT = 'http://{}/outquotes'.format(SUBDOMAIN)
 
     global API_AUTH_ENDPOINT
     API_AUTH_ENDPOINT = 'http://{}/auth'.format(SUBDOMAIN)
