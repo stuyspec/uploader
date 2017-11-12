@@ -118,7 +118,7 @@ def authenticate_new_user(name_dict):
         email = ''
         while email == '':
             email = raw_input(
-                (Fore.YELLOW + Style.BRIGHT + 'no email found for '
+                (Fore.YELLOW + Style.BRIGHT + '[!] no email found for '
                 + '{first_name} {last_name}. '.format(**name_dict) + Fore.GREEN
                 + 'email: ' + Style.RESET_ALL))
     password = utils.generate_password(16)  # generates password of length 16
@@ -177,7 +177,6 @@ def post_contributors(article_id, contributors):
             contributor_ids.append(contributor_id)
             print(Fore.YELLOW + Style.BRIGHT + 'Confirmed Contributor #{}: {}.'
                   .format(contributor_id, name) + Style.RESET_ALL)
-    print('\n')
     return (
         article_id,
         contributor_ids

@@ -57,10 +57,10 @@ def main():
     for section in SBC_folders:
 
         section_id = sections.get_section_id_by_name(section['name'])
-        articles = drive.get_children(section['id'], 'document')
+        section_articles = drive.get_children(section['id'], 'document')
 
-        for file in articles:
-
+        for file in section_articles:
+            print('\n')
             file_unwanted = None
             for unwanted_keyword in ['worldbeat', 'survey']:
                 if unwanted_keyword in file['name'].lower():
@@ -76,7 +76,7 @@ def main():
             article_text = drive.download_document(file)
 
             if articles.file_article_exists(article_text):
-                print(Fore.RED + Style.BRIGHT + '{} already exists. TODO: update'
+                print(Fore.RED + Style.BRIGHT + '{} already exists.'
                         .format(file['name'].encode("utf-8")) + Style.RESET_ALL)
                 continue
 
@@ -117,6 +117,7 @@ def main():
             for attr in ('volume', 'issue', 'section_id'):
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
 
+            print('\n')
             article_promise = Promise(
                 lambda resolve, reject: resolve(articles.post_article(article_post_data))
             )\
@@ -133,7 +134,7 @@ def main():
                                                article_data['outquotes']))\
                 .then(lambda article_id:
                       print(Fore.GREEN + Style.BRIGHT
-                            + 'Successfully wrote Article {}: {}.'
+                            + '\nSuccessfully wrote Article {}: {}.'
                                 .format(article_id, article_post_data['title'])
                             + Style.RESET_ALL))
     if len(unprocessed_file_names) > 0:
@@ -164,4 +165,5 @@ if __name__ == '__main__':
     sections.init()
     articles.init()
     users.init()
+    print('\n')
     main()
