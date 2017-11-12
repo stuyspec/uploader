@@ -39,7 +39,6 @@ def find_matching_folder_in(parent_id, files, name_pattern):
 def main():
     Issue = drive.get_file(r"Issue\s?1", 'folder')
     SBC = drive.get_file(r"SBC", 'folder', Issue['id'])
-    SBC_folders = drive.get_children(SBC['id'], 'folder')
 
     art_folder = drive.get_file(r"(?i)art", 'folder', Issue['id'])
     photo_folder = drive.get_file(r"(?i)(photo\s?color)",
@@ -54,21 +53,21 @@ def main():
     issue = 1  # int(raw_input('Issue: '))
     unprocessed_file_names = []
 
-    for section in SBC_folders:
+    # TODO if re.match(r'(?i)staff\s?ed', file['name']): article_data = articles.read_staff_ed(article_text)
+
+    for section in drive.get_children(SBC['id'], 'folder'):
 
         section_id = sections.get_section_id_by_name(section['name'])
         section_articles = drive.get_children(section['id'], 'document')
 
         for file in section_articles:
             print('\n')
-            file_unwanted = None
-            for unwanted_keyword in ['worldbeat', 'survey']:
-                if unwanted_keyword in file['name'].lower():
-                    file_unwanted = file
-                    print(Fore.RED + Style.BRIGHT + unwanted_keyword.upper()
-                          + ' skipped.' + Style.RESET_ALL)
-                    file_unwanted = file
+
+            file_unwanted = re.search(r"(?i)worldbeat|survey",
+                                          file['name'])
             if file_unwanted:
+                print(Fore.RED + Style.BRIGHT + file_unwanted.group().upper()
+                      + ' skipped.' + Style.RESET_ALL)
                 continue
 
             print(Fore.CYAN + Style.BRIGHT + section['name'].upper()
@@ -76,38 +75,17 @@ def main():
             article_text = drive.download_document(file)
 
             if articles.file_article_exists(article_text):
-                print(Fore.RED + Style.BRIGHT + '{} already exists.'
-                        .format(file['name'].encode("utf-8")) + Style.RESET_ALL)
+                print(Fore.RED + Style.BRIGHT + file['name'].encode("utf-8")
+                      + ' already exists.' + Style.RESET_ALL)
                 continue
 
-            if article_text.count('%') > 10:  # possibly a survey
-                survey_confirmation = ''
-                is_survey = False
-                while survey_confirmation == '':
-                    survey_confirmation = raw_input((
-                        Fore.RED + Style.BRIGHT +
-                        'Is this article, with {} counts of "%", a survey? (y/n) '
-                        + Style.RESET_ALL).format(article_text.count('%')))
-                    if survey_confirmation == 'y':
-                        print(Fore.RED + Style.BRIGHT + 'Survey skipped.')
-                        unprocessed_file_names.append(file['name'])
-                        is_survey = True
-                        break
-                    elif survey_confirmation == 'n':
-                        break
-                if is_survey:
-                    continue  # continue to next file
-
-            if re.match(r'(?i)staff\s?ed', file['name']):
-                article_data = articles.read_staff_ed(article_text)
-            else:
-                article_data = articles.read_article(article_text)
-
-            section_id = sections.choose_subsection(section_id) or section_id
+            article_data = articles.read_article(article_text)
             if type(article_data) is str:
                 # read_article failed and returned file title
                 unprocessed_file_names.append(file['name'])
                 continue
+
+            section_id = sections.choose_subsection(section_id) or section_id
 
             article_attributes = ['title', 'content', 'summary', 'content']
             article_post_data = {
@@ -117,16 +95,13 @@ def main():
             for attr in ('volume', 'issue', 'section_id'):
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
 
-            print('\n')
             article_promise = Promise(
-                lambda resolve, reject: resolve(articles.post_article(article_post_data))
+                lambda resolve, reject:
+                    resolve(articles.post_article(article_post_data))
             )\
                 .then(lambda article_id:
                       users.post_contributors(article_id,
-                                              article_data.get(
-                                                  'contributors',
-                                                  []
-                                              )))\
+                                              article_data['contributors']))\
                 .then(lambda authorship_data:
                       authorships.post_authorships(authorship_data))\
                 .then(lambda article_id:
