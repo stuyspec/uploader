@@ -126,7 +126,9 @@ def read_article(text):
                         if 'focus sentence:' in line.lower()))
     except StopIteration:
         summary = input[identify_line_manually(input, 'focus sentence')]
-        summary = ' '.join(summary.split(' ')[:23]) + "..."
+        summary_words = summary.split(' ')
+        if len(summary_words) > 25:
+            summary = ' '.join(summary_words[:25]) + "..."
     data['summary'] = get_summary(summary)
 
     content_start_index = get_content_start(input)
