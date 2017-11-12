@@ -3,6 +3,7 @@ SUBDOMAIN = 'not-deployed.yet'
 API_ENDPOINT = 'http://{}'.format(SUBDOMAIN)
 API_ARTICLES_ENDPOINT = 'http://{}/articles'.format(SUBDOMAIN)
 API_AUTHORSHIPS_ENDPOINT = 'http://{}/authorships'.format(SUBDOMAIN)
+API_MEDIA_ENDPOINT = 'http://{}/media'.format(SUBDOMAIN)
 API_SECTIONS_ENDPOINT = 'http://{}/sections'.format(SUBDOMAIN)
 API_USERS_ENDPOINT = 'http://{}/users'.format(SUBDOMAIN)
 API_ROLES_ENDPOINT = 'http://{}/roles'.format(SUBDOMAIN)
@@ -18,6 +19,9 @@ def init(SUBDOMAIN):
 
     global API_AUTHORSHIPS_ENDPOINT
     API_AUTHORSHIPS_ENDPOINT = 'http://{}/authorships'.format(SUBDOMAIN)
+
+    global API_MEDIA_ENDPOINT
+    API_MEDIA_ENDPOINT = 'http://{}/media'.format(SUBDOMAIN)
 
     global API_SECTIONS_ENDPOINT
     API_SECTIONS_ENDPOINT = 'http://{}/sections'.format(SUBDOMAIN)
