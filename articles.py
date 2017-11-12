@@ -94,7 +94,6 @@ def identify_line_manually(content, missing_value):
         line_num += 1
     return -1
 
-# TODO: outquotes
 
 def get_content_start(input):
     HEADER_LINE_PATTERN = re.compile(
@@ -112,7 +111,10 @@ def get_content_start(input):
 def read_article(text):
     input = filter(None, [line.strip() for line in text.split('\n')])
 
-    data = {'title': get_title(input[0])}
+    data = {
+        'title': get_title(input[0]),
+        'outquotes': []
+    }
 
     try:
         byline = next((line for line in input
@@ -143,27 +145,19 @@ def read_article(text):
         paragraphs = paragraphs_input.split('\n')
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
+    outquote_index = -1
+    for line_number in range(len(input)):
+        if re.match(r"(?i)outquote\(?s\)?:?", input[line_number]):
+            outquote_index = line_number
+            break
+    if outquote_index == -1:
+        outquote_index = identify_line_manually(input, 'outquote start')
+    while (outquote_index < content_start_index
+           and 'focus sentence:' not in input[outquote_index].lower()):
+        # find, analyze, and append outquotes
+        outquote_index += 1
+
     return data
-
-
-def choose_content_line(content):
-    """Takes list of paragraphs and returns user input for starting content
-    line"""
-    print(Back.RED + Fore.WHITE + Style.BRIGHT + 'Beginning of content could '
-          + 'not be found. Press ENTER to extend the article. Input a line '
-          + 'number to indicate where content starts and exit the manual '
-          + 'reader.' + Style.RESET_ALL + Fore.RED)
-    lineNum = 0
-    while lineNum + 5 < len(content):
-        if lineNum > 0 and lineNum % 5 == 0:
-            user_option = raw_input()
-            if utils.represents_int(user_option):
-                return int(user_option)
-            elif user_option != 'm':
-                break
-        print('[{}] {}'.format(lineNum, content[lineNum]))
-        lineNum += 1
-    return -1
 
 
 def read_staff_ed(text):
