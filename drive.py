@@ -1,4 +1,5 @@
 from apiclient import discovery
+from apiclient.http import MediaIoBaseDownload
 from pyfiglet import figlet_format
 from oauth2client import client
 from oauth2client import tools
@@ -7,6 +8,7 @@ import httplib2
 
 import os
 import re
+import io
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/drive-python-quickstart.json
@@ -16,6 +18,7 @@ APPLICATION_NAME = 'Spec-Uploader CLI'
 
 
 files = []
+drive_service = None
 
 def get_credentials():
     """Gets valid user credentials from storage.
@@ -49,6 +52,7 @@ def get_credentials():
 def init():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
+    global drive_service
     drive_service = discovery.build('drive', 'v3', http=http)
 
     print('\n')
@@ -66,6 +70,9 @@ def init():
     global files
     files = response.get('files', [])
 
+    page_token = response.get('nextPageToken', None)
+    if page_token is None:
+        return
     # todo: in the future, files should be sorted into hashtable or dictionary by issue num
 
 
@@ -93,3 +100,19 @@ def get_children(parent_id, file_type=None):
     return [
         f for f in files if f.get('parents', [None])[0] == parent_id
     ]
+
+
+def download_document(file):
+    if file['mimeType'] != 'application/vnd.google-apps.document':
+        raise ValueError('File of MIME type {} should not be downloaded here.'
+                         .format(file['mimeType']))
+    request = drive_service.files().export_media(
+        fileId=file['id'], mimeType='text/plain')
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+        print('%d%%' % int(status.progress() * 100))
+
+    return fh.getvalue()
