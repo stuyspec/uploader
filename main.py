@@ -6,13 +6,12 @@ from apiclient import discovery
 from apiclient.http import MediaIoBaseDownload
 from oauth2client import tools
 from promise import Promise
-from termcolor import cprint
 from pyfiglet import figlet_format
 import httplib2
 import io, re
 
 from credentials import get_credentials
-import constants, users, authorships, articles, sections
+import constants, users, authorships, articles, sections, outquotes
 
 args = None
 try:
@@ -155,6 +154,9 @@ def main():
                                               )))\
                 .then(lambda authorship_data:
                       authorships.post_authorships(authorship_data))\
+                .then(lambda article_id:
+                      outquotes.post_outquotes(article_id,
+                                               article_data['outquotes']))\
                 .then(lambda article_id:
                       print(Fore.GREEN + Style.BRIGHT
                             + 'Successfully wrote Article {}: {}.'
