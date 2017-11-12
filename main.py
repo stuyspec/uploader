@@ -101,8 +101,7 @@ def main():
                 print('%d%%' % int(status.progress() * 100))
 
             content = fh.getvalue()
-            print(content)
-            return
+            
             if articles.file_article_exists(content):
                 print(Fore.RED + Style.BRIGHT + '{} already exists. TODO: update'
                         .format(file['name'].encode("utf-8")) + Style.RESET_ALL)
