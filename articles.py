@@ -75,63 +75,67 @@ def get_summary(line):
     return raw_input((Fore.GREEN + Style.BRIGHT + 'summary/focus: ' +
                       Style.RESET_ALL + '({0}) ').format(line)).strip() or line
 
-def manual_article_read(content, message):
-    print(Back.RED + Fore.WHITE + Style.BRIGHT + message
-          +' You have entered manual article-reading mode for headers. '
-          + 'Input "m" to extend the article, input "f" to show the whole '
-          + 'article, or press ENTER to continue.' + Style.RESET_ALL + Fore.RED)
-    content = content.split('\n')
-    lineNum = 0
-    while lineNum < len(content):
-        print('\n'.join(content[lineNum:lineNum + 5]))
-        lineNum += 5
-        show_more = raw_input()
-        if show_more == 'f':
-            print('\n'.join(content[lineNum:]))
-        elif show_more != 'm':
-            break
+def identify_line_manually(content, missing_value):
+    """Takes list of paragraphs and returns user input for the line # of any
+    missing_value."""
+    print(Fore.RED + Style.BRIGHT + missing_value.upper()
+          + ' could not be found. Press ENTER to extend '
+          + 'article. Input a line # to indicate ' + missing_value.upper()
+          + ' and continue.' + Style.RESET_ALL)
+    line_num = 0
+    while line_num + 5 < len(content):
+        if line_num > 0 and line_num % 5 == 0:
+            user_option = raw_input()
+            if utils.represents_int(user_option):
+                return int(user_option)
+            elif user_option != '':
+                break
+        print('[{}] {}'.format(line_num, content[line_num]))
+        line_num += 1
+    return -1
 
 # TODO: outquotes
 
-def get_header_end(input):
+def get_content_start(input):
     HEADER_LINE_PATTERN = re.compile(
         r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|article:?'
     )
-    return len(input) - next(
-        (index for index, value in enumerate(reversed(input))
-         if HEADER_LINE_PATTERN.match(value)), -1)
+    try:
+        header_end = next(
+            (index for index, value in enumerate(reversed(input))
+                if HEADER_LINE_PATTERN.match(value)))
+        return len(input) - header_end
+    except StopIteration:
+        return -1
+
 
 def read_article(text):
-    input = [line.strip() for line in text.split('\n')]
+    input = filter(None, [line.strip() for line in text.split('\n')])
 
     data = {'title': get_title(input[0])}
 
-    byline = next((line for line in input
-                   if line.find('By') >= 0), None)  # defaults to None
-    if not byline:
-        manual_article_read(text, 'No byline found.')
-        byline = raw_input(Fore.GREEN + Style.BRIGHT \
-                                 + 'enter contributors separated by ", ": ' \
-                                 + Style.RESET_ALL)
+    try:
+        byline = next((line for line in input
+                       if line.find('By') >= 0))
+    except StopIteration:
+        byline = input[identify_line_manually(input, 'byline')]
     data['contributors'] = get_contributors(byline)
 
-    summary = next((line for line in input
-                    if 'focus sentence:' in line.lower()), '')
-    if not summary:
-        manual_article_read(text, 'No focus sentence found.')
+    try:
+        summary = next((line for line in input
+                        if 'focus sentence:' in line.lower()))
+    except StopIteration:
+        summary = input[identify_line_manually(input, 'focus sentence')]
+        summary = ' '.join(summary.split(' ')[:23]) + "..."
     data['summary'] = get_summary(summary)
 
-    header_end_index = get_header_end(input)
-    if header_end_index == -1:
-        print(
-            Back.RED + Fore.WHITE +
-            'No focus sentence or outquote; content could not be isolated. Article skipped.'
-            + Back.RESET + Fore.RED)
-        return data['title']
-    paragraphs = filter(None, input[header_end_index:])
+    content_start_index = get_content_start(input)
+    if content_start_index == -1:
+        content_start_index = identify_line_manually(input, 'content start')
+    paragraphs = input[content_start_index:]
     paragraphs_input = raw_input(
         (Fore.GREEN + Style.BRIGHT +
-         'content: ' + Style.RESET_ALL + '({} ... {}) ').format(
+         'content: ' + Style.RESET_ALL + '({}   ...   {}) ').format(
              paragraphs[0], paragraphs[-1]))
     if paragraphs_input != '':
         paragraphs = paragraphs_input.split('\n')
