@@ -30,11 +30,13 @@ def init():
                 as features, \
         open('backups/drive-opinions-writers-2017-2018.txt', 'r') \
                 as opinions, \
-        open('backups/drive-news-writers-2016-2017.txt', 'r') as news:
+        open('backups/drive-news-writers-2016-2017.txt', 'r') as news, \
+        open('backups/drive-art-2016-2017.txt', 'r') as art:
         backup_users = ast.literal_eval(wp.read()).values() \
                        + ast.literal_eval(features.read()) \
                        + ast.literal_eval(opinions.read()) \
-                       + ast.literal_eval(news.read())
+                       + ast.literal_eval(news.read()) \
+                       + ast.literal_eval(art.read())
     print('[100%] Loaded users.')
 
 
