@@ -14,7 +14,7 @@ def init():
     global articles, backup_articles
     articles = requests.get(constants.API_ARTICLES_ENDPOINT).json()
     with open('backups/wp-articles-backup.txt', 'r') as f:
-        backup_users = ast.literal_eval(f.read()).values()  # safer than eval()
+        backup_articles = ast.literal_eval(f.read()).values()
     print('[100%] Loaded articles.')
 
 
