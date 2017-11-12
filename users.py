@@ -35,8 +35,8 @@ def init():
 
 def get_email_by_name(name_dict):
     for user in backup_users:
-        if (name_dict['first_name'] == user['firstname']
-            and name_dict['last_name'] == user['lastname']):
+        if (name_dict['first_name'] == user['first_name']
+            and name_dict['last_name'] == user['last_name']):
             return user['email']
     raise LookupError('no email found')
 
