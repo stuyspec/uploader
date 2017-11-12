@@ -27,7 +27,18 @@ except ImportError:
 from colorama import Fore, Back, Style
 import colorama
 
-# todo: text/html has hope. special styles are stored within spans in p's.
+
+def find_matching_folder_in(parent_id, files, name_pattern):
+    parent_file = next((f for f in files if f['id'] == parent_id), None)
+    if not parent_file:
+        raise ValueError('No parent {} found.'.format(parent_id))
+    if parent_file['mimeType'] != 'application/vnd.google-apps.folder':
+        raise ValueError('File {} is not a folder.'
+                         .format(parent_file['name']))
+    return next((
+        f for f in files if (f.get('parents', [None])[0] == parent_id
+                             and re.match(name_pattern, f['name']))
+    ), None)
 
 
 def main():
@@ -47,14 +58,16 @@ def main():
         fields='nextPageToken, files(id, name, parents, mimeType)',
         pageToken=page_token).execute()
     files = response.get('files', [])
-    Issue1 = next((
-        f for f in files if f['name'] == 'Issue 1'
+    Issue = next((
+        f for f in files
+        if (f['mimeType'] == 'application/vnd.google-apps.folder' and
+            f['name'] == 'Issue 1')
     ), None)
     SBC = next(
         (f for f in files
          if (f['mimeType'] == 'application/vnd.google-apps.folder' and
              f['name'] == 'SBC' and
-             f.get('parents', [None])[0] == Issue1['id'])),
+             f.get('parents', [None])[0] == Issue['id'])),
         None
     )
     if not SBC:
@@ -63,6 +76,14 @@ def main():
     SBC_folders = get_folders_in_file(files, SBC['id'])
     SBC_folders[SBC['id']] = SBC['name']
 
+    art_folder = find_matching_folder_in(Issue['id'], files, r"(?i)art")
+    photo_folder = find_matching_folder_in(Issue['id'],
+                                           files,
+                                           r"(?i)(photo\s?color)")
+    if not photo_folder:
+        photo_folder = find_matching_folder_in(Issue['id'],
+                                               files,
+                                               r"(?i)(photo\s?b&?w)")
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
 
