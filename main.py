@@ -2,16 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from apiclient import discovery
 from apiclient.http import MediaIoBaseDownload
 from oauth2client import tools
 from promise import Promise
-from pyfiglet import figlet_format
-import httplib2
 import io, re
 
-from credentials import get_credentials
-import constants, users, authorships, articles, sections, outquotes
+import constants, users, authorships, articles, sections, outquotes, drive
 
 args = None
 try:
@@ -42,48 +38,21 @@ def find_matching_folder_in(parent_id, files, name_pattern):
 
 
 def main():
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-    drive_service = discovery.build('drive', 'v3', http=http)
+    Issue = drive.get_file(r"Issue\s?1", 'folder')
+    SBC = drive.get_file(r"SBC", 'folder', Issue['id'])
+    SBC_folders = drive.get_children(SBC['id'], 'folder').append(SBC)
 
-    print('\n')
-    print(figlet_format('SPEC CLI', font='slant'))
-
-    page_token = None
-    response = drive_service.files().list(
-        q= "(mimeType='application/vnd.google-apps.folder'"
-        + " or mimeType='application/vnd.google-apps.document')"
-        + " and not trashed",
-        spaces='drive',
-        fields='nextPageToken, files(id, name, parents, mimeType)',
-        pageToken=page_token).execute()
-    files = response.get('files', [])
-    Issue = next((
-        f for f in files
-        if (f['mimeType'] == 'application/vnd.google-apps.folder' and
-            f['name'] == 'Issue 1')
-    ), None)
-    SBC = next(
-        (f for f in files
-         if (f['mimeType'] == 'application/vnd.google-apps.folder' and
-             f['name'] == 'SBC' and
-             f.get('parents', [None])[0] == Issue['id'])),
-        None
-    )
-    if not SBC:
-        print("No SBC folder found.")
-        return
-    SBC_folders = get_folders_in_file(files, SBC['id'])
-    SBC_folders[SBC['id']] = SBC['name']
-
-    art_folder = find_matching_folder_in(Issue['id'], files, r"(?i)art")
-    photo_folder = find_matching_folder_in(Issue['id'],
-                                           files,
-                                           r"(?i)(photo\s?color)")
+    art_folder = drive.get_file(r"(?i)art", 'folder', Issue['id'])
+    photo_folder = drive.get_file(r"(?i)(photo\s?color)",
+                                  'folder',
+                                  Issue['id'])
     if not photo_folder:
-        photo_folder = find_matching_folder_in(Issue['id'],
-                                               files,
-                                               r"(?i)(photo\s?b&?w)")
+        photo_folder = drive.get_file(r"(?i)(photo\s?b&?w)",
+                                      'folder',
+                                      Issue['id'])
+
+    print(Issue, SBC, SBC_folders, art_folder, photo_folder)
+    return
     volume = 107 #int(raw_input('Volume (number): '))
     issue = 1 #int(raw_input('Issue: '))
 
@@ -210,6 +179,7 @@ if __name__ == '__main__':
         constants.init('localhost:{}'.format(args.local))
     else:
         constants.init('not-deployed.yet')
+    drive.init()
     sections.init()
     articles.init()
     users.init()
