@@ -98,7 +98,7 @@ def identify_line_manually(content, missing_value):
 
 def get_content_start(input):
     HEADER_LINE_PATTERN = re.compile(
-        r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|article:?'
+        r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})|article:?'
     )
     try:
         header_end = next(
