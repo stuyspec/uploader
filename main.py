@@ -85,19 +85,17 @@ def main():
                 unprocessed_file_names.append(file['name'])
                 continue
 
-            subsection_id = sections.choose_subsection(section_id)              
+            section_id = sections.choose_subsection(section_id) or section_id
 
             article_attributes = ['title', 'content', 'summary', 'content']
             article_post_data = {
                 key: value for key, value in article_data.items()
                                if key in article_attributes
             }
-            article_post_data['volume'] = volume
-            article_post_data['issue'] = issue
-            article_post_data['section_id'] = subsection_id 
-                if subsection_id != -1 
-                else section_id
-
+            for attr in ('volume', 'issue', 'section_id'):
+                article_post_data[attr] = int(locals()[attr])  # adds specified local variables
+            print([o.decode("utf-8") for o in article_data['outquotes']])
+            continue
             article_promise = Promise(
                 lambda resolve, reject:
                     resolve(articles.post_article(article_post_data))
