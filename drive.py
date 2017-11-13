@@ -124,3 +124,24 @@ def download_document(file):
         print('%d%%' % int(status.progress() * 100))
 
     return fh.getvalue()
+
+def download_media(file):
+    file_id = file['id']
+    request = drive_service.files().get_media(fileId=file_id)
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+        print "Download %d%%." % int(status.progress() * 100)
+
+    # i = ImageGrab.grab()
+    # print('grabbed')
+    # i.save(fh)
+    # print('saved')
+    # fh.flush()
+    fh.seek(0)
+    print('seeked')
+    im = Image.open(fh)
+    print('opened')
+    im.show()
