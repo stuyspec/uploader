@@ -48,7 +48,11 @@ def main():
         photo_folder = drive.get_file(r"(?i)(photo\s?b&?w)",
                                       'folder',
                                       Issue['id'])
-
+    image_files = drive.get_children([art_folder['id'],
+                                      photo_folder['id']],
+                                     'image')
+    drive.download_media(image_files[0])
+    return
     volume = 107  # int(raw_input('Volume (number): '))
     issue = 1  # int(raw_input('Issue: '))
     unprocessed_file_names = []
@@ -94,8 +98,7 @@ def main():
             }
             for attr in ('volume', 'issue', 'section_id'):
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
-            print([o.decode("utf-8") for o in article_data['outquotes']])
-            continue
+
             article_promise = Promise(
                 lambda resolve, reject:
                     resolve(articles.post_article(article_post_data))
