@@ -61,7 +61,8 @@ def init():
     page_token = None
     response = drive_service.files().list(
         q="(mimeType='application/vnd.google-apps.folder'"
-          + " or mimeType='application/vnd.google-apps.document')"
+          + " or mimeType='application/vnd.google-apps.document'"
+          + " or mimeType contains 'image')"
           + " and not trashed",
         spaces='drive',
         fields='nextPageToken, files(id, name, parents, mimeType)',
