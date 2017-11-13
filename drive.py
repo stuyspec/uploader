@@ -92,14 +92,21 @@ def get_file(name_pattern, file_type, parent_id=None):
 
 
 def get_children(parent_id, file_type=None):
+    if type(parent_id) is str:
+        parent_id = [parent_id]
     if file_type:
-        mime_type = 'application/vnd.google-apps.' + file_type
+        if file_type in ['document', 'folder']:
+            mime_type = 'application/vnd.google-apps.' + file_type
+        elif file_type == 'image':
+            mime_type = 'image'
+        else:
+            raise ValueError('Expected file type document, folder, image, but received: {}.'.format(file_type))
         return [
-            f for f in files if (f['mimeType'] == mime_type and
-                                 f.get('parents', [None])[0] == parent_id)
+            f for f in files if (mime_type in f['mimeType'] and
+                                 f.get('parents', [None])[0] in parent_id)
         ]
     return [
-        f for f in files if f.get('parents', [None])[0] == parent_id
+        f for f in files if f.get('parents', [None])[0] in parent_id
     ]
 
 
