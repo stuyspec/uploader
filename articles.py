@@ -62,9 +62,11 @@ def get_contributors(byline):
             cutoff = i + 1
     contributors.append(clean_name(' '.join(
         byline[cutoff:])))  # add last contributor
-    contributors = filter(None, contributors)
-    print(Fore.GREEN + Style.BRIGHT + 'contributors : ' + Style.RESET_ALL
-          + '({0}) '.format(', '.join(contributors)))
+    contributors = filter(None, contributors)  # removes empty strings
+    byline = raw_input(
+        (Fore.GREEN + Style.BRIGHT +
+         'contributors : ' + Style.RESET_ALL + '({0}) ').format(
+             ', '.join(contributors))) or byline  # confirm contributors
     return contributors
 
 
@@ -155,9 +157,7 @@ def read_article(text):
                and 'focus sentence:' not in input[outquote_index].lower()):
             line = re.sub(r"(?i)outquote\(?s\)?:?", '', input[outquote_index])\
                        .strip()
-            if (line != '' and
-                    line not in data['content'][0] and
-                    line[:12] not in data['summary']):
+            if line != '':
                 data['outquotes'].append(line)
             outquote_index += 1
 
