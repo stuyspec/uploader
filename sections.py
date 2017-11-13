@@ -33,9 +33,9 @@ def choose_subsection(section_id):
         index_choice = raw_input(Fore.GREEN + Style.BRIGHT
                                  + 'subsection (leave blank if none): '
                                  + Style.RESET_ALL)
-    if index_choice == '':
-        return -1
-    return subsections[int(index_choice)]['id']
+    return section_id \
+        if index_choice == '' \
+        else subsections[int(index_choice)]['id']
 
 
 def get_section_id_by_name(section_name):
