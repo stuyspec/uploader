@@ -94,7 +94,7 @@ def main():
             }
             for attr in ('volume', 'issue', 'section_id'):
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
-            print(article_data['outquotes'])
+            print([o.decode("utf-8") for o in article_data['outquotes']])
             continue
             article_promise = Promise(
                 lambda resolve, reject:

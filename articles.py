@@ -81,7 +81,7 @@ def identify_line_manually(content, missing_value):
     print(Fore.RED + Style.BRIGHT + missing_value.upper()
           + ' could not be found. Press ENTER to extend '
           + 'article. Input a line # to indicate ' + missing_value.upper()
-          + ' and continue.' + Style.RESET_ALL)
+          + ', "n" to indicate nonexistence.' + Style.RESET_ALL)
     line_num = 0
     while line_num + 5 < len(content):
         if line_num > 0 and line_num % 5 == 0:
@@ -152,14 +152,14 @@ def read_article(text):
             break
     if outquote_index == -1:
         outquote_index = identify_line_manually(input, 'outquote start')
-
-    while (outquote_index < content_start_index
-           and 'focus sentence:' not in input[outquote_index].lower()):
-        line = re.sub(r"(?i)outquote\(?s\)?:?", '', input[outquote_index])\
-                   .strip()
-        if line != '':
-            data['outquotes'].append(line)
-        outquote_index += 1
+    if outquote_index != -1:
+        while (outquote_index < content_start_index
+               and 'focus sentence:' not in input[outquote_index].lower()):
+            line = re.sub(r"(?i)outquote\(?s\)?:?", '', input[outquote_index])\
+                       .strip()
+            if line != '':
+                data['outquotes'].append(line)
+            outquote_index += 1
 
     return data
 
