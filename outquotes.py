@@ -4,11 +4,10 @@ import requests
 import json
 import constants
 
-
 def post_outquotes(article_id, outquotes):
     outquotes_confirmation = raw_input(
-        Fore.GREEN + Style.BRIGHT + 'outquotes (input "i" to ignore): '
-        + Style.RESET_ALL + '({})'.format(', '.join(outquotes)))
+        Fore.GREEN + Style.BRIGHT + 'outquotes (input "i" to ignore): ' + Style.RESET_ALL +
+        str(outquotes))
     if outquotes_confirmation == 'i':
         return article_id
     for outquote in outquotes:
@@ -21,5 +20,4 @@ def post_outquotes(article_id, outquotes):
                                               'Content-Type':
                                                   'application/json'
                                           })
-        outquote_response.raise_for_status()
     return article_id
