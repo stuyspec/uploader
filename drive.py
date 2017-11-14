@@ -6,6 +6,9 @@ from oauth2client import tools
 from oauth2client.file import Storage
 from PIL import Image
 import httplib2
+import base64
+import requests
+import json
 
 import os
 import re
@@ -135,6 +138,38 @@ def download_media(file):
     while done is False:
         status, done = downloader.next_chunk()
         print "Download %d%%." % int(status.progress() * 100)
+
+    img = base64.b64encode(fh.getvalue())
     fh.seek(0)
     im = Image.open(fh)
-    im.show()
+    im.save('tmp.png')
+    print(im)
+    response = requests.post('http://localhost:3000/media',
+                             data={
+                                 "media": {
+                                     "attachment": open('tmp.png', 'rb')
+                                 }
+                             },
+                             headers={
+                                 'content-type': 'application/json'
+                             })
+    print(response)
+    # payload = {'medium':{
+    #     #'filename': file['name'],
+    #     #'content_type': file['mimeType'],
+    #     #'medium': {
+    #         'filename':file['name'],
+    #         'content_type': file['mimeType'],
+    #         'attachment': img
+    #     #}
+    # }}
+    # headers = {'content-type': 'application/json'}
+    # response = requests.post('http://localhost:3000/articles',
+    #                          data=json.dumps({
+    #
+    #                                  "image_base": img,
+    #                                  "section_id": 1
+    #
+    #                          }),
+    #                          headers=headers)
+    # print(json.dumps(response.json(), indent=2))
