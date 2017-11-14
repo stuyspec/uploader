@@ -4,7 +4,7 @@ from pyfiglet import figlet_format
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-from PIL import Image, ImageGrab
+from PIL import Image
 import httplib2
 
 import os
@@ -135,14 +135,6 @@ def download_media(file):
     while done is False:
         status, done = downloader.next_chunk()
         print "Download %d%%." % int(status.progress() * 100)
-
-    # i = ImageGrab.grab()
-    # print('grabbed')
-    # i.save(fh)
-    # print('saved')
-    # fh.flush()
     fh.seek(0)
-    print('seeked')
     im = Image.open(fh)
-    print('opened')
     im.show()
