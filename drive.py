@@ -143,33 +143,13 @@ def download_media(file):
     fh.seek(0)
     im = Image.open(fh)
     im.save('tmp.png')
-    print(im)
-    response = requests.post('http://localhost:3000/media',
-                             data={
-                                 "media": {
-                                     "attachment": open('tmp.png', 'rb')
-                                 }
-                             },
-                             headers={
-                                 'content-type': 'application/json'
-                             })
+    files = {'medium': open('tmp.png', 'rb')}
+    response = requests.post('https://requestb.in/17wu1mt1',#''http://localhost:3000/media',
+                             # data={
+                             #     "medium": {
+                             #         "title": "testing"
+                             #         #"attachment": open('tmp.png', 'rb')
+                             #     }
+                             # },
+                             files=files)
     print(response)
-    # payload = {'medium':{
-    #     #'filename': file['name'],
-    #     #'content_type': file['mimeType'],
-    #     #'medium': {
-    #         'filename':file['name'],
-    #         'content_type': file['mimeType'],
-    #         'attachment': img
-    #     #}
-    # }}
-    # headers = {'content-type': 'application/json'}
-    # response = requests.post('http://localhost:3000/articles',
-    #                          data=json.dumps({
-    #
-    #                                  "image_base": img,
-    #                                  "section_id": 1
-    #
-    #                          }),
-    #                          headers=headers)
-    # print(json.dumps(response.json(), indent=2))
