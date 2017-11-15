@@ -9,6 +9,7 @@ import httplib2
 import base64
 import requests
 import json
+from Naked.toolshed.shell import execute_js, muterun_js
 
 import os
 import re
@@ -143,8 +144,8 @@ def download_media(file):
     fh.seek(0)
     im = Image.open(fh)
     im.save('tmp.png')
-    files = {'medium': open('tmp.png', 'rb')}
-    response = requests.post('https://requestb.in/17wu1mt1',#''http://localhost:3000/media',
+    files = {'attachment': ('tmp.png', open('tmp.png', 'rb'), 'image/png', {'title': 'testing'})}
+    response = requests.post('http://localhost:3000/media',
                              # data={
                              #     "medium": {
                              #         "title": "testing"
@@ -152,4 +153,6 @@ def download_media(file):
                              #     }
                              # },
                              files=files)
-    print(response)
+    # response = muterun_js('test.js')
+    # if response.exitcode == 0:
+    #     print(response.stdout)
