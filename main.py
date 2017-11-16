@@ -51,9 +51,10 @@ def main():
     image_files = drive.get_children([art_folder['id'],
                                       photo_folder['id']],
                                      'image')
-    image = drive.download_file(image_files[0])
-    drive.post_media_file(image, {'title':'testing'})
-    return
+
+    #imageName = drive.download_file(image_files[0])
+    #drive.post_media_file(imageName, {'title':'testing'})
+    
     volume = 107  # int(raw_input('Volume (number): '))
     issue = 1  # int(raw_input('Issue: '))
     unprocessed_file_names = []
