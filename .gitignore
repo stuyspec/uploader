@@ -2,3 +2,4 @@
 client_secret.json
 .idea/*
 *.pyc
+node_modules/*
