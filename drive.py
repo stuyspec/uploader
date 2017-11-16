@@ -9,6 +9,7 @@ import httplib2
 import base64
 import requests
 import json
+from slugify import slugify
 
 import os
 import re
@@ -143,18 +144,19 @@ def download_file(file):
     fh.seek(0)
     image = Image.open(fh)
 
-    imageName = file['name'] + '.' + file['mimeType'].split('/')[1]
+    imageName = 'tmp/' + slugify(file['name']) + '.' + file['mimeType'].split('/')[1]
+
     open(imageName, 'a').close()
-    print(imageName)
     image.save(imageName)
-    return image
+    return imageName
 
 
-def post_media_file(image, data):
+def post_media_file(filename, data):
     """Takes a PIL Image and media data dictionary."""
+    image = Image.open(filename)
     files = {
-        'medium[attachment]': (image.filename,
-                               open('tmp/' + image.filename, 'rb'),
+        'medium[attachment]': (filename,
+                               open(filename, 'rb'),
                                'image/' + image.format.lower(),
                                data)
     }
