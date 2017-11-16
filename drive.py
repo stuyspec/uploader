@@ -142,7 +142,11 @@ def download_file(file):
         print "Download %d%%." % int(status.progress() * 100)
     fh.seek(0)
     image = Image.open(fh)
-    image.save('tmp/' + file['name'])
+
+    imageName = file['name'] + '.' + file['mimeType'].split('/')[1]
+    open(imageName, 'a').close()
+    print(imageName)
+    image.save(imageName)
     return image
 
 
