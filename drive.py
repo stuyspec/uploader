@@ -9,11 +9,12 @@ import httplib2
 import base64
 import requests
 import json
-from Naked.toolshed.shell import execute_js, muterun_js
 
 import os
 import re
 import io
+
+import constants
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/drive-python-quickstart.json
