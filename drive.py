@@ -142,17 +142,17 @@ def download_file(file):
         status, done = downloader.next_chunk()
         print "Download %d%%." % int(status.progress() * 100)
     fh.seek(0)
+
     image = Image.open(fh)
-
     imageName = 'tmp/' + slugify(file['name']) + '.' + file['mimeType'].split('/')[1]
-
-    open(imageName, 'a').close()
+    open(imageName, 'a').close() # touch the file
     image.save(imageName)
+
     return imageName
 
 
 def post_media_file(filename, data):
-    """Takes a PIL Image and media data dictionary."""
+    """Takes a filename and media data dictionary."""
     image = Image.open(filename)
     files = {
         'medium[attachment]': (filename,

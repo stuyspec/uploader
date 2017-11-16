@@ -54,7 +54,7 @@ def main():
 
     #imageName = drive.download_file(image_files[0])
     #drive.post_media_file(imageName, {'title':'testing'})
-    
+
     volume = 107  # int(raw_input('Volume (number): '))
     issue = 1  # int(raw_input('Issue: '))
     unprocessed_file_names = []
