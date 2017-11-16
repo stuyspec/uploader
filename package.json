@@ -1,0 +1,26 @@
+{
+  "name": "cli-uploader",
+  "version": "1.0.0",
+  "description": "A CLI for uploading articles from Google Drive Volume folders to our Rails API. Written in Python.",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stuyspec/cli-uploader.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stuyspec/cli-uploader/issues"
+  },
+  "homepage": "https://github.com/stuyspec/cli-uploader#readme",
+  "dependencies": {
+    "axios": "^0.17.1",
+    "form-data": "^2.3.1",
+    "fs": "0.0.1-security",
+    "object-to-formdata": "^1.0.13",
+    "request": "^2.83.0"
+  }
+}
