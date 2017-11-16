@@ -188,3 +188,22 @@ def post_article(data):
     global articles
     articles.append(article)
     return article.get('id', -1)
+
+def clean_content(content):
+    content = content.replace('<span style="font-weight: 400;">', "<p>")
+    content = content.replace("</span>\r\n\r\n", "</p>").replace("&nbsp;"," ")
+    return content
+
+def summary(content):
+    content = clean_content(content).replace("<p>","").replace("</p>","")
+    return " ".join(content.split()[:24]) + "... "
+
+
+def read_article_backup(article_dict):
+    info = {}
+    wp_entry = article_dict.values()[0]
+    info["title"] = wp_entry["title"]
+    info["contributors"] = users.get_contributors(wp_entry["authors"])
+    info["summary"] = summary(wp_entry["content"])
+    info["content"] = clean_content(wp_entry["content"])
+    return info
