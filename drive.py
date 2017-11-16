@@ -131,7 +131,7 @@ def download_document(file):
 
     return fh.getvalue()
 
-def download_media(file):
+def download_file(file):
     file_id = file['id']
     request = drive_service.files().get_media(fileId=file_id)
     fh = io.BytesIO()
@@ -140,20 +140,20 @@ def download_media(file):
     while done is False:
         status, done = downloader.next_chunk()
         print "Download %d%%." % int(status.progress() * 100)
-
-    img = base64.b64encode(fh.getvalue())
     fh.seek(0)
-    im = Image.open(fh)
-    im.save('tmp.png')
-    files = {'medium[attachment]': ('tmp.png', open('tmp.png', 'rb'), 'image/png', {'title': 'testing'})}
-    response = requests.post('http://localhost:3000/media',
-                             # data={
-                             #     "medium": {
-                             #         "title": "testing"
-                             #         #"attachment": open('tmp.png', 'rb')
-                             #     }
-                             # },
+    image = Image.open(fh)
+    image.save('tmp/' + file['name'])
+    return image
+
+
+def post_media_file(image, data):
+    """Takes a PIL Image and media data dictionary."""
+    files = {
+        'medium[attachment]': (image.filename,
+                               open('tmp/' + image.filename, 'rb'),
+                               'image/' + image.format.lower(),
+                               data)
+    }
+    response = requests.post(constants.API_MEDIA_ENDPOINT,
                              files=files)
-    # response = muterun_js('test.js')
-    # if response.exitcode == 0:
-    #     print(response.stdout)
+    print(response)
