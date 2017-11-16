@@ -144,7 +144,7 @@ def download_media(file):
     fh.seek(0)
     im = Image.open(fh)
     im.save('tmp.png')
-    files = {'attachment': ('tmp.png', open('tmp.png', 'rb'), 'image/png', {'title': 'testing'})}
+    files = {'medium[attachment]': ('tmp.png', open('tmp.png', 'rb'), 'image/png', {'title': 'testing'})}
     response = requests.post('http://localhost:3000/media',
                              # data={
                              #     "medium": {
