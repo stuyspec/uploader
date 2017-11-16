@@ -75,6 +75,9 @@ def init():
         fields='nextPageToken, files(id, name, parents, mimeType)',
         pageToken=page_token).execute()
 
+    if not os.path.exists('/tmp'):
+        os.makedirs('/tmp')
+
     global files
     files = response.get('files', [])
 
