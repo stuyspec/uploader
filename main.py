@@ -48,12 +48,14 @@ def main():
         photo_folder = drive.get_file(r"(?i)(photo\s?b&?w)",
                                       'folder',
                                       Issue['id'])
-    image_files = drive.get_children([art_folder['id'],
+    media_files = drive.get_children([art_folder['id'],
                                       photo_folder['id']],
                                      'image')
 
-    #imageName = drive.download_file(image_files[0])
-    #drive.post_media_file(imageName, {'title':'testing'})
+    imageName = drive.download_file(media_files[0])
+    drive.post_media_file(imageName, {'title':'testing', 'article_id': 1, 'user_id': 1})
+
+    return
 
     volume = 107  # int(raw_input('Volume (number): '))
     issue = 1  # int(raw_input('Issue: '))
@@ -86,6 +88,10 @@ def main():
                 continue
 
             article_data = articles.read_article(article_text)
+
+            if raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): '
+                                 + Style.RESET_ALL) == 'y':
+                media_files = media.choose_media(media_files)
             if type(article_data) is str:
                 # read_article failed and returned file title
                 unprocessed_file_names.append(file['name'])
