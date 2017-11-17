@@ -53,7 +53,7 @@ def main():
                                      'image')
 
     imageName = drive.download_file(media_files[0])
-    drive.post_media_file(imageName, {'title':'testing', 'article_id': 1, 'user_id': 1})
+    drive.post_media_file(imageName, {'medium[title]':'testing', 'medium[article_id]': 1, 'medium[user_id]': 1})
 
     return
 

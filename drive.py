@@ -159,11 +159,24 @@ def post_media_file(filename, data):
     image = Image.open(filename)
     print(image, image.filename)
     files = {
-        'medium[attachment]': (filename,
-                               open(filename, 'rb'),
-                               'image/' + image.format.lower(),
-                               data)
+        'medium[attachment]': open(filename, 'rb')
+        # 'medium[attachment]': (filename,
+        #                        open(filename, 'rb'),
+        #                        'image/' + image.format.lower(),
+        #                        data)
     }
     response = requests.post(constants.API_MEDIA_ENDPOINT,
-                             files=files)
+                             files=files, data=data)
     print(response)
+
+
+
+
+
+
+
+
+
+
+
+
