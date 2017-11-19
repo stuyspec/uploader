@@ -69,7 +69,7 @@ def init():
     response = drive_service.files().list(
         q="(mimeType='application/vnd.google-apps.folder'"
           + " or mimeType='application/vnd.google-apps.document')"
-          #+ " or mimeType contains 'image')"
+          #+ " or mimeType='application/pdf')"
           + " and not trashed",
         spaces='drive',
         fields='nextPageToken, files(id, name, parents, mimeType)',
@@ -99,7 +99,10 @@ def init():
 
 
 def get_file(name_pattern, file_type, parent_id=None):
-    mime_type = 'application/vnd.google-apps.' + file_type
+    if file_type in ['folder', 'document']:
+        mime_type = 'application/vnd.google-apps.' + file_type
+    else:
+        mime_type = file_type
     if parent_id:
         return next((
             f for f in files if (f['mimeType'] == mime_type and

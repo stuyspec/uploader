@@ -5,6 +5,7 @@ from __future__ import print_function
 from oauth2client import tools
 from promise import Promise
 import io, re
+import webbrowser
 
 import constants, users, authorships, articles, sections, outquotes, media, drive
 
@@ -51,6 +52,16 @@ def main():
     media_files = drive.get_children([art_folder['id'],
                                       photo_folder['id']],
                                      'image')
+
+    # PDF = drive.get_file("(?i)Issue\s?\d(\.pdf)$",
+    #                      'application/pdf',
+    #                      Issue['id'])
+    # print(PDF)
+    # webbrowser.open('https://drive.google.com/drive/file/d/{}/view'
+    #                 .format(PDF['id']),
+    #                 new=2)
+    # TODO: GET PDFS
+
     volume = 107  # int(raw_input('Volume (number): '))
     issue = 1  # int(raw_input('Issue: '))
     unprocessed_file_names = []
