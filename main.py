@@ -95,7 +95,7 @@ def main():
     PDF = drive.get_file("(?i)Issue\s?\d(\.pdf)$",
                          'application/pdf',
                          Issue['id'])
-    
+
     webbrowser.open('https://drive.google.com/file/d/{}/view'
                     .format(PDF['id']),
                     new=2)
@@ -104,10 +104,24 @@ def main():
     unprocessed_file_names = []
 
     # TODO if re.match(r'(?i)staff\s?ed', file['name']): article_data = articles.read_staff_ed(article_text)
+    issue_sections = {}
     for section in drive.get_children(SBC['id'], 'folder'):
+        issue_sections[section['name']] = section
+    ordered_issue_sections = [
+        issue_sections[section_name] for section_name in [
+            'News', 'Features', 'Opinions', 'A&E', 'Humor', 'Sports'
+        ]
+    ]
+
+    for section in ordered_issue_sections:
 
         section_id = sections.get_section_id_by_name(section['name'])
         section_articles = drive.get_children(section['id'], 'document')
+
+        if section['name'] == 'Opinions':
+            section_articles.append(drive.get_file(r'(?i)staff\s?ed',
+                                                   'document',
+                                                   section_id))
 
         for file in section_articles:
             print('\n')
