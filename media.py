@@ -20,16 +20,17 @@ def init():
 def post_media(article_id, medias):
     """Takes array of objects with artist_name, file, title, caption."""
     for media in medias:
-        for field in ['artist_name', 'file', 'title', 'caption']:
+        for field in ['artist_name', 'file', 'title', 'caption', 'is_featured', 'media_type']:
             if field not in media:
                 raise ValueError('Media object has no attribute {}.'
                                  .format(field))
         filename = drive.download_file(media['file'])
+        user_id = users.create_artist(media['artist_name'],
+                                      media['media_type'])
         drive.post_media_file(filename, {
             'article_id': article_id,
-            'user_id': users.create_artist(media['artist_name'],
-                                           media['type']),
-            'type': media['type'],
+            'user_id': user_id,
+            'media_type': media['media_type'],
             'is_featured': media['is_featured']
         })
         #imageName = drive.download_file(drive.get_file
