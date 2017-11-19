@@ -57,7 +57,7 @@ def get_file(name_pattern, file_type, parent_id=None):
         return next((
             f for f in files if (f['mimeType'] == mime_type and
                                  re.match(name_pattern, f['name']) and
-                                 f.get('parents', [None])[0] == parent_id)
+                                 parent_id in f.get('parents', [None]))
         ))
     return next((
         f for f in files if (f['mimeType'] == mime_type and
@@ -65,9 +65,9 @@ def get_file(name_pattern, file_type, parent_id=None):
     ))
 
 
-def get_children(parent_id, file_type=None):
-    if type(parent_id) is str:
-        parent_id = [parent_id]
+def get_children(parent_ids, file_type=None):
+    if type(parent_ids) is str:
+        parent_ids = [parent_ids]
     if file_type is not None:
         if file_type in ['document', 'folder']:
             mime_type = 'application/vnd.google-apps.' + file_type
@@ -77,7 +77,8 @@ def get_children(parent_id, file_type=None):
             raise ValueError('Expected file type document, folder, image, but received: {}.'.format(file_type))
         return [
             f for f in files if (mime_type in f['mimeType'] and
-                                 f.get('parents', ['trash||'])[0] in parent_id)
+                                 any(p in f.get('parents', [])
+                                     for p in parent_ids))
         ]
     return [
         f for f in files if f.get('parents', [None])[0] in parent_id

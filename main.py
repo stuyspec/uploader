@@ -70,13 +70,14 @@ def find_matching_folder_in(parent_id, files, name_pattern):
         raise ValueError('File {} is not a folder.'
                          .format(parent_file['name']))
     return next((
-        f for f in files if (f.get('parents', [None])[0] == parent_id
+        f for f in files if (parent_id in f.get('parents', [None])
                              and re.match(name_pattern, f['name']))
     ), None)
 
 
 def main():
-    Issue = drive.get_file(r"Issue\s?1", 'folder')
+    Volume = drive.get_file(r"Volume 108", 'folder')
+    Issue = drive.get_file(r"Issue\s?1", 'folder', Volume['id'])
     SBC = drive.get_file(r"SBC", 'folder', Issue['id'])
 
     art_folder = drive.get_file(r"(?i)art", 'folder', Issue['id'])
