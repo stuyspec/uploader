@@ -121,7 +121,7 @@ def main():
         if section['name'] == 'Opinions':
             section_articles.append(drive.get_file(r'(?i)staff\s?ed',
                                                    'document',
-                                                   section_id))
+                                                   SBC['id']))
 
         for file in section_articles:
             print('\n')
@@ -142,7 +142,10 @@ def main():
                       + ' already exists.' + Style.RESET_ALL)
                 continue
 
-            article_data = articles.read_article(article_text)
+            if re.search(r'(?i)staff\s?ed', file['name']):
+                article_data = articles.read_staff_ed(article_text)
+            else:
+                article_data = articles.read_article(article_text)
 
             media_data = []
             if raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): '
@@ -155,16 +158,17 @@ def main():
                 unprocessed_file_names.append(file['name'])
                 continue
 
-            section_id = sections.choose_subsection(section_id) or section_id
+            article_section_id = sections.choose_subsection(section_id) or section_id
 
             article_attributes = ['title', 'content', 'summary', 'content']
             article_post_data = {
                 key: value for key, value in article_data.items()
                                if key in article_attributes
             }
-            for attr in ('volume', 'issue', 'section_id'):
+            for attr in ('volume', 'issue'):
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
-
+            article_post_data['section_id'] = article_section_id
+            
             article_promise = Promise(
                 lambda resolve, reject:
                     resolve(articles.post_article(article_post_data))
@@ -226,14 +230,10 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
             print('No media matches filename {}.'.format(filename))
 
         for field in ['title', 'caption', 'artist_name']:
-            while 1:
-                field_input = raw_input(Fore.GREEN + Style.BRIGHT + '-> '
-                                        + field + ': ' + Style.RESET_ALL)\
-                    .strip()
-                if field_input != '':
-                    media_data[field] = field_input
-                    break
-                print('\t' + field + ' field cannot be empty.')
+            field_input = raw_input(Fore.GREEN + Style.BRIGHT + '-> '
+                                    + field + ': ' + Style.RESET_ALL)\
+                .strip()
+            media_data[field] = field_input
 
         output.append(media_data)
 
