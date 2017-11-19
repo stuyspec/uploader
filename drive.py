@@ -68,25 +68,34 @@ def init():
     page_token = None
     response = drive_service.files().list(
         q="(mimeType='application/vnd.google-apps.folder'"
-          + " or mimeType='application/vnd.google-apps.document'"
-          + " or mimeType contains 'image')"
+          + " or mimeType='application/vnd.google-apps.document')"
+          #+ " or mimeType contains 'image')"
           + " and not trashed",
         spaces='drive',
         fields='nextPageToken, files(id, name, parents, mimeType)',
-        pageToken=page_token).execute()
+        pageToken=page_token
+    ).execute()
+    page_token = response.get('nextPageToken', None)
+    # if page_token is None:
+    #     return
+
+    media_response = drive_service.files().list(
+        q="mimeType contains 'image' and not trashed",
+        spaces='drive',
+        fields='nextPageToken, files(id, name, parents, mimeType)',
+        pageToken=page_token
+    ).execute()
+    page_token = media_response.get('nextPageToken', None)
+    # if page_token is None:
+    #     return
 
     if not os.path.exists('/tmp'):
         os.makedirs('/tmp')
 
     global files
-    files = response.get('files', [])
-    page_token = response.get('nextPageToken', None)
-    if page_token is None:
-        return
-    # todo: in the future, files should be sorted into hashtable or dictionary by issue num
-    for f in files:
-        if 'folder' in f['mimeType'] and 'parents' in f.keys():
-            print(f['name'], f['parents'][0])
+    files = response.get('files', []) + media_response.get('files', [])
+    print(len(files))
+    # todo: in the future, files should be sorted into dictionary by issue num
 
 
 def get_file(name_pattern, file_type, parent_id=None):
@@ -104,7 +113,6 @@ def get_file(name_pattern, file_type, parent_id=None):
 
 
 def get_children(parent_id, file_type=None):
-    #rint([f for f in files if 'folder' in f['mimeType'] and 'parents' in f.keys() and f['parents'][0] == '0BzjGqbAstot_LTNralpjTU1PLU0'])
     if type(parent_id) is str:
         parent_id = [parent_id]
     if file_type is not None:

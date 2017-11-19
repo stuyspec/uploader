@@ -54,7 +54,7 @@ def main():
     volume = 107  # int(raw_input('Volume (number): '))
     issue = 1  # int(raw_input('Issue: '))
     unprocessed_file_names = []
-    print(SBC)
+
     # TODO if re.match(r'(?i)staff\s?ed', file['name']): article_data = articles.read_staff_ed(article_text)
     for section in drive.get_children(SBC['id'], 'folder'):
 
@@ -148,10 +148,10 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
                 media_parent = media.get('parents', [None])[0]
                 if media_parent is None:
                     raise ValueError(filename + ' has no parents.\n' + media)
-                if media_parent['id'] == photo_folder_id:
-                    media_data['type'] = 'photo'
-                elif media_parent['id'] == art_folder_id:
-                    media_data['type'] = 'art'
+                if media_parent == photo_folder_id:
+                    media_data['media_type'] = 'photo'
+                elif media_parent == art_folder_id:
+                    media_data['media_type'] = 'art'
                 else:
                     raise ValueError('The parents of {} are not the folders '
                                      + 'Art ({}) or Photo ({}).'
@@ -165,7 +165,7 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
                 field_input = raw_input(Fore.GREEN + Style.BRIGHT + field
                                         + ': ' + Style.RESET_ALL).strip()
                 if field_input != '':
-                    media[field] = field_input
+                    media_data[field] = field_input
                     break
                 print(field + ' field cannot be empty.')
 
