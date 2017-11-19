@@ -141,6 +141,8 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
             if filename[0] == '*':
                 media_data['is_featured'] = True
                 filename = filename[1:]
+            else:
+                media_data['is_featured'] = False
             media = next((media_file for media_file in media_files
                           if media_file['name'] == filename), None)
             if media is not None:
