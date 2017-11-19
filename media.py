@@ -33,4 +33,3 @@ def post_media(article_id, medias):
             'media_type': media['media_type'],
             'is_featured': media['is_featured']
         })
-        #imageName = drive.download_file(drive.get_file
