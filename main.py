@@ -134,7 +134,7 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
 
         while 1:
             filename = raw_input(Fore.GREEN + Style.BRIGHT
-                                 + 'filename (press ENTER to exit): '
+                                 + '-> filename (press ENTER to exit): '
                                  + Style.RESET_ALL).strip()
             if filename == '':
                 return output
@@ -164,12 +164,13 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
 
         for field in ['title', 'caption', 'artist_name']:
             while 1:
-                field_input = raw_input(Fore.GREEN + Style.BRIGHT + field
-                                        + ': ' + Style.RESET_ALL).strip()
+                field_input = raw_input(Fore.GREEN + Style.BRIGHT + '-> '
+                                        + field + ': ' + Style.RESET_ALL)\
+                    .strip()
                 if field_input != '':
                     media_data[field] = field_input
                     break
-                print(field + ' field cannot be empty.')
+                print('\t' + field + ' field cannot be empty.')
 
         output.append(media_data)
 

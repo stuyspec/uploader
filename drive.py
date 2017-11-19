@@ -169,7 +169,6 @@ def download_file(file):
 def post_media_file(filename, data):
     """Takes a filename and media data dictionary."""
     image = Image.open(filename)
-    print(image, image.filename)
     for key in data.keys():
         data['medium[{}]'.format(key)] = data.pop(key)
     files = {
