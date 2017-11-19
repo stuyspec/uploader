@@ -176,18 +176,19 @@ def get_artist_id(name, role_name):
         (r for r in roles if r['title'] == role_name),
         -1
     )['id']
+    output = -2
     for u in users:
         if u['last_name'] == '' and u['first_name'] == name:
             # the case for "The {section_name} Department"
             return u['id']
-        if ('{first_name} {last_name}'.format(**u) == name
-            and next((
-                user_role for user_role in user_roles
-                if (user_role['user_id'] == u['id']
-                    and user_role['role_id'] == role_id)
-                ), None)):
-            return u['id']
-    return -1
+        if '{first_name} {last_name}'.format(**u) == name:
+            output = -u['id']
+            if next((user_role for user_role in user_roles
+                     if (user_role['user_id'] == u['id']
+                         and user_role['role_id'] == role_id)
+                     ), None) is not None:
+                return u['id']
+    return output
 
 
 def create_artist(name, art_type):
@@ -199,20 +200,25 @@ def create_artist(name, art_type):
     role_name = 'Illustrator' if art_type.lower() == 'art' else 'Photographer'
 
     artist_id = get_artist_id(name, role_name)
-    if artist_id != -1:
+
+    if artist_id == 0:
+        create_artist_promise = Promise(
+            lambda resolve, reject: resolve(authenticate_new_user(name_dict))
+        ) \
+            .then(lambda user_id: update_user(user_id, name_dict)) \
+            .then(lambda user_id: make_user_role(user_id, role_name)) \
+            .then(lambda user_id: user_id)
+        artist_id = create_artist_promise.get()
+        print(Fore.YELLOW + Style.BRIGHT + 'Created {} #{}: {}.'
+              .format(role_name, artist_id, name) + Style.RESET_ALL)
+
+    elif artist_id < 0:  # user exists, but not user_role
+        return make_user_role(-artist_id, role_name)
+
+    else:  # stuff exists
         print(Fore.YELLOW + Style.BRIGHT + 'Confirmed Contributor #{}: {}.'
               .format(artist_id, name) + Style.RESET_ALL)
-        return
 
-    create_artist_promise = Promise(
-        lambda resolve, reject: resolve(authenticate_new_user(name_dict))
-    )\
-        .then(lambda user_id: update_user(user_id, name_dict))\
-        .then(lambda user_id: make_user_role(user_id, role_name))\
-        .then(lambda user_id: user_id)
-    artist_id = create_artist_promise.get()
-    print(Fore.YELLOW + Style.BRIGHT + 'Created {} #{}: {}.'
-          .format(role_name, artist_id, name) + Style.RESET_ALL)
     return artist_id
 
 
