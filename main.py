@@ -82,6 +82,7 @@ def main():
 
             article_data = articles.read_article(article_text)
 
+            media_data = []
             if raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): '
                                  + Style.RESET_ALL) == 'y':
                 media_data = choose_media(media_files,
