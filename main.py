@@ -91,7 +91,7 @@ def main():
 
             if raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): '
                                  + Style.RESET_ALL) == 'y':
-                media_files = media.choose_media(media_files)
+                media_data = choose_media(media_files)
             if type(article_data) is str:
                 # read_article failed and returned file title
                 unprocessed_file_names.append(file['name'])
@@ -129,16 +129,36 @@ def main():
               Back.RESET + Fore.RED)
         print(*unprocessed_file_names, sep='\n')
 
+def choose_media(media_files):
+    output = []
+    while 1:
+        media_data = {}
+        while 1:
+            filename = raw_input(Fore.GREEN + Style.BRIGHT
+                                 + 'filename (press ENTER to exit): '
+                                 + Style.RESET_ALL).strip()
+            if filename[0] == '*':
+                media_data['is_featured'] = True
+                filename = filename[1:]
+            media = next((media_file for media_file in media_files
+                          if media_file['name'] == filename), None)
+            if media is not None:
+                media_data['file'] = media
+                break
+            print('No media matches filename {}.'.format(filename))
+        for field in ['title', 'caption', 'artist_name']:
+            while 1:
+                field_input = raw_input(Fore.GREEN + Style.BRIGHT + field
+                                        + ': ' + Style.RESET_ALL).strip()
+                if field_input != '':
+                    media[field] = field_input
+                    break
+                print(field + ' field cannot be empty.')
+        output.append(media_data)
+    return output
 
-# NEEDS A BACK FUNCTION TODO
-def get_folders_in_file(files, parent_folder_id):
-    folders = {}
-    for file in files:
-        # check if parent folder is SBC and file type is folder
-        if file.get('parents', [None])[0] == parent_folder_id and file.get(
-                'mimeType') == 'application/vnd.google-apps.folder':
-            folders[file['id']] = file['name']
-    return folders
+
+        # imageName = drive.download_file(drive.get_file
 
 
 # DO NOT CHANGE THE ORDER OF THESE INIT'S
