@@ -10,8 +10,7 @@ import ast
 users = []
 user_roles = []
 roles = []
-backup_users = []
-wp_users_dict = {}
+backup_users = {}
 
 
 def init():
@@ -22,30 +21,36 @@ def init():
     user_roles = requests.get(constants.API_USER_ROLES_ENDPOINT).json()
     roles = requests.get(constants.API_ROLES_ENDPOINT).json()
 
-    with open('backups/wp-users-backup.txt', 'r') as wp:
-        wp_users_dict = ast.literal_eval(wp.read())
-
     with open('backups/wp-users-backup.txt', 'r') as wp, \
-        open('backups/drive-features-writers-2017-2018.txt', 'r') \
-                as features, \
-        open('backups/drive-opinions-writers-2017-2018.txt', 'r') \
-                as opinions, \
-        open('backups/drive-news-writers-2016-2017.txt', 'r') as news, \
-        open('backups/drive-art-2016-2017.txt', 'r') as art:
-        backup_users = ast.literal_eval(wp.read()).values() \
-                       + ast.literal_eval(features.read()) \
-                       + ast.literal_eval(opinions.read()) \
-                       + ast.literal_eval(news.read()) \
-                       + ast.literal_eval(art.read())
+            open('backups/drive-features-writers-2017-2018.txt', 'r') \
+                    as features, \
+            open('backups/drive-opinions-writers-2017-2018.txt', 'r') \
+                    as opinions, \
+            open('backups/drive-news-writers-2016-2017.txt', 'r') as news, \
+            open('backups/drive-art-2016-2017.txt', 'r') as art:
+        for user in ast.literal_eval(wp.read()).values() \
+                    + ast.literal_eval(features.read()) \
+                    + ast.literal_eval(opinions.read()) \
+                    + ast.literal_eval(news.read()) \
+                    + ast.literal_eval(art.read()):
+            key = user['first_name'] + '+' + user['last_name']
+            if key in backup_users:
+                backup_users[key].append(user)
+            else:
+                backup_users[key] = [user]
     print('[100%] Loaded users.')
 
 
 def get_email_by_name(name_dict):
-    for user in backup_users:
+    key = name_dict['first_name'] + '+' + name_dict['last_name']
+    if key in backup_users:
+        return backup_users[key][0]['email'] # shoudl give choices between all.
+    for user in users:
         if (name_dict['first_name'] == user['first_name']
             and name_dict['last_name'] == user['last_name']):
             return user['email']
-    raise LookupError('no email found')
+    raise LookupError('No email found for {first_name} {last_name}.'
+                      .format(**name_dict))
 
 
 def update_user(user_id, data):
@@ -166,6 +171,25 @@ def create_contributor(name):
     return create_contributor_promise.get()
 
 
+def get_artist_id(name, role_name):
+    role_id = next(
+        (r for r in roles if r['title'] == role_name),
+        -1
+    )['id']
+    for u in users:
+        if u['last_name'] == '' and u['first_name'] == name:
+            # the case for "The {section_name} Department"
+            return u['id']
+        if ('{first_name} {last_name}'.format(**u) == name
+            and next((
+                user_role for user_role in user_roles
+                if (user_role['user_id'] == u['id']
+                    and user_role['role_id'] == role_id)
+                ), None)):
+            return u['id']
+    return -1
+
+
 def create_artist(name, art_type):
     name_dict = utils.merge_two_dicts(
         name_to_dict(name),
@@ -173,6 +197,12 @@ def create_artist(name, art_type):
     )
 
     role_name = 'Illustrator' if art_type.lower() == 'art' else 'Photographer'
+
+    artist_id = get_artist_id(name, role_name)
+    if artist_id != -1:
+        print(Fore.YELLOW + Style.BRIGHT + 'Confirmed Contributor #{}: {}.'
+              .format(artist_id, name) + Style.RESET_ALL)
+        return
 
     create_artist_promise = Promise(
         lambda resolve, reject: resolve(authenticate_new_user(name_dict))
@@ -183,6 +213,7 @@ def create_artist(name, art_type):
     artist_id = create_artist_promise.get()
     print(Fore.YELLOW + Style.BRIGHT + 'Created {} #{}: {}.'
           .format(role_name, artist_id, name) + Style.RESET_ALL)
+    return artist_id
 
 
 def post_contributors(article_id, contributors):
