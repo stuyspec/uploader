@@ -1,14 +1,9 @@
 from apiclient import discovery
 from apiclient.http import MediaIoBaseDownload
 from pyfiglet import figlet_format
-from oauth2client import client
-from oauth2client import tools
-from oauth2client.file import Storage
 from PIL import Image
 import httplib2
-import base64
 import requests
-import json
 from slugify import slugify
 
 import os
@@ -17,47 +12,11 @@ import io
 
 import constants
 
-# If modifying these scopes, delete your previously saved credentials
-# at ~/.credentials/drive-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/drive'
-CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'Spec-Uploader CLI'
-
-
 files = []
 drive_service = None
 
-def get_credentials():
-    """Gets valid user credentials from storage.
 
-    If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
-
-    Returns:
-        Credentials, the obtained credential.
-    """
-    home_dir = os.path.expanduser('~')
-    credential_dir = os.path.join(home_dir, '.credentials')
-    if not os.path.exists(credential_dir):
-        os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   'drive-python-quickstart.json')
-
-    store = Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
-        if flags:
-            credentials = tools.run_flow(flow, store, flags)
-        else:  # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
-        print('Storing credentials to ' + credential_path)
-    return credentials
-
-
-def init():
-    credentials = get_credentials()
+def init(credentials):
     http = credentials.authorize(httplib2.Http())
     global drive_service
     drive_service = discovery.build('drive', 'v3', http=http)
@@ -65,37 +24,28 @@ def init():
     print('\n')
     print(figlet_format('SPEC CLI', font='slant'))
 
-    page_token = None
-    response = drive_service.files().list(
-        q="(mimeType='application/vnd.google-apps.folder'"
-          + " or mimeType='application/vnd.google-apps.document')"
-          #+ " or mimeType='application/pdf')"
-          + " and not trashed",
-        spaces='drive',
-        fields='nextPageToken, files(id, name, parents, mimeType)',
-        pageToken=page_token
-    ).execute()
-    page_token = response.get('nextPageToken', None)
-    # if page_token is None:
-    #     return
-
-    media_response = drive_service.files().list(
-        q="mimeType contains 'image' and not trashed",
-        spaces='drive',
-        fields='nextPageToken, files(id, name, parents, mimeType)',
-        pageToken=page_token
-    ).execute()
-    page_token = media_response.get('nextPageToken', None)
-    # if page_token is None:
-    #     return
-
     if not os.path.exists('/tmp'):
         os.makedirs('/tmp')
 
     global files
-    files = response.get('files', []) + media_response.get('files', [])
-    print(len(files))
-    # todo: in the future, files should be sorted into dictionary by issue num
+    page_token = None
+    while 1:
+        response = drive_service.files().list(
+            q="(mimeType='application/vnd.google-apps.folder'"
+              + " or mimeType='application/vnd.google-apps.document'"
+              + " or mimeType='application/pdf'"
+              + " or mimeType contains 'image')"
+              + " and not trashed",
+            spaces='drive',
+            fields='nextPageToken, files(id, name, parents, mimeType)',
+            pageToken=page_token
+        ).execute()
+        files += response.get('files', [])
+        page_token = response.get('nextPageToken', None)
+        if page_token is None:
+            print('[100%] Loaded {} Drive files.'.format(len(files)))
+            return
+        print('Loaded {} Drive files.'.format(len(files)))
 
 
 def get_file(name_pattern, file_type, parent_id=None):
