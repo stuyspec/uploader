@@ -31,5 +31,7 @@ def post_media(article_id, medias):
             'article_id': article_id,
             'user_id': user_id,
             'media_type': media['media_type'],
-            'is_featured': media['is_featured']
+            'is_featured': media['is_featured'],
+            'title': media['title'],
+            'caption': media['caption']
         })
