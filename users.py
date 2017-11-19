@@ -176,7 +176,7 @@ def get_artist_id(name, role_name):
         (r for r in roles if r['title'] == role_name),
         -1
     )['id']
-    output = -2
+    output = 0
     for u in users:
         if u['last_name'] == '' and u['first_name'] == name:
             # the case for "The {section_name} Department"
@@ -201,7 +201,7 @@ def create_artist(name, art_type):
 
     artist_id = get_artist_id(name, role_name)
 
-    if artist_id == 0:
+    if artist_id == 0:  # user and user_role do not exist
         create_artist_promise = Promise(
             lambda resolve, reject: resolve(authenticate_new_user(name_dict))
         ) \
@@ -216,8 +216,8 @@ def create_artist(name, art_type):
         return make_user_role(-artist_id, role_name)
 
     else:  # stuff exists
-        print(Fore.YELLOW + Style.BRIGHT + 'Confirmed Contributor #{}: {}.'
-              .format(artist_id, name) + Style.RESET_ALL)
+        print(Fore.YELLOW + Style.BRIGHT + 'Confirmed {} #{}: {}.'
+              .format(role_name, artist_id, name) + Style.RESET_ALL)
 
     return artist_id
 
