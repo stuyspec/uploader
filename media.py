@@ -27,6 +27,9 @@ def post_media(article_id, medias):
         filename = drive.download_file(media['file'])
         drive.post_media_file(filename, {
             'article_id': article_id,
-            'user_id': users.create_artist()
+            'user_id': users.create_artist(media['artist_name'],
+                                           media['type']),
+            'type': media['type'],
+            'is_featured': media['is_featured']
         })
         #imageName = drive.download_file(drive.get_file

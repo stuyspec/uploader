@@ -184,6 +184,7 @@ def create_artist(name, art_type):
     print(Fore.YELLOW + Style.BRIGHT + 'Created {} #{}: {}.'
           .format(role_name, artist_id, name) + Style.RESET_ALL)
 
+
 def post_contributors(article_id, contributors):
     contributors = label_existing_contributors(contributors)
     contributor_ids = []

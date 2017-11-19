@@ -80,11 +80,13 @@ def init():
 
     global files
     files = response.get('files', [])
-
     page_token = response.get('nextPageToken', None)
     if page_token is None:
         return
     # todo: in the future, files should be sorted into hashtable or dictionary by issue num
+    for f in files:
+        if 'folder' in f['mimeType'] and 'parents' in f.keys():
+            print(f['name'], f['parents'][0])
 
 
 def get_file(name_pattern, file_type, parent_id=None):
@@ -102,9 +104,10 @@ def get_file(name_pattern, file_type, parent_id=None):
 
 
 def get_children(parent_id, file_type=None):
+    #rint([f for f in files if 'folder' in f['mimeType'] and 'parents' in f.keys() and f['parents'][0] == '0BzjGqbAstot_LTNralpjTU1PLU0'])
     if type(parent_id) is str:
         parent_id = [parent_id]
-    if file_type:
+    if file_type is not None:
         if file_type in ['document', 'folder']:
             mime_type = 'application/vnd.google-apps.' + file_type
         elif file_type == 'image':
@@ -113,7 +116,7 @@ def get_children(parent_id, file_type=None):
             raise ValueError('Expected file type document, folder, image, but received: {}.'.format(file_type))
         return [
             f for f in files if (mime_type in f['mimeType'] and
-                                 f.get('parents', [None])[0] in parent_id)
+                                 f.get('parents', ['trash||'])[0] in parent_id)
         ]
     return [
         f for f in files if f.get('parents', [None])[0] in parent_id
@@ -157,15 +160,14 @@ def post_media_file(filename, data):
     """Takes a filename and media data dictionary."""
     image = Image.open(filename)
     print(image, image.filename)
+    for key in data.keys():
+        data['medium[{}]'.format(key)] = data.pop(key)
     files = {
         'medium[attachment]': open(filename, 'rb')
-        # 'medium[attachment]': (filename,
-        #                        open(filename, 'rb'),
-        #                        'image/' + image.format.lower(),
-        #                        data)
     }
     response = requests.post(constants.API_MEDIA_ENDPOINT,
-                             files=files, data=data)
+                             files=files,
+                             data=data)
     response.raise_for_status()
 
 

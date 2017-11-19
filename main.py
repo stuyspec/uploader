@@ -51,18 +51,11 @@ def main():
     media_files = drive.get_children([art_folder['id'],
                                       photo_folder['id']],
                                      'image')
-
-    imageName = drive.download_file(media_files[0])
-    drive.post_media_file(imageName, {'medium[title]':'testing', 'medium[article_id]': 1, 'medium[user_id]': 1})
-
-    return
-
     volume = 107  # int(raw_input('Volume (number): '))
     issue = 1  # int(raw_input('Issue: '))
     unprocessed_file_names = []
-
+    print(SBC)
     # TODO if re.match(r'(?i)staff\s?ed', file['name']): article_data = articles.read_staff_ed(article_text)
-
     for section in drive.get_children(SBC['id'], 'folder'):
 
         section_id = sections.get_section_id_by_name(section['name'])
