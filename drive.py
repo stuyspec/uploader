@@ -154,6 +154,8 @@ def download_file(file):
     done = False
     while done is False:
         status, done = downloader.next_chunk()
+        print('Download {} {}.'.format(file['name'],
+                                       int(status.progress() * 100)))
     fh.seek(0)
 
     image = Image.open(fh)
