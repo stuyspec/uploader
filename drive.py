@@ -154,7 +154,7 @@ def download_file(file):
     done = False
     while done is False:
         status, done = downloader.next_chunk()
-        print('Download {} {}%.\r'.format(file['name'],
+        print('Download {} {}%.'.format(file['name'],
                                           int(status.progress() * 100))),
     fh.seek(0)
 
