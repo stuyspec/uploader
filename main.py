@@ -95,10 +95,10 @@ def main():
     PDF = drive.get_file("(?i)Issue\s?\d(\.pdf)$",
                          'application/pdf',
                          Issue['id'])
+    
     webbrowser.open('https://drive.google.com/file/d/{}/view'
                     .format(PDF['id']),
                     new=2)
-
     volume = 107  # int(raw_input('Volume (number): '))
     issue = 1  # int(raw_input('Issue: '))
     unprocessed_file_names = []
