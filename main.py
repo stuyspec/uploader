@@ -4,24 +4,62 @@
 from __future__ import print_function
 from oauth2client import tools
 from promise import Promise
-import io, re
+import io, re, os
 import webbrowser
+from oauth2client import client
+from oauth2client import tools
+from oauth2client.file import Storage
 
 import constants, users, authorships, articles, sections, outquotes, media, drive
 
-args = None
 try:
     import argparse
     parser = argparse.ArgumentParser(
         description='Automatically upload Spectator articles.',
         parents=[tools.argparser])
     parser.add_argument('--local', help='post data to a specified port')
-    args = parser.parse_args()
+    flags = parser.parse_args()
 except ImportError:
     flags = None
 
 from colorama import Fore, Back, Style
 import colorama
+
+
+# If modifying these scopes, delete your previously saved credentials
+# at ~/.credentials/drive-python-quickstart.json
+SCOPES = 'https://www.googleapis.com/auth/drive'
+CLIENT_SECRET_FILE = 'client_secret.json'
+APPLICATION_NAME = 'Spec-Uploader CLI'
+
+
+def get_credentials():
+    """Gets valid user credentials from storage.
+
+    If nothing has been stored, or if the stored credentials are invalid,
+    the OAuth2 flow is completed to obtain the new credentials.
+
+    Returns:
+        Credentials, the obtained credential.
+    """
+    home_dir = os.path.expanduser('~')
+    credential_dir = os.path.join(home_dir, '.credentials')
+    if not os.path.exists(credential_dir):
+        os.makedirs(credential_dir)
+    credential_path = os.path.join(credential_dir,
+                                   'drive-python-quickstart.json')
+
+    store = Storage(credential_path)
+    credentials = store.get()
+    if not credentials or credentials.invalid:
+        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
+        flow.user_agent = APPLICATION_NAME
+        if flags:
+            credentials = tools.run_flow(flow, store, flags)
+        else: # Needed only for compatibility with Python 2.6
+            credentials = tools.run(flow, store)
+        print('Storing credentials to ' + credential_path)
+    return credentials
 
 
 def find_matching_folder_in(parent_id, files, name_pattern):
@@ -53,14 +91,12 @@ def main():
                                       photo_folder['id']],
                                      'image')
 
-    # PDF = drive.get_file("(?i)Issue\s?\d(\.pdf)$",
-    #                      'application/pdf',
-    #                      Issue['id'])
-    # print(PDF)
-    # webbrowser.open('https://drive.google.com/drive/file/d/{}/view'
-    #                 .format(PDF['id']),
-    #                 new=2)
-    # TODO: GET PDFS
+    PDF = drive.get_file("(?i)Issue\s?\d(\.pdf)$",
+                         'application/pdf',
+                         Issue['id'])
+    webbrowser.open('https://drive.google.com/file/d/{}/view'
+                    .format(PDF['id']),
+                    new=2)
 
     volume = 107  # int(raw_input('Volume (number): '))
     issue = 1  # int(raw_input('Issue: '))
@@ -192,12 +228,13 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
 
 # DO NOT CHANGE THE ORDER OF THESE INIT'S
 if __name__ == '__main__':
+    creds = get_credentials()
     colorama.init()
-    if args.local is not None:
-        constants.init('localhost:{}'.format(args.local))
+    if flags.local is not None:
+        constants.init('localhost:{}'.format(flags.local))
     else:
         constants.init('not-deployed.yet')
-    drive.init()
+    drive.init(creds)
     sections.init()
     articles.init()
     users.init()
