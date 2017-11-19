@@ -6,7 +6,7 @@ from oauth2client import tools
 from promise import Promise
 import io, re
 
-import constants, users, authorships, articles, sections, outquotes, drive
+import constants, users, authorships, articles, sections, outquotes, media, drive
 
 args = None
 try:
@@ -91,7 +91,9 @@ def main():
 
             if raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): '
                                  + Style.RESET_ALL) == 'y':
-                media_data = choose_media(media_files)
+                media_data = choose_media(media_files,
+                                          art_folder_id=art_folder['id'],
+                                          photo_folder_id=photo_folder['id'])
             if type(article_data) is str:
                 # read_article failed and returned file title
                 unprocessed_file_names.append(file['name'])
@@ -120,6 +122,8 @@ def main():
                       outquotes.post_outquotes(article_id,
                                                article_data['outquotes']))\
                 .then(lambda article_id:
+                      media.post_media(article_id, media_data))\
+                .then(lambda article_id:
                       print(Fore.GREEN + Style.BRIGHT
                             + '\nSuccessfully wrote Article {}: {}.'
                                 .format(article_id, article_post_data['title'])
@@ -129,14 +133,18 @@ def main():
               Back.RESET + Fore.RED)
         print(*unprocessed_file_names, sep='\n')
 
-def choose_media(media_files):
+
+def choose_media(media_files, art_folder_id, photo_folder_id):
     output = []
     while 1:
         media_data = {}
+
         while 1:
             filename = raw_input(Fore.GREEN + Style.BRIGHT
                                  + 'filename (press ENTER to exit): '
                                  + Style.RESET_ALL).strip()
+            if filename == '':
+                return output
             if filename[0] == '*':
                 media_data['is_featured'] = True
                 filename = filename[1:]
@@ -144,8 +152,21 @@ def choose_media(media_files):
                           if media_file['name'] == filename), None)
             if media is not None:
                 media_data['file'] = media
+                media_parent = media.get('parents', [None])[0]
+                if media_parent is None:
+                    raise ValueError(filename + ' has no parents.\n' + media)
+                if media_parent['id'] == photo_folder_id:
+                    media_data['type'] = 'photo'
+                elif media_parent['id'] == art_folder_id:
+                    media_data['type'] = 'art'
+                else:
+                    raise ValueError('The parents of {} are not the folders '
+                                     + 'Art ({}) or Photo ({}).'
+                                     .format(filename, art_folder_id,
+                                             photo_folder_id))
                 break
             print('No media matches filename {}.'.format(filename))
+
         for field in ['title', 'caption', 'artist_name']:
             while 1:
                 field_input = raw_input(Fore.GREEN + Style.BRIGHT + field
@@ -154,8 +175,8 @@ def choose_media(media_files):
                     media[field] = field_input
                     break
                 print(field + ' field cannot be empty.')
+
         output.append(media_data)
-    return output
 
 
         # imageName = drive.download_file(drive.get_file

@@ -62,15 +62,18 @@ def update_user(user_id, data):
     return updated_user_json.get('id', -1)
 
 
-def make_contributor(user_id):
-    contributor_role_id = next(
-        (r for r in roles if r['title'] == 'Contributor'),
-        -1
-    )['id']
+def make_user_role(user_id, role_name):
+    role_id = next(
+        (r for r in roles if r['title'] == role_name),
+        {}
+    ).get('id', -1)
+    if role_id == -1:
+        raise ValueError('Role {} does not exist'.format(role_name))
+
     user_role_response = requests.post(constants.API_USER_ROLES_ENDPOINT,
                                        data=json.dumps({
                                            'user_id': user_id,
-                                           'role_id': contributor_role_id
+                                           'role_id': role_id
                                        }),
                                        headers={
                                            'Content-Type': 'application/json'
@@ -158,10 +161,28 @@ def create_contributor(name):
         lambda resolve, reject: resolve(authenticate_new_user(name_dict))
     )\
         .then(lambda user_id: update_user(user_id, name_dict))\
-        .then(lambda user_id: make_contributor(user_id))\
+        .then(lambda user_id: make_user_role(user_id, 'Contributor'))\
         .then(lambda user_id: user_id)
     return create_contributor_promise.get()
 
+
+def create_artist(name, art_type):
+    name_dict = utils.merge_two_dicts(
+        name_to_dict(name),
+        {'slug': slugify(name)}
+    )
+
+    role_name = 'Illustrator' if art_type.lower() == 'art' else 'Photographer'
+
+    create_artist_promise = Promise(
+        lambda resolve, reject: resolve(authenticate_new_user(name_dict))
+    )\
+        .then(lambda user_id: update_user(user_id, name_dict))\
+        .then(lambda user_id: make_user_role(user_id, role_name))\
+        .then(lambda user_id: user_id)
+    artist_id = create_artist_promise.get()
+    print(Fore.YELLOW + Style.BRIGHT + 'Created {} #{}: {}.'
+          .format(role_name, artist_id, name) + Style.RESET_ALL)
 
 def post_contributors(article_id, contributors):
     contributors = label_existing_contributors(contributors)

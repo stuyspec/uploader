@@ -4,7 +4,7 @@ from slugify import slugify
 
 import requests
 import constants
-import drive
+import drive, users
 
 media = []
 
@@ -17,20 +17,16 @@ def init():
     print('[100%] Loaded media.')
 
 
-def post_media(article_id, media_files):
-    output = []
-    while 1:
-        media_data = {}
-        while 1:
-            filename = raw_input(Fore.GREEN + Style.BRIGHT + 'filename: '
-                                 + Style.RESET_ALL).strip()
-            if filename[0] == '*':
-                media_data['is_featured'] = True
-                filename = filename[1:]
-            media = next((media_file for media_file in media_files
-                          if media_file['name'] == filename), None)
-            if media is not None:
-                break
-            print('No ')
-        media_data[]
+def post_media(article_id, medias):
+    """Takes array of objects with artist_name, file, title, caption."""
+    for media in medias:
+        for field in ['artist_name', 'file', 'title', 'caption']:
+            if field not in media:
+                raise ValueError('Media object has no attribute {}.'
+                                 .format(field))
+        filename = drive.download_file(media['file'])
+        drive.post_media_file(filename, {
+            'article_id': article_id,
+            'user_id': users.create_artist()
+        })
         #imageName = drive.download_file(drive.get_file

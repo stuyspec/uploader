@@ -143,7 +143,6 @@ def download_file(file):
     done = False
     while done is False:
         status, done = downloader.next_chunk()
-        print "Download %d%%." % int(status.progress() * 100)
     fh.seek(0)
 
     image = Image.open(fh)
@@ -167,10 +166,7 @@ def post_media_file(filename, data):
     }
     response = requests.post(constants.API_MEDIA_ENDPOINT,
                              files=files, data=data)
-    print(response)
-
-
-
+    response.raise_for_status()
 
 
 
