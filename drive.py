@@ -66,7 +66,7 @@ def get_file(name_pattern, file_type, parent_id=None):
 
 
 def get_children(parent_ids, file_type=None):
-    if type(parent_ids) is str:
+    if type(parent_ids) is unicode or type(parent_ids) is str:
         parent_ids = [parent_ids]
     if file_type is not None:
         if file_type in ['document', 'folder']:
@@ -81,7 +81,8 @@ def get_children(parent_ids, file_type=None):
                                      for p in parent_ids))
         ]
     return [
-        f for f in files if f.get('parents', [None])[0] in parent_id
+        f for f in files if any(p in f.get('parents', [])
+                                     for p in parent_ids)
     ]
 
 
