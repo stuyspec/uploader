@@ -197,8 +197,12 @@ def create_artist(name, art_type):
         {'slug': slugify(name)}
     )
 
-    role_name = 'Illustrator' if art_type.lower() == 'art' else 'Photographer'
-
+    if art_type.lower() == 'illustration':
+      role_name = 'Illustrator'
+    elif art_type.lower() == 'photo':
+      role_name = 'Photographer'
+    else:
+      raise ValueError('Art type {} is not permitted.'.format(art_type))
     artist_id = get_artist_id(name, role_name)
 
     if artist_id == 0:  # user and user_role do not exist
