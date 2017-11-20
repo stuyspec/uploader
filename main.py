@@ -99,11 +99,14 @@ def main():
     webbrowser.open('https://drive.google.com/file/d/{}/view'
                     .format(PDF['id']),
                     new=2)
-    volume = 107  # int(raw_input('Volume (number): '))
-    issue = 1  # int(raw_input('Issue: '))
+    webbrowser.open('https://drive.google.com/drive/folders/' + photo_folder['id'],
+                    new=2)
+    webbrowser.open('https://drive.google.com/drive/folders/' + art_folder['id'],
+                    new=2)
+    volume = 107
+    issue = 1
     unprocessed_file_names = []
-
-    # TODO if re.match(r'(?i)staff\s?ed', file['name']): article_data = articles.read_staff_ed(article_text)
+    
     issue_sections = {}
     for section in drive.get_children(SBC['id'], 'folder'):
         issue_sections[section['name']] = section
@@ -158,7 +161,13 @@ def main():
                 unprocessed_file_names.append(file['name'])
                 continue
 
-            article_section_id = sections.choose_subsection(section_id) or section_id
+            if section_name == 'Humor':
+                if issue == 4:
+                    article_section_id = get_section_id_by_name('Spooktator')
+                elif issue == 12:
+                    article_section_id = get_section_id_by_name('Disrespectator')
+            else:
+                article_section_id = sections.choose_subsection(section_id) or section_id
 
             article_attributes = ['title', 'content', 'summary', 'content']
             article_post_data = {
@@ -168,7 +177,7 @@ def main():
             for attr in ('volume', 'issue'):
                 article_post_data[attr] = int(locals()[attr])  # adds specified local variables
             article_post_data['section_id'] = article_section_id
-            
+
             article_promise = Promise(
                 lambda resolve, reject:
                     resolve(articles.post_article(article_post_data))
@@ -217,10 +226,10 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
                 media_parent = media.get('parents', [None])[0]
                 if media_parent is None:
                     raise ValueError(filename + ' has no parents.\n' + media)
-                if media_parent == photo_folder_id:
+                if any(p == photo_folder_id for p in media.get('parents', [])):
                     media_data['media_type'] = 'photo'
-                elif media_parent == art_folder_id:
-                    media_data['media_type'] = 'art'
+                elif any(p == art_folder_id for p in media.get('parents', [])):
+                    media_data['media_type'] = 'illustration'
                 else:
                     raise ValueError('The parents of {} are not the folders '
                                      + 'Art ({}) or Photo ({}).'
@@ -229,11 +238,22 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
                 break
             print('No media matches filename {}.'.format(filename))
 
-        for field in ['title', 'caption', 'artist_name']:
+        for field in ['title', 'caption']:
             field_input = raw_input(Fore.GREEN + Style.BRIGHT + '-> '
                                     + field + ': ' + Style.RESET_ALL)\
                 .strip()
             media_data[field] = field_input
+
+        while 1:
+            field_input = raw_input(Fore.GREEN + Style.BRIGHT + '-> artist name: '
+                                    + Style.RESET_ALL)\
+                .strip()
+            if field_input == '':
+                print('\tartist name cannot be empty. check the Issue PDF for credits.')
+            else:
+                media_data['artist_name'] = field_input
+                break
+
 
         output.append(media_data)
 
@@ -248,7 +268,7 @@ if __name__ == '__main__':
     if flags.local is not None:
         constants.init('localhost:{}'.format(flags.local))
     else:
-        constants.init('not-deployed.yet')
+        constants.init()
     drive.init(creds)
     sections.init()
     articles.init()
