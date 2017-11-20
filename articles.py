@@ -138,12 +138,9 @@ def read_article(text):
     if content_start_index == -1:
         content_start_index = identify_line_manually(input, 'content start')
     paragraphs = input[content_start_index:]
-    paragraphs_input = raw_input(
-        (Fore.GREEN + Style.BRIGHT +
-         'content: ' + Style.RESET_ALL + '({}   ...   {}) ').format(
+    print(Fore.GREEN + Style.BRIGHT +
+         'content: ' + Style.RESET_ALL + '({}   ...   {}) '.format(
              paragraphs[0], paragraphs[-1]))
-    if paragraphs_input != '':
-        paragraphs = paragraphs_input.split('\n')
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
     outquote_index = -1
