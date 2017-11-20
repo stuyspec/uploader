@@ -35,9 +35,9 @@ def get_title(line):
     if 'Title: ' in line:
         line = line[line.find('Title: ') + len('Title: '):]
     line = line.strip()
-    return raw_input(
-        (Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL +
-         '({}) ').format(line)) or line
+    print(Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL +
+         '({}) '.format(line))
+    return line
 
 
 def clean_name(name):
@@ -63,17 +63,18 @@ def get_contributors(byline):
     contributors.append(clean_name(' '.join(
         byline[cutoff:])))  # add last contributor
     contributors = filter(None, contributors)  # removes empty strings
-    byline = raw_input(
+    print(
         (Fore.GREEN + Style.BRIGHT +
          'contributors : ' + Style.RESET_ALL + '({0}) ').format(
-             ', '.join(contributors))) or byline  # confirm contributors
+             ', '.join(contributors)))
     return contributors
 
 
 def get_summary(line):
     line = re.sub(r"(?i)Focus Sentence:?", '', line).strip()
-    return raw_input((Fore.GREEN + Style.BRIGHT + 'summary/focus: ' +
-                      Style.RESET_ALL + '({0}) ').format(line)).strip() or line
+    print(Fore.GREEN + Style.BRIGHT + 'summary/focus: ' +
+                      Style.RESET_ALL + '({0}) ').format(line)
+    return line
 
 def identify_line_manually(content, missing_value):
     """Takes list of paragraphs and returns user input for the line # of any
