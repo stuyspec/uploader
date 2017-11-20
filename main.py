@@ -223,9 +223,6 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
                           if media_file['name'] == filename), None)
             if media is not None:
                 media_data['file'] = media
-                media_parent = media.get('parents', [None])[0]
-                if media_parent is None:
-                    raise ValueError(filename + ' has no parents.\n' + media)
                 if any(p == photo_folder_id for p in media.get('parents', [])):
                     media_data['media_type'] = 'photo'
                 elif any(p == art_folder_id for p in media.get('parents', [])):
