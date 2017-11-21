@@ -32,15 +32,13 @@ def init(credentials):
     page_token = None
     while 1:
         response = drive_service.files().list(
-            q="(mimeType='application/vnd.google-apps.folder'"
-              + " or mimeType='application/vnd.google-apps.document'"
-              + " or mimeType='application/pdf'"
-              + " or mimeType contains 'image')"
-              + " and not trashed",
+            q="(mimeType='application/vnd.google-apps.folder'" +
+            " or mimeType='application/vnd.google-apps.document'" +
+            " or mimeType='application/pdf'" +
+            " or mimeType contains 'image')" + " and not trashed",
             spaces='drive',
             fields='nextPageToken, files(id, name, parents, mimeType)',
-            pageToken=page_token
-        ).execute()
+            pageToken=page_token).execute()
         files += response.get('files', [])
         page_token = response.get('nextPageToken', None)
         if page_token is None:
@@ -75,15 +73,16 @@ def get_children(parent_ids, file_type=None):
         elif file_type == 'image':
             mime_type = 'image'
         else:
-            raise ValueError('Expected file type document, folder, image, but received: {}.'.format(file_type))
+            raise ValueError(
+                'Expected file type document, folder, image, but received: {}.'.
+                format(file_type))
         return [
-            f for f in files if (mime_type in f['mimeType'] and
-                                 any(p in f.get('parents', [])
-                                     for p in parent_ids))
+            f for f in files
+            if (mime_type in f['mimeType']
+                and any(p in f.get('parents', []) for p in parent_ids))
         ]
     return [
-        f for f in files if any(p in f.get('parents', [])
-                                     for p in parent_ids)
+        f for f in files if any(p in f.get('parents', []) for p in parent_ids)
     ]
 
 
@@ -102,6 +101,7 @@ def download_document(file):
 
     return fh.getvalue()
 
+
 def download_file(file):
     file_id = file['id']
     request = drive_service.files().get_media(fileId=file_id)
@@ -111,12 +111,13 @@ def download_file(file):
     while done is False:
         status, done = downloader.next_chunk()
         print('Download {} {}%.'.format(file['name'],
-                                          int(status.progress() * 100)))
+                                        int(status.progress() * 100)))
     fh.seek(0)
 
     image = Image.open(fh)
-    imageName = 'tmp/' + slugify(file['name']) + '.' + file['mimeType'].split('/')[1]
-    open(imageName, 'a').close() # touch the file
+    imageName = 'tmp/' + slugify(
+        file['name']) + '.' + file['mimeType'].split('/')[1]
+    open(imageName, 'a').close()  # touch the file
     image.save(imageName)
 
     return imageName
@@ -126,19 +127,7 @@ def post_media_file(filename, data):
     """Takes a filename and media data dictionary."""
     for key in data.keys():
         data['medium[{}]'.format(key)] = data.pop(key)
-    files = {
-        'medium[attachment]': open(filename, 'rb')
-    }
-    response = requests.post(constants.API_MEDIA_ENDPOINT,
-                             files=files,
-                             data=data)
+    files = {'medium[attachment]': open(filename, 'rb')}
+    response = requests.post(
+        constants.API_MEDIA_ENDPOINT + '3', files=files, data=data)
     response.raise_for_status()
-
-
-
-
-
-
-
-
-
