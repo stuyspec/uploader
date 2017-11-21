@@ -101,7 +101,7 @@ def get_content_start(input):
     try:
         header_end = next((index
                            for index, value in enumerate(reversed(input))
-                           if HEADER_LINE_PATTERN.match(value)))
+                           if HEADER_LINE_PATTERN.search(value)))
         return len(input) - header_end
     except StopIteration:
         return -1

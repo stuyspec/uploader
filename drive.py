@@ -56,11 +56,11 @@ def get_file(name_pattern, file_type, parent_id=None):
     if parent_id:
         return next((f for f in files
                      if (f['mimeType'] == mime_type
-                         and re.match(name_pattern, f['name'])
+                         and re.search(name_pattern, f['name'])
                          and parent_id in f.get('parents', [None]))))
     return next((
         f for f in files
-        if (f['mimeType'] == mime_type and re.match(name_pattern, f['name']))))
+        if (f['mimeType'] == mime_type and re.search(name_pattern, f['name']))))
 
 
 def get_children(parent_ids, file_type=None):
