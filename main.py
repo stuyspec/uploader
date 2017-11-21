@@ -26,7 +26,6 @@ except ImportError:
 from colorama import Fore, Back, Style
 import colorama
 
-
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/drive-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/drive'
@@ -57,10 +56,16 @@ def get_credentials():
         flow.user_agent = APPLICATION_NAME
         if flags:
             credentials = tools.run_flow(flow, store, flags)
-        else: # Needed only for compatibility with Python 2.6
+        else:  # Needed only for compatibility with Python 2.6
             credentials = tools.run(flow, store)
         print('Storing credentials to ' + credential_path)
     return credentials
+
+
+def main():
+    # volume_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
+    # issue_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
+    process_issue(107, 2)
 
 
 def find_matching_folder_in(parent_id, files, name_pattern):
@@ -68,53 +73,49 @@ def find_matching_folder_in(parent_id, files, name_pattern):
     if not parent_file:
         raise ValueError('No parent {} found.'.format(parent_id))
     if parent_file['mimeType'] != 'application/vnd.google-apps.folder':
-        raise ValueError('File {} is not a folder.'
-                         .format(parent_file['name']))
-    return next((
-        f for f in files if (parent_id in f.get('parents', [None])
-                             and re.match(name_pattern, f['name']))
-    ), None)
+        raise ValueError('File {} is not a folder.'.format(
+            parent_file['name']))
+    return next((f for f in files
+                 if (parent_id in f.get('parents', [None])
+                     and re.match(name_pattern, f['name']))), None)
 
 
-def main():
-    Volume = drive.get_file(r"Volume 108", 'folder')
-    Issue = drive.get_file(r"Issue\s?1", 'folder', Volume['id'])
-    SBC = drive.get_file(r"SBC", 'folder', Issue['id'])
-
-    art_folder = drive.get_file(r"(?i)art", 'folder', Issue['id'])
-    photo_folder = drive.get_file(r"(?i)(photo\s?color)",
-                                  'folder',
-                                  Issue['id'])
+def process_issue(volume, issue):
+    volume_folder = drive.get_file(r"Volume {}".format(volume), 'folder')
+    issue_folder = drive.get_file(r"Issue\s?{}".format(issue), 'folder', volume_folder['id'])
+    sbc_folder = drive.get_file(r"SBC", 'folder', issue_folder['id'])
+    newspaper_pdf = drive.get_file("(?i)Issue\s?\d(\.pdf)$", 'application/pdf',
+                         issue_folder['id'])
+    art_folder = drive.get_file(r"(?i)art", 'folder', issue_folder['id'])
+    photo_folder = drive.get_file(r"(?i)(photo\s?color)", 'folder',
+                                  issue_folder['id'])
     if not photo_folder:
-        photo_folder = drive.get_file(r"(?i)(photo\s?b&?w)",
-                                      'folder',
+        photo_folder = drive.get_file(r"(?i)(photo\s?b&?w)", 'folder',
                                       Issue['id'])
-    media_files = drive.get_children([art_folder['id'],
-                                      photo_folder['id']],
+
+    media_files = drive.get_children([art_folder['id'], photo_folder['id']],
                                      'image')
 
-    PDF = drive.get_file("(?i)Issue\s?\d(\.pdf)$",
-                         'application/pdf',
-                         Issue['id'])
-
-    webbrowser.open('https://drive.google.com/file/d/{}/view'
-                    .format(PDF['id']),
-                    new=2)
-    webbrowser.open('https://drive.google.com/drive/folders/' + photo_folder['id'],
-                    new=2)
-    webbrowser.open('https://drive.google.com/drive/folders/' + art_folder['id'],
-                    new=2)
+    if flags.w is not None:
+        webbrowser.open(
+            'https://drive.google.com/file/d/{}/view'.format(PDF['id']), new=2)
+        webbrowser.open(
+            'https://drive.google.com/drive/folders/' + photo_folder['id'],
+            new=2)
+        webbrowser.open(
+            'https://drive.google.com/drive/folders/' + art_folder['id'],
+            new=2)
     volume = 107
     issue = 1
     unprocessed_file_names = []
-    
+
     issue_sections = {}
     for section in drive.get_children(SBC['id'], 'folder'):
         issue_sections[section['name']] = section
     ordered_issue_sections = [
-        issue_sections[section_name] for section_name in [
-            'News', 'Features', 'Opinions', 'A&E', 'Humor', 'Sports'
-        ]
+        issue_sections[section_name]
+        for section_name in
+        ['News', 'Features', 'Opinions', 'A&E', 'Humor', 'Sports']
     ]
 
     for section in ordered_issue_sections:
