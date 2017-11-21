@@ -148,7 +148,7 @@ def process_issue(volume, issue):
             media_data = []
             media_confirmation = raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
                          Style.RESET_ALL)
-            while media_confirmation != 'y' or media_confirmation != 'n':
+            while media_confirmation != 'y' and media_confirmation != 'n':
                 media_confirmation = raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
                          Style.RESET_ALL)
             if media_confirmation == 'y':
@@ -189,7 +189,7 @@ def process_issue(volume, issue):
                     print(Fore.RED + Style.BRIGHT + '\nCaught error: {}.'.format(res))
                     destroy_response = requests.delete(constants.API_ARTICLES_ENDPOINT + '/{}'.format(article_data['id']))
                     destroy_response.raise_for_status()
-                    rollbacked = True
+                    return True
                 except Exception as e:
                     print('Rollback failed with {}. Article {} remains evilly.'.format(e, article_data['id']))
 
@@ -206,12 +206,13 @@ def process_issue(volume, issue):
                             + Style.RESET_ALL))\
                 .catch(lambda res: rollback(res))
 
-            f = f + 1
-
-            if rollbacked:
+            result = promise.get()
+            if result is not None and result is True:
                 f = f - 1
                 print('Rollback completed. Re-prompting article.' + Style.RESET_ALL)
 
+            f = f + 1
+            
                 
     if len(unprocessed_file_names) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
