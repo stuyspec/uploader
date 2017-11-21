@@ -183,3 +183,12 @@ def post_article(data):
     global articles
     articles.append(article)
     return article.get('id', -1)
+
+
+def remove_article(article_id):
+    for article in reversed(articles):
+        if article['id'] == article_id:
+            articles.remove(article)
+            return True
+    raise ValueError('No article in local storage with id {}.'.format(article_id))
+    
