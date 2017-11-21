@@ -219,9 +219,9 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
         media_data = {}
 
         while 1:
-            filename = raw_input(Fore.GREEN + Style.BRIGHT
-                                 + '-> filename (press ENTER to exit): '
-                                 + Style.RESET_ALL).strip()
+            filename = raw_input(Fore.GREEN + Style.BRIGHT +
+                                 '-> filename (press ENTER to exit): ' +
+                                 Style.RESET_ALL).strip()
             if filename == '':
                 return output
             if filename[0] == '*':
@@ -238,8 +238,8 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
                 elif any(p == art_folder_id for p in media.get('parents', [])):
                     media_data['media_type'] = 'illustration'
                 else:
-                    raise ValueError('The parents of {} are not the folders '
-                                     + 'Art ({}) or Photo ({}).'
+                    raise ValueError('The parents of {} are not the folders ' +
+                                     'Art ({}) or Photo ({}).'
                                      .format(filename, art_folder_id,
                                              photo_folder_id))
                 break
@@ -256,14 +256,14 @@ def choose_media(media_files, art_folder_id, photo_folder_id):
                                     + Style.RESET_ALL)\
                 .strip()
             if field_input == '':
-                print('\tartist name cannot be empty. check the Issue PDF for credits.')
+                print(
+                    '\tartist name cannot be empty. check the Issue PDF for credits.'
+                )
             else:
                 media_data['artist_name'] = field_input
                 break
 
-
         output.append(media_data)
-
 
         # imageName = drive.download_file(drive.get_file
 
