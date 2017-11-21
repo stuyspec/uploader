@@ -65,7 +65,7 @@ def get_credentials():
 def main():
     # volume_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
     # issue_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
-    process_issue(107, 2)
+    process_issue(108, 2)
 
 
 def find_matching_folder_in(parent_id, files, name_pattern):
@@ -105,12 +105,11 @@ def process_issue(volume, issue):
         webbrowser.open(
             'https://drive.google.com/drive/folders/' + art_folder['id'],
             new=2)
-    volume = 107
-    issue = 1
+
     unprocessed_file_names = []
 
     issue_sections = {}
-    for section in drive.get_children(SBC['id'], 'folder'):
+    for section in drive.get_children(sbc_folder['id'], 'folder'):
         issue_sections[section['name']] = section
     ordered_issue_sections = [
         issue_sections[section_name]
@@ -125,7 +124,7 @@ def process_issue(volume, issue):
 
         if section['name'] == 'Opinions':
             section_articles.append(
-                drive.get_file(r'(?i)staff\s?ed', 'document', SBC['id']))
+                drive.get_file(r'(?i)staff\s?ed', 'document', sbc_folder['id']))
 
         for f in range(len(section_articles)):  # indexed for rollbacking
             file = section_articles[f]
