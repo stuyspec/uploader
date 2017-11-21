@@ -52,16 +52,16 @@ def get_file(name_pattern, file_type, parent_id=None):
         mime_type = 'application/vnd.google-apps.' + file_type
     else:
         mime_type = file_type
-    if parent_id:
+
+    try:
+        if parent_id:
+            return next((f for f in files
+                         if (f['mimeType'] == mime_type
+                             and re.match(name_pattern, f['name'])
+                             and parent_id in f.get('parents', [None]))))
         return next((
-            f for f in files if (f['mimeType'] == mime_type and
-                                 re.match(name_pattern, f['name']) and
-                                 parent_id in f.get('parents', [None]))
-        ))
-    return next((
-        f for f in files if (f['mimeType'] == mime_type and
-                             re.match(name_pattern, f['name']))
-    ))
+            f for f in files
+            if (f['mimeType'] == mime_type and re.match(name_pattern, f['name']))))
 
 
 def get_children(parent_ids, file_type=None):
