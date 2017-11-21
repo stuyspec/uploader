@@ -11,6 +11,7 @@ API_USER_ROLES_ENDPOINT = 'http://{}/user_roles'.format(SUBDOMAIN)
 API_OUTQUOTES_ENDPOINT = 'http://{}/outquotes'.format(SUBDOMAIN)
 API_AUTH_ENDPOINT = 'http://{}/auth'.format(SUBDOMAIN)
 
+
 def init(SUBDOMAIN=SUBDOMAIN):
     global API_ENDPOINT
     API_ENDPOINT = 'http://{}'.format(SUBDOMAIN)
