@@ -11,7 +11,7 @@ def post_outquotes(article_data):
             constants.API_OUTQUOTES_ENDPOINT,
             data=json.dumps({
                 'article_id': article_data['id'],
-                'text': outquote.decode("utf-8")
+                'text': outquote.decode('utf-8')
             }),
             headers={
                 'Content-Type': 'application/json'
