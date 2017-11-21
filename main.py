@@ -124,22 +124,23 @@ def process_issue(volume, issue):
         section_articles = drive.get_children(section['id'], 'document')
 
         if section['name'] == 'Opinions':
-            section_articles.append(drive.get_file(r'(?i)staff\s?ed',
-                                                   'document',
-                                                   SBC['id']))
+            section_articles.append(
+                drive.get_file(r'(?i)staff\s?ed', 'document', SBC['id']))
 
-        for file in section_articles:
+        for f in range(len(section_articles)):  # indexed for rollbacking
+            file = section_articles[f]
             print('\n')
 
-            file_unwanted = re.search(r"(?i)worldbeat|survey",
-                                          file['name'])
+            file_unwanted = re.search(r"(?i)worldbeat|survey|newsbeat", file['name'])
             if file_unwanted:
-                print(Fore.RED + Style.BRIGHT + file_unwanted.group().upper()
-                      + ' skipped.' + Style.RESET_ALL)
+                print(Fore.RED + Style.BRIGHT + file_unwanted.group().upper() +
+                      ' skipped.' + Style.RESET_ALL)
                 continue
 
-            print(Fore.CYAN + Style.BRIGHT + section['name'].upper()
-                  + Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL, end=' ')
+            print(
+                Fore.CYAN + Style.BRIGHT + section['name'].upper() +
+                Fore.BLUE + ' ' + file['name'] + Style.RESET_ALL,
+                end=' ')
             article_text = drive.download_document(file)
 
             if articles.file_article_exists(article_text):
