@@ -4,7 +4,7 @@
 from __future__ import print_function
 from oauth2client import tools
 from promise import Promise
-import io, re, os
+import io, re, os, requests
 import webbrowser
 from oauth2client import client
 from oauth2client import tools
@@ -18,6 +18,7 @@ try:
         description='Automatically upload Spectator articles.',
         parents=[tools.argparser])
     parser.add_argument('--local', help='post data to a specified port')
+    parser.add_argument('--w', help='open windows on Drive load')
     flags = parser.parse_args()
 except ImportError:
     flags = None
