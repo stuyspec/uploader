@@ -5,6 +5,7 @@ from PIL import Image
 import httplib2
 import requests
 from slugify import slugify
+from colorama import Fore, Back, Style
 
 import os
 import re
