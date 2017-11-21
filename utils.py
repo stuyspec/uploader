@@ -3,10 +3,8 @@ import string
 
 
 def generate_password(length=16):
-    return ''.join(
-        random.SystemRandom().choice(string.ascii_uppercase + string.digits)
-        for _ in range(length)
-    )
+    return ''.join(random.SystemRandom().choice(
+        string.ascii_uppercase + string.digits) for _ in range(length))
 
 
 def merge_two_dicts(a, b):
