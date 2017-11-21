@@ -67,7 +67,7 @@ def get_credentials():
 def main():
     # volume_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
     # issue_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
-    process_issue(108, 2)
+    process_issue(108, 3)
 
 
 def process_issue(volume, issue):
