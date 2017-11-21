@@ -101,10 +101,12 @@ def process_issue(volume, issue):
     issue_sections = {}
     for section in drive.get_children(sbc_folder['id'], 'folder'):
         issue_sections[section['name']] = section
+
     ordered_issue_sections = [
         issue_sections[section_name]
         for section_name in
         ['News', 'Features', 'Opinions', 'A&E', 'Humor', 'Sports']
+        if section_name in issue_sections
     ]
 
     for section in ordered_issue_sections:
