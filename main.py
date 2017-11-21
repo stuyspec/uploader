@@ -70,18 +70,6 @@ def main():
     process_issue(108, 2)
 
 
-def find_matching_folder_in(parent_id, files, name_pattern):
-    parent_file = next((f for f in files if f['id'] == parent_id), None)
-    if not parent_file:
-        raise ValueError('No parent {} found.'.format(parent_id))
-    if parent_file['mimeType'] != 'application/vnd.google-apps.folder':
-        raise ValueError('File {} is not a folder.'.format(
-            parent_file['name']))
-    return next((f for f in files
-                 if (parent_id in f.get('parents', [None])
-                     and re.match(name_pattern, f['name']))), None)
-
-
 def process_issue(volume, issue):
     volume_folder = drive.get_file(r"Volume {}".format(volume), 'folder')
     issue_folder = drive.get_file(r"Issue\s?{}".format(issue), 'folder', volume_folder['id'])
@@ -100,7 +88,7 @@ def process_issue(volume, issue):
 
     if flags.window:
         webbrowser.open(
-            'https://drive.google.com/file/d/{}/view'.format(PDF['id']), new=2)
+            'https://drive.google.com/file/d/{}/view'.format(newspaper_pdf['id']), new=2)
         webbrowser.open(
             'https://drive.google.com/drive/folders/' + photo_folder['id'],
             new=2)
@@ -128,7 +116,8 @@ def process_issue(volume, issue):
             section_articles.append(
                 drive.get_file(r'(?i)staff\s?ed', 'document', sbc_folder['id']))
 
-        for f in range(len(section_articles)):  # indexed for rollbacking
+        f = 0
+        while f < len(section_articles):  # indexed for rollbacking
             file = section_articles[f]
             print('\n')
 
@@ -136,6 +125,7 @@ def process_issue(volume, issue):
             if file_unwanted:
                 print(Fore.RED + Style.BRIGHT + file_unwanted.group().upper() +
                       ' skipped.' + Style.RESET_ALL)
+                f = f + 1
                 continue
 
             print(
@@ -147,6 +137,7 @@ def process_issue(volume, issue):
             if articles.file_article_exists(article_text):
                 print(Fore.RED + Style.BRIGHT + file['name'].encode("utf-8")
                       + ' already exists.' + Style.RESET_ALL)
+                f = f + 1
                 continue
 
             if re.search(r'(?i)staff\s?ed', file['name']):
@@ -155,8 +146,12 @@ def process_issue(volume, issue):
                 article_data = articles.read_article(article_text)
 
             media_data = []
-            if raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
-                         Style.RESET_ALL) == 'y':
+            media_confirmation = raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
+                         Style.RESET_ALL)
+            while media_confirmation != 'y' or media_confirmation != 'n':
+                media_confirmation = raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
+                         Style.RESET_ALL)
+            if media_confirmation == 'y':
                 media_data = choose_media(
                     media_files,
                     art_folder_id=art_folder['id'],
@@ -164,12 +159,12 @@ def process_issue(volume, issue):
 
             if section['name'] == 'Humor':
                 if issue == 4:
-                    article_section_id = get_section_id_by_name('Spooktator')
+                    article_section_id = sections.get_section_id_by_name('Spooktator')
                 elif issue == 12:
-                    article_section_id = get_section_id_by_name(
+                    article_section_id = sections.get_section_id_by_name(
                         'Disrespectator')
             elif re.search(r'(?i)staff\s?ed', file['name']):
-                article_section_id = get_section_id_by_name('Staff Editorials')
+                article_section_id = sections.get_section_id_by_name('Staff Editorials')
             else:
                 article_section_id = sections.choose_subsection(
                     section_id) or section_id
@@ -187,12 +182,14 @@ def process_issue(volume, issue):
 
             article_data['id'] = articles.post_article(article_post_data)
 
+            rollbacked = False
+
             def rollback(res):
                 try:
                     print(Fore.RED + Style.BRIGHT + '\nCaught error: {}.'.format(res))
                     destroy_response = requests.delete(constants.API_ARTICLES_ENDPOINT + '/{}'.format(article_data['id']))
                     destroy_response.raise_for_status()
-                    print('Rollback completed. Re-prompting article.' + Style.RESET_ALL)
+                    rollbacked = True
                 except Exception as e:
                     print('Rollback failed with {}. Article {} remains evilly.'.format(e, article_data['id']))
 
@@ -208,6 +205,14 @@ def process_issue(volume, issue):
                                 .format(article_data['id'], article_post_data['title'])
                             + Style.RESET_ALL))\
                 .catch(lambda res: rollback(res))
+
+            f = f + 1
+
+            if rollbacked:
+                f = f - 1
+                print('Rollback completed. Re-prompting article.' + Style.RESET_ALL)
+
+                
     if len(unprocessed_file_names) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
               Back.RESET + Fore.RED)
