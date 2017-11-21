@@ -113,8 +113,11 @@ def process_issue(volume, issue):
         section_articles = drive.get_children(section['id'], 'document')
 
         if section['name'] == 'Opinions':
-            section_articles.append(
-                drive.get_file(r'(?i)staff\s?ed', 'document', sbc_folder['id']))
+            try:
+                section_articles.append(
+                    drive.get_file(r'(?i)staff\s?ed', 'document', sbc_folder['id']))
+            except StopIteration:
+                # expected: Staff ed does not exist
 
         f = 0
         while f < len(section_articles):  # indexed for rollbacking
