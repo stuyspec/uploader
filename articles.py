@@ -148,17 +148,8 @@ def read_article(text):
                 data['outquotes'].append(line)
             outquote_index += 1
 
-    print(Fore.GREEN + Style.BRIGHT + 'outquotes (input "i" to ignore): ' +
+    print(Fore.GREEN + Style.BRIGHT + 'outquotes: ' +
             Style.RESET_ALL + str(data['outquotes']))
-
-    if len(data['outquotes']) == 0:
-        print(Fore.GREEN + Style.BRIGHT + 'outquotes: []' + Style.RESET_ALL)
-    else:
-        outquotes_confirmation = raw_input(
-            Fore.GREEN + Style.BRIGHT + 'outquotes (input "i" to ignore): ' +
-            Style.RESET_ALL + str(data['outquotes']))
-        if outquotes_confirmation == 'i':
-            data['outquotes'] = []
 
     return data
 
