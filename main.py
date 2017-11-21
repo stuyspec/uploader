@@ -154,52 +154,59 @@ def process_issue(volume, issue):
                 article_data = articles.read_article(article_text)
 
             media_data = []
-            if raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): '
-                                 + Style.RESET_ALL) == 'y':
-                media_data = choose_media(media_files,
-                                          art_folder_id=art_folder['id'],
-                                          photo_folder_id=photo_folder['id'])
-            if type(article_data) is str:
-                # read_article failed and returned file title
-                unprocessed_file_names.append(file['name'])
-                continue
+            if raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
+                         Style.RESET_ALL) == 'y':
+                media_data = choose_media(
+                    media_files,
+                    art_folder_id=art_folder['id'],
+                    photo_folder_id=photo_folder['id'])
 
-            if section_name == 'Humor':
+            if section['name'] == 'Humor':
                 if issue == 4:
                     article_section_id = get_section_id_by_name('Spooktator')
                 elif issue == 12:
-                    article_section_id = get_section_id_by_name('Disrespectator')
+                    article_section_id = get_section_id_by_name(
+                        'Disrespectator')
+            elif re.search(r'(?i)staff\s?ed', file['name']):
+                article_section_id = get_section_id_by_name('Staff Editorials')
             else:
-                article_section_id = sections.choose_subsection(section_id) or section_id
+                article_section_id = sections.choose_subsection(
+                    section_id) or section_id
 
             article_attributes = ['title', 'content', 'summary', 'content']
             article_post_data = {
-                key: value for key, value in article_data.items()
-                               if key in article_attributes
+                key: value
+                for key, value in article_data.items()
+                if key in article_attributes
             }
             for attr in ('volume', 'issue'):
-                article_post_data[attr] = int(locals()[attr])  # adds specified local variables
+                article_post_data[attr] = int(
+                    locals()[attr])  # adds specified local variables
             article_post_data['section_id'] = article_section_id
 
-            article_promise = Promise(
-                lambda resolve, reject:
-                    resolve(articles.post_article(article_post_data))
-            )\
-                .then(lambda article_id:
-                      users.post_contributors(article_id,
-                                              article_data['contributors']))\
+            article_data['id'] = articles.post_article(article_post_data)
+
+            def rollback(res):
+                try:
+                    print(Fore.RED + Style.BRIGHT + '\nCaught error: {}.'.format(res))
+                    destroy_response = requests.delete(constants.API_ARTICLES_ENDPOINT + '/{}'.format(article_data['id']))
+                    destroy_response.raise_for_status()
+                    print('Rollback completed. Re-prompting article.' + Style.RESET_ALL)
+                except Exception as e:
+                    print('Rollback failed with {}. Article {} remains evilly.'.format(e, article_data['id']))
+
+            promise = Promise(lambda resolve, reject: resolve(users.post_contributors(article_data)))\
                 .then(lambda authorship_data:
                       authorships.post_authorships(authorship_data))\
-                .then(lambda article_id:
-                      outquotes.post_outquotes(article_id,
-                                               article_data['outquotes']))\
+                .then(lambda res: outquotes.post_outquotes(article_data))\
                 .then(lambda article_id:
                       media.post_media(article_id, media_data))\
-                .then(lambda article_id:
-                      print(Fore.GREEN + Style.BRIGHT
-                            + '\nSuccessfully wrote Article {}: {}.'
-                                .format(article_id, article_post_data['title'])
-                            + Style.RESET_ALL))
+                .then(lambda article_id: print(
+                      Fore.GREEN + Style.BRIGHT
+                            + '\nSuccessfully wrote Article #{}: {}.'
+                                .format(article_data['id'], article_post_data['title'])
+                            + Style.RESET_ALL))\
+                .catch(lambda res: rollback(res))
     if len(unprocessed_file_names) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
               Back.RESET + Fore.RED)
