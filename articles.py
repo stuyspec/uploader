@@ -148,6 +148,9 @@ def read_article(text):
                 data['outquotes'].append(line)
             outquote_index += 1
 
+    print(Fore.GREEN + Style.BRIGHT + 'outquotes (input "i" to ignore): ' +
+            Style.RESET_ALL + str(data['outquotes']))
+
     if len(data['outquotes']) == 0:
         print(Fore.GREEN + Style.BRIGHT + 'outquotes: []' + Style.RESET_ALL)
     else:
@@ -165,7 +168,8 @@ def read_staff_ed(text):
 
     data = {
         'title': get_title(input[0]),
-        'contributors': ["The Editorial Board"]
+        'contributors': ["The Editorial Board"],
+        'outquotes': []
     }
 
     paragraphs = filter(None,
