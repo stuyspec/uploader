@@ -119,7 +119,7 @@ def process_issue(volume, issue):
                 section_articles.append(
                     drive.get_file(r'(?i)staff\s?ed', 'document', sbc_folder['id']))
             except StopIteration:
-                # expected: Staff ed does not exist
+                print(Fore.RED + Style.BRIGHT + 'No staff-ed found in Volume {} Issue {}.'.format(volume, issue))
 
         f = 0
         while f < len(section_articles):  # indexed for rollbacking
@@ -187,11 +187,10 @@ def process_issue(volume, issue):
 
             article_data['id'] = articles.post_article(article_post_data)
 
-            rollbacked = False
-
             def rollback(res):
                 try:
                     print(Fore.RED + Style.BRIGHT + '\nCaught error: {}.'.format(res))
+                    articles.remove_article(article_data['id'])
                     destroy_response = requests.delete(constants.API_ARTICLES_ENDPOINT + '/{}'.format(article_data['id']))
                     destroy_response.raise_for_status()
                     return True
@@ -217,7 +216,7 @@ def process_issue(volume, issue):
                 print('Rollback completed. Re-prompting article.' + Style.RESET_ALL)
 
             f = f + 1
-            
+
                 
     if len(unprocessed_file_names) > 0:
         print(Back.RED + Fore.WHITE + 'The title of unprocessed files: ' +
