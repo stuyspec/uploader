@@ -179,9 +179,25 @@ def post_article(data):
             'Content-Type': 'application/json'
         })
     article_response.raise_for_status()
+
     article = article_response.json()
     global articles
     articles.append(article)
+
+    if data['volume'] == 108:
+        if data['issue'] == 1:
+            created_at = "2017-09-11T17:57:55.149-05:00"
+        elif data['issue'] == 2:
+            created_at = "2017-09-29T17:57:55.149-05:00"
+        elif data['issue'] == 3:
+            created_at = "2017-10-17T17:57:55.149-05:00"
+        elif data['issue'] == 4:
+            created_at = "2017-10-31T17:57:55.149-05:00"
+        elif data['issue'] == 5:
+            created_at = "2017-11-10T17:57:55.149-05:00"
+        requests.put(constants.API_ARTICLES_ENDPOINT + '/' + str(article['id']),
+            data=json.dumps({'created_at': created_at}), headers={'Content-Type': 'application/json'})
+
     return article.get('id', -1)
 
 
