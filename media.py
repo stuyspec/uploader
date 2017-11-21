@@ -20,7 +20,10 @@ def init():
 def post_media(article_id, medias):
     """Takes array of objects with artist_name, file, title, caption."""
     for media in medias:
-        for field in ['artist_name', 'file', 'title', 'caption', 'is_featured', 'media_type']:
+        for field in [
+                'artist_name', 'file', 'title', 'caption', 'is_featured',
+                'media_type'
+        ]:
             if field not in media:
                 raise ValueError('Media object has no attribute {}.'
                                  .format(field))
