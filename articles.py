@@ -24,9 +24,8 @@ def file_article_exists(file_content):
         if existing_article['title'] not in file_content:
             continue
         last_pgraph = existing_article['content'][-1]
-        if last_pgraph[
-            last_pgraph.rfind('<p>') + len('<p>'):-len('</p>')
-           ] in file_content:
+        if last_pgraph[last_pgraph.rfind('<p>') + len('<p>'):
+                       -len('</p>')] in file_content:
             return True
     return False
 
@@ -36,7 +35,7 @@ def get_title(line):
         line = line[line.find('Title: ') + len('Title: '):]
     line = line.strip()
     print(Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL +
-         '({}) '.format(line))
+          '({}) '.format(line))
     return line
 
 
@@ -63,26 +62,25 @@ def get_contributors(byline):
     contributors.append(clean_name(' '.join(
         byline[cutoff:])))  # add last contributor
     contributors = filter(None, contributors)  # removes empty strings
-    print(
-        (Fore.GREEN + Style.BRIGHT +
-         'contributors : ' + Style.RESET_ALL + '({0}) ').format(
-             ', '.join(contributors)))
+    print((Fore.GREEN + Style.BRIGHT + 'contributors : ' + Style.RESET_ALL +
+           '({0}) ').format(', '.join(contributors)))
     return contributors
 
 
 def get_summary(line):
     line = re.sub(r"(?i)Focus Sentence:?", '', line).strip()
-    print(Fore.GREEN + Style.BRIGHT + 'summary/focus: ' +
-                      Style.RESET_ALL + '({0}) ').format(line)
+    print(Fore.GREEN + Style.BRIGHT + 'summary/focus: ' + Style.RESET_ALL +
+          '({0}) ').format(line)
     return line
+
 
 def identify_line_manually(content, missing_value):
     """Takes list of paragraphs and returns user input for the line # of any
     missing_value."""
-    print(Fore.RED + Style.BRIGHT + missing_value.upper()
-          + ' could not be found. Press ENTER to extend '
-          + 'article. Input a line # to indicate ' + missing_value.upper()
-          + ', "n" to indicate nonexistence.' + Style.RESET_ALL)
+    print(Fore.RED + Style.BRIGHT + missing_value.upper() +
+          ' could not be found. Press ENTER to extend ' +
+          'article. Input a line # to indicate ' + missing_value.upper() +
+          ', "n" to indicate nonexistence.' + Style.RESET_ALL)
     line_num = 0
     while line_num + 5 < len(content):
         if line_num > 0 and line_num % 5 == 0:
@@ -101,9 +99,9 @@ def get_content_start(input):
         r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})|article:?'
     )
     try:
-        header_end = next(
-            (index for index, value in enumerate(reversed(input))
-                if HEADER_LINE_PATTERN.match(value)))
+        header_end = next((index
+                           for index, value in enumerate(reversed(input))
+                           if HEADER_LINE_PATTERN.match(value)))
         return len(input) - header_end
     except StopIteration:
         return -1
@@ -112,44 +110,35 @@ def get_content_start(input):
 def read_article(text):
     input = filter(None, [line.strip() for line in text.split('\n')])
 
-    data = {
-        'title': get_title(input[0]),
-        'outquotes': []
-    }
+    data = {'title': get_title(input[0]), 'outquotes': []}
 
     try:
-        byline = next((line for line in input
-                       if line.find('By') >= 0))
+        byline = next((line for line in input if line.find('By') >= 0))
     except StopIteration:
         byline = input[identify_line_manually(input, 'byline')]
     data['contributors'] = get_contributors(byline)
+
+    content_start_index = get_content_start(input)
+    if content_start_index == -1:
+        content_start_index = identify_line_manually(input, 'content start')
 
     try:
         summary = next((line for line in input
                         if 'focus sentence:' in line.lower()))
     except StopIteration:
-        summary = input[identify_line_manually(input, 'focus sentence')]
+        summary = input[content_start_index]
         summary_words = summary.split(' ')
         if len(summary_words) > 25:
             summary = ' '.join(summary_words[:25]) + "..."
     data['summary'] = get_summary(summary)
 
-    content_start_index = get_content_start(input)
-    if content_start_index == -1:
-        content_start_index = identify_line_manually(input, 'content start')
+    
     paragraphs = input[content_start_index:]
-    print(Fore.GREEN + Style.BRIGHT +
-         'content: ' + Style.RESET_ALL + '({}   ...   {}) '.format(
-             paragraphs[0], paragraphs[-1]))
+    print(Fore.GREEN + Style.BRIGHT + 'content: ' + Style.RESET_ALL +
+          '({}   ...   {}) '.format(paragraphs[0], paragraphs[-1]))
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
-    outquote_index = -1
-    for line_number in range(len(input)):
-        if re.findall(r"(?i)outquote\(?s\)?:?", input[line_number]):
-            outquote_index = line_number
-            break
-    if outquote_index == -1:
-        outquote_index = identify_line_manually(input, 'outquote start')
+    outquote_index = next((i for i in range(len(input)) if re.findall(r"(?i)outquote\(?s\)?:?", input[i])), -1)
     if outquote_index != -1:
         while (outquote_index < content_start_index
                and 'focus sentence:' not in input[outquote_index].lower()):
@@ -175,10 +164,8 @@ def read_staff_ed(text):
         'contributors': ["The Editorial Board"]
     }
 
-    paragraphs = filter(
-        None,
-        input[identify_line_manually(input, 'content start'):]
-    )
+    paragraphs = filter(None,
+                        input[identify_line_manually(input, 'content start'):])
     data['summary'] = paragraphs[0]
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
@@ -186,9 +173,12 @@ def read_staff_ed(text):
 
 
 def post_article(data):
-    article_response = requests.post(constants.API_ARTICLES_ENDPOINT,
-                                    data=json.dumps(data),
-                                    headers={'Content-Type': 'application/json'})
+    article_response = requests.post(
+        constants.API_ARTICLES_ENDPOINT,
+        data=json.dumps(data),
+        headers={
+            'Content-Type': 'application/json'
+        })
     article_response.raise_for_status()
     article = article_response.json()
     global articles
