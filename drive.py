@@ -128,5 +128,5 @@ def post_media_file(filename, data):
         data['medium[{}]'.format(key)] = data.pop(key)
     files = {'medium[attachment]': open(filename, 'rb')}
     response = requests.post(
-        constants.API_MEDIA_ENDPOINT + '3', files=files, data=data)
+        constants.API_MEDIA_ENDPOINT, files=files, data=data)
     response.raise_for_status()
