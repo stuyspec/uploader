@@ -18,7 +18,9 @@ try:
         description='Automatically upload Spectator articles.',
         parents=[tools.argparser])
     parser.add_argument('--local', help='post data to a specified port')
-    parser.add_argument('--w', help='open windows on Drive load')
+    parser.add_argument('--window', dest='window', action='store_true', help='open windows on Drive load')
+    parser.set_defaults(window=False)
+
     flags = parser.parse_args()
 except ImportError:
     flags = None
