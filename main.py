@@ -98,7 +98,7 @@ def process_issue(volume, issue):
     media_files = drive.get_children([art_folder['id'], photo_folder['id']],
                                      'image')
 
-    if flags.w is not None:
+    if flags.window:
         webbrowser.open(
             'https://drive.google.com/file/d/{}/view'.format(PDF['id']), new=2)
         webbrowser.open(
