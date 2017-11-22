@@ -67,7 +67,7 @@ def get_credentials():
 def main():
     # volume_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
     # issue_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
-    process_issue(108, 3)
+    process_issue(108, 2)
 
 
 def process_issue(volume, issue):
@@ -168,6 +168,8 @@ def process_issue(volume, issue):
                 elif issue == 12:
                     article_section_id = sections.get_section_id_by_name(
                         'Disrespectator')
+                else:
+                    article_section_id = section_id
             elif re.search(r'(?i)staff\s?ed', file['name']):
                 article_section_id = sections.get_section_id_by_name('Staff Editorials')
             else:
