@@ -1,7 +1,9 @@
 import requests
 
+API_ENDPOINT = 'http://stuyspec-api-prod.us-east-1.elasticbeanstalk.com'
+
 response = requests.post(
-    'http://stuyspec-api-prod.us-east-1.elasticbeanstalk.com/media',
+    url=API_ENDPOINT + '/media',
     files={'medium[attachment]': open('web.jpg', 'rb')},
     data={
         'medium[article_id]': 1,
