@@ -99,7 +99,7 @@ def identify_line_manually(content, missing_value):
 
 def get_content_start(input):
     HEADER_LINE_PATTERN = re.compile(
-        r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})|article:?'
+        r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})'
     )
     try:
         header_end = next((index
@@ -213,14 +213,8 @@ def remove_article(article_id):
 
 
 if __name__ == '__main__':
-    f = open('test.in')
+    f = open('text.in')
     text = f.read()
     data = read_article(text)
-    requests.post(
-        constants.API_ARTICLES_ENDPOINT,
-        data=json.dumps(data),
-        headers={
-            'Content-Type': 'application/json'
-        })
-    f.close()
+    print('\n' + data['content'])
     
