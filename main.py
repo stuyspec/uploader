@@ -129,7 +129,7 @@ def process_issue(volume, issue):
             print('\n')
 
             file_unwanted = re.search(r"(?i)worldbeat|survey|newsbeat", file['name'])
-            if file_unwanted:
+            if file_unwanted or file['name'] == 'Issue3_Opinions_MonumentSpread_ES/BP/RZ/JW/AI/AG/MG_ES/MW':
                 print(Fore.RED + Style.BRIGHT + file_unwanted.group().upper() +
                       ' skipped.' + Style.RESET_ALL)
                 f = f + 1
@@ -155,9 +155,12 @@ def process_issue(volume, issue):
             media_data = []
             media_confirmation = raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
                          Style.RESET_ALL)
-            while media_confirmation != 'y' and media_confirmation != 'n':
+            while media_confirmation != 'y' and media_confirmation != 'n' and media_confirmation != 'skip':
                 media_confirmation = raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
                          Style.RESET_ALL)
+            if media_confirmation == 'skip':
+                f = f + 1
+                continue
             if media_confirmation == 'y':
                 media_data = choose_media(
                     media_files,
