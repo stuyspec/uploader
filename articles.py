@@ -34,9 +34,12 @@ def file_article_exists(file_content):
 
 
 def get_title(line):
-    if 'Title: ' in line:
-        line = line[line.find('Title: ') + len('Title: '):]
-    line = line.strip()
+    line = re.sub(r'Title:\s+', '', line.strip())    
+    if re.search(r'The Spectator\s?\/[^\/]*\/\s?Issue\s?\d\d?', line):
+        while 1:
+            title = raw_input(Fore.RED + Style.BRIGHT + 'title COULD NOT be found: ')
+            if title != '':
+                return title
     print(Fore.GREEN + Style.BRIGHT + 'title: ' + Style.RESET_ALL +
           '({}) '.format(line))
     return line
