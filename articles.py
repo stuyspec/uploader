@@ -100,10 +100,12 @@ def identify_line_manually(content, missing_value):
     return -1
 
 
+HEADER_LINE_PATTERN = re.compile(
+    r'Request:|Article:|(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})'
+)
+
+
 def get_content_start(input):
-    HEADER_LINE_PATTERN = re.compile(
-        r'(?i)(outquote(\(s\))?s?:)|(focus sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})'
-    )
     try:
         header_end = next((index
                            for index, value in enumerate(reversed(input))
@@ -115,6 +117,9 @@ def get_content_start(input):
 
 def read_article(text):
     input = filter(None, [line.strip() for line in text.split('\n')])
+
+    if 'draft due' in input[0].lower():
+        input = input[1:]
 
     data = {'title': get_title(input[0]), 'outquotes': []}
 
@@ -147,7 +152,7 @@ def read_article(text):
     outquote_index = next((i for i in range(len(input)) if re.findall(r"(?i)outquote\(?s?\)?:?", input[i])), -1)
     if outquote_index != -1:
         while (outquote_index < content_start_index
-               and 'focus sentence:' not in input[outquote_index].lower()):
+               and not re.search(r'Request:|Article:|(?i)(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})', input[outquote_index].lower())):        
             line = re.sub(r"(?i)outquote\(?s?\)?:?", '', input[outquote_index])\
                        .strip()
             if line != '':
@@ -216,8 +221,8 @@ def remove_article(article_id):
 
 
 if __name__ == '__main__':
-    f = open('text.in')
+    constants.init()
+    f = open('test.in')
     text = f.read()
     data = read_article(text)
-    print('\n' + data['content'])
     
