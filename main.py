@@ -79,11 +79,12 @@ def process_issue(volume, issue):
     newspaper_pdf = drive.get_file("(?i)Issue\s?\d(\.pdf)$", 'application/pdf',
                          issue_folder['id'])
     art_folder = drive.get_file(r"(?i)art", 'folder', issue_folder['id'])
-    photo_folder = drive.get_file(r"(?i)(photo\s?color)", 'folder',
-                                  issue_folder['id'])
-    if not photo_folder:
+    try:
+        photo_folder = drive.get_file(r"(?i)(photo\s?color)", 'folder',
+                                      issue_folder['id'])
+    except StopIteration:
         photo_folder = drive.get_file(r"(?i)(photo\s?b&?w)", 'folder',
-                                      Issue['id'])
+                                      issue_folder['id'])
 
     media_files = drive.get_children([art_folder['id'], photo_folder['id']],
                                      'image')
@@ -128,7 +129,7 @@ def process_issue(volume, issue):
             file = section_articles[f]
             print('\n')
 
-            file_unwanted = re.search(r"(?i)worldbeat|survey|newsbeat", file['name'])
+            file_unwanted = re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat", file['name'])
             if file_unwanted or file['name'] == 'Issue3_Opinions_MonumentSpread_ES/BP/RZ/JW/AI/AG/MG_ES/MW':
                 print(Fore.RED + Style.BRIGHT + file_unwanted.group().upper() +
                       ' skipped.' + Style.RESET_ALL)
@@ -155,11 +156,14 @@ def process_issue(volume, issue):
             media_data = []
             media_confirmation = raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
                          Style.RESET_ALL)
-            while media_confirmation != 'y' and media_confirmation != 'n' and media_confirmation != 'skip':
+            while media_confirmation != 'y' and media_confirmation != 'n' and media_confirmation != 'skip' and media_confirmation != 'redo':
                 media_confirmation = raw_input(Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
                          Style.RESET_ALL)
             if media_confirmation == 'skip':
                 f = f + 1
+                continue
+            if media_confirmation == 'redo':
+                print(Fore.RED + Style.BRIGHT + 'Re-prompting article.' + Style.RESET_ALL)
                 continue
             if media_confirmation == 'y':
                 media_data = choose_media(
@@ -298,5 +302,9 @@ if __name__ == '__main__':
     sections.init()
     articles.init()
     users.init()
+
+    # print('sections: ', len(sections.sections))
+    # print('articles: ', len(articles.articles))
+    # print('users: ', len(users.users))
     print('\n')
     main()

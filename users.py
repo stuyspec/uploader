@@ -99,13 +99,16 @@ def make_user_role(user_id, role_name):
 def get_contributor_id(name):
     """Checks if contributor exists."""
     contributor_role_id = get_role_id_by_name('Contributor')
+    output = -1 # user does not exist, user_role does not exist
     for u in users:
-        if ('{first_name} {last_name}'.format(**u).strip() == name and next(
-            (user_role for user_role in user_roles
-             if (user_role['user_id'] == u['id']
-                 and user_role['role_id'] == contributor_role_id)), None)):
-            return u['id']
-    return -1
+        if '{first_name} {last_name}'.format(**u).strip() == name:
+            output = str(u['id'])
+            if next((user_role for user_role in user_roles
+                if (user_role['user_id'] == u['id']
+                    and user_role['role_id'] == contributor_role_id)), None):
+                return u['id']
+            break
+    return output
 
 
 def authenticate_new_user(name_dict):
@@ -212,13 +215,16 @@ def post_contributors(article_data):
     article_id, contributors = [article_data[key] for key in ['id', 'contributors']]
     contributor_ids = []
     for name, contributor_id in [(c, get_contributor_id(c)) for c in contributors]:
-        if contributor_id == -1:
+        if contributor_id == -1: # -1: no user, no user_role
             new_contributor_id = create_contributor(name)
             contributor_ids.append(new_contributor_id)
             print(Fore.YELLOW + Style.BRIGHT + 'Created Contributor #{}: {}.'
                   .format(new_contributor_id, name) + Style.RESET_ALL)
-
-        else:
+        elif type(contributor_id) is str: # str: no user, but found user_role
+            make_user_role(int(contributor_id), 'Contributor')
+            print(Fore.YELLOW + Style.BRIGHT + 'Made User #{} a Contributor.'
+                  .format(contributor_id) + Style.RESET_ALL)
+        else: # positive integer: found both user and user-role
             contributor_ids.append(contributor_id)
             print(Fore.YELLOW + Style.BRIGHT + 'Confirmed Contributor #{}: {}.'
                   .format(contributor_id, name) + Style.RESET_ALL)
