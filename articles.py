@@ -24,11 +24,8 @@ def init():
 def file_article_exists(file_content):
     file_content = unicode(file_content, 'utf-8')
     for existing_article in articles:
-        if existing_article['title'] not in file_content:
-            continue
-        last_pgraph = existing_article['content'][-1]
-        if last_pgraph[last_pgraph.rfind('<p>') + len('<p>'):
-                       -len('</p>')] in file_content:
+        last_pgraph = unicode(existing_article['content'].split('</p><p>')[-1])
+        if last_pgraph[:-len('</p>')] in file_content:
             return True
     return False
 
@@ -54,7 +51,9 @@ def clean_name(name):
 
 def get_contributors(byline):
     byline = re.sub(r"By:?", '', byline).strip()
-    byline = re.findall(r"[\w']+|[.,!-?;]", byline)
+    byline = re.findall(r"[\w\p{L}\p{M}']+|[.,!-?;]", byline)
+    
+    print(byline)
     contributors = []
     cutoff = 0
     """Looks through tokens from left to right until a separator is reached,
@@ -80,7 +79,12 @@ def get_summary(line):
     return line
 
 
-def identify_line_manually(content, missing_value):
+HEADER_LINE_PATTERN = re.compile(
+    r'Request:|Article:|(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})'
+)
+
+
+def identify_line_manually(lines, missing_value):
     """Takes list of paragraphs and returns user input for the line # of any
     missing_value."""
     print(Fore.RED + Style.BRIGHT + missing_value.upper() +
@@ -88,72 +92,78 @@ def identify_line_manually(content, missing_value):
           'article. Input a line # to indicate ' + missing_value.upper() +
           ', "n" to indicate nonexistence.' + Style.RESET_ALL)
     line_num = 0
-    while line_num + 5 < len(content):
+    while line_num + 5 < len(lines):
         if line_num > 0 and line_num % 5 == 0:
             user_option = raw_input()
             if utils.represents_int(user_option):
                 return int(user_option)
             elif user_option != '':
                 break
-        print('[{}] {}'.format(line_num, content[line_num]))
+        print('[{}] {}'.format(line_num, lines[line_num]))
         line_num += 1
+
+    print('\n[**INITIAL SCANNING FAILED**]\n')
+    line_num = 0
+    for line_num in range(len(lines)):
+        print('[{}] {}'.format(line_num, lines[line_num]))
+    while 1:
+        user_option = raw_input()
+        if utils.represents_int(user_option):
+            return int(user_option)
+        elif user_option != '':
+            break
     return -1
 
 
-HEADER_LINE_PATTERN = re.compile(
-    r'Request:|Article:|(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})'
-)
-
-
-def get_content_start(input):
+def get_content_start(lines):
     try:
         header_end = next((index
-                           for index, value in enumerate(reversed(input))
+                           for index, value in enumerate(reversed(lines))
                            if HEADER_LINE_PATTERN.search(value)))
-        return len(input) - header_end
+        return len(lines) - header_end
     except StopIteration:
         return -1
 
 
 def read_article(text):
-    input = filter(None, [line.strip() for line in text.split('\n')])
+    lines = filter(None, [line.strip() for line in text.split('\n')])
 
-    if 'draft due' in input[0].lower():
-        input = input[1:]
+    if 'draft due' in lines[0].lower():
+        lines = lines[1:]
 
-    data = {'title': get_title(input[0]), 'outquotes': []}
+    data = {'title': get_title(lines[0]), 'outquotes': []}
 
     try:
-        byline = next((line for line in input if line.find('By') >= 0))
+        byline = next((line for line in lines if line.find('By') >= 0))
     except StopIteration:
-        byline = input[identify_line_manually(input, 'byline')]
+        byline = lines[identify_line_manually(lines, 'byline')]
     data['contributors'] = get_contributors(byline)
 
-    content_start_index = get_content_start(input)
+    content_start_index = get_content_start(lines)
     if content_start_index == -1:
-        content_start_index = identify_line_manually(input, 'content start')
+        content_start_index = identify_line_manually(lines, 'content start')
 
     try:
-        summary = next((line for line in input
+        summary = next((line for line in lines
                         if 'focus sentence:' in line.lower()))
     except StopIteration:
-        summary = input[content_start_index]
+        summary = lines[content_start_index]
         summary_words = summary.split(' ')
         if len(summary_words) > 25:
             summary = ' '.join(summary_words[:25]) + "..."
     data['summary'] = get_summary(summary)
 
     
-    paragraphs = input[content_start_index:]
+    paragraphs = lines[content_start_index:]
     print(Fore.GREEN + Style.BRIGHT + 'content: ' + Style.RESET_ALL +
           '({}   ...   {}) '.format(paragraphs[0], paragraphs[-1]))
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
-    outquote_index = next((i for i in range(len(input)) if re.findall(r"(?i)outquote\(?s?\)?:?", input[i])), -1)
+    outquote_index = next((i for i in range(len(lines)) if re.findall(r"(?i)outquote\(?s?\)?:?", lines[i])), -1)
     if outquote_index != -1:
         while (outquote_index < content_start_index
-               and not re.search(r'Request:|Article:|(?i)(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})', input[outquote_index].lower())):        
-            line = re.sub(r"(?i)outquote\(?s?\)?:?", '', input[outquote_index])\
+               and not re.search(r'Request:|Article:|(?i)(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})', lines[outquote_index].lower())):        
+            line = re.sub(r"(?i)outquote\(?s?\)?:?", '', lines[outquote_index])\
                        .strip()
             if line != '':
                 data['outquotes'].append(line)
@@ -166,16 +176,16 @@ def read_article(text):
 
 
 def read_staff_ed(text):
-    input = filter(None, [line.strip() for line in text.split('\n')])
+    lines = filter(None, [line.strip() for line in text.split('\n')])
 
     data = {
-        'title': get_title(input[0]),
+        'title': get_title(lines[0]),
         'contributors': ["The Editorial Board"],
         'outquotes': []
     }
 
     paragraphs = filter(None,
-                        input[identify_line_manually(input, 'content start'):])
+                        lines[identify_line_manually(lines, 'content start'):])
     data['summary'] = paragraphs[0]
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
@@ -222,7 +232,8 @@ def remove_article(article_id):
 
 if __name__ == '__main__':
     constants.init()
+    init()
     f = open('test.in')
     text = f.read()
-    data = read_article(text)
+    print('\n', read_article(text))
     
