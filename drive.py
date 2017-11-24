@@ -32,10 +32,10 @@ def init(credentials):
     page_token = None
     while 1:
         response = drive_service.files().list(
-            q="(mimeType='application/vnd.google-apps.folder'" +
+            q="not trashed and (mimeType='application/vnd.google-apps.folder'" +
             " or mimeType='application/vnd.google-apps.document'" +
             " or mimeType='application/pdf'" +
-            " or mimeType contains 'image')" + " and not trashed",
+            " or mimeType contains 'image')",
             spaces='drive',
             fields='nextPageToken, files(id, name, parents, mimeType)',
             pageToken=page_token).execute()
