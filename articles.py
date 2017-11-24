@@ -52,8 +52,7 @@ def clean_name(name):
 def get_contributors(byline):
     byline = re.sub(r"By:?", '', byline).strip()
     byline = re.findall(r"[\w\p{L}\p{M}']+|[.,!-?;]", byline)
-    
-    print(byline)
+
     contributors = []
     cutoff = 0
     """Looks through tokens from left to right until a separator is reached,
@@ -193,17 +192,16 @@ def read_staff_ed(text):
 
 
 def post_article(data):
-    article_response = requests.post(
-        constants.API_ARTICLES_ENDPOINT,
-        data=json.dumps(data),
-        headers={
-            'Content-Type': 'application/json'
-        })
-    article_response.raise_for_status()
+    if data['volume'] == 107:
+        if data['issue'] == 16:
+            created_at = "2017-06-09T17:57:55.149-05:00"
+        elif data['issue'] == 15:
+            raise ValueError('are we ready to upload campaign coverage?')
+            # may 26
+        elif data['issue'] == 14:
+            created_at = "2017-05-08T17:57:55.149-05:00"
 
-    article = article_response.json()
-    global articles
-    articles.append(article)
+    created_at = "2017-06-09T17:57:55.149-05:00"
 
     if data['volume'] == 108:
         if data['issue'] == 1:
@@ -216,10 +214,50 @@ def post_article(data):
             created_at = "2017-10-31T17:57:55.149-05:00"
         elif data['issue'] == 5:
             created_at = "2017-11-10T17:57:55.149-05:00"
-        requests.put(constants.API_ARTICLES_ENDPOINT + '/' + str(article['id']),
-            data=json.dumps({'created_at': created_at}), headers={'Content-Type': 'application/json'})
 
+    data['created_at'] = created_at
+
+    article_response = requests.post(
+        constants.API_ARTICLES_ENDPOINT,
+        data=json.dumps(data),
+        headers={
+            'Content-Type': 'application/json'
+        })
+    article_response.raise_for_status()
+
+    article = article_response.json()
+    global articles
+    articles.append(article)    
+    # requests.put(constants.API_ARTICLES_ENDPOINT + '/' + str(article['id']),
+        # data=json.dumps({'created_at': created_at}), headers={'Content-Type': 'application/json'})
     return article.get('id', -1)
+
+
+def add_reefer(article_id, reefer_id):
+    article_response = requests.get(constants.API_ARTICLES_ENDPOINT + '/' + str(article_id))
+    article_response.raise_for_status()
+    content = article_response.json()['content']
+    content = '<spec-reefer id={}></spec-reefer>'.format(reefer_id) + content
+    return update_article(article_id, {'content': content})
+
+
+def remove_reefer(article_id):
+    article_response = requests.get(constants.API_ARTICLES_ENDPOINT + '/' + str(article_id))
+    article_response.raise_for_status()
+    content = article_response.json()['content']
+    content = re.sub(r"<spec-reefer id=(\d*)><\/spec-reefer>", '', content)
+    print(content)
+    return update_article(article_id, {'content': content})
+
+def update_article(article_id, data):
+    article_response = requests.put(
+        constants.API_ARTICLES_ENDPOINT + '/' + str(article_id),
+        data=json.dumps(data),
+        headers={
+            'Content-Type': 'application/json'
+        })
+    article_response.raise_for_status()
+    return article_response.json().get('id', -1)
 
 
 def remove_article(article_id):
