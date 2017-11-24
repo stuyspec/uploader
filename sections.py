@@ -14,11 +14,12 @@ def init():
     print('[100%] Loaded sections.')
 
 
-def choose_subsection(section_id):
+def choose_subsection(section_name):
+    section_id = get_section_id_by_name(section_name)
     subsections = [
         section for section in sections if section['parent_id'] == section_id
     ]
-    if len(subsections) == 0 or subsections[0]['name'] == 'Staff Editorials':
+    if len(subsections) == 0: # already a subsection
         return section_id
     print(Fore.GREEN + Style.BRIGHT + 'Optional subsection ->' +
           Style.RESET_ALL)
