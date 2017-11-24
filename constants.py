@@ -1,5 +1,4 @@
-SUBDOMAIN = 'stuyspec-api-prod.us-east-1.elasticbeanstalk.com'
-
+SUBDOMAIN = 'api.stuyspec.com'
 API_ENDPOINT = 'http://{}'.format(SUBDOMAIN)
 API_ARTICLES_ENDPOINT = 'http://{}/articles'.format(SUBDOMAIN)
 API_AUTHORSHIPS_ENDPOINT = 'http://{}/authorships'.format(SUBDOMAIN)
