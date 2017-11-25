@@ -303,9 +303,6 @@ def utility_init(locally=False):
         constants.init('localhost:{}'.format(locally))
     else:
         constants.init()
-    sections.init()
-    articles.init()
-    users.init()
 
 
 # DO NOT CHANGE THE ORDER OF THESE INIT'S
