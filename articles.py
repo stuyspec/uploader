@@ -233,6 +233,10 @@ def post_article(data):
     return article.get('id', -1)
 
 
+def remove_first_paragraph(article_id):
+    article_response = requests.get(constants.API_ARTICLES_ENDPOINT + '/' + str(article_id))
+
+
 def add_reefer(article_id, reefer_id):
     article_response = requests.get(constants.API_ARTICLES_ENDPOINT + '/' + str(article_id))
     article_response.raise_for_status()
@@ -246,8 +250,8 @@ def remove_reefer(article_id):
     article_response.raise_for_status()
     content = article_response.json()['content']
     content = re.sub(r"<spec-reefer id=(\d*)><\/spec-reefer>", '', content)
-    print(content)
     return update_article(article_id, {'content': content})
+
 
 def update_article(article_id, data):
     article_response = requests.put(
@@ -258,6 +262,10 @@ def update_article(article_id, data):
         })
     article_response.raise_for_status()
     return article_response.json().get('id', -1)
+
+
+def clear_summary(article_id):
+    return update_article(article_id, {'summary': ''})
 
 
 def remove_article(article_id):
