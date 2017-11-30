@@ -2,18 +2,22 @@ from __future__ import print_function
 import httplib2
 import os
 import re
+import io
+import ast
 import json
 import requests
 import constants
+import sections
+import articles
 
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
+from apiclient.http import MediaIoBaseDownload
 
 from colorama import Fore, Back, Style
 import colorama
-import ast
 
 try:
     import argparse
@@ -38,7 +42,7 @@ APPLICATION_NAME = 'Spec CLI'
 
 DRIVE_STORAGE_FILENAME = 'files.in'
 files = []
-service = None
+
 
 def get_credentials():
     """Gets valid user credentials from storage.
@@ -132,6 +136,24 @@ def get_file(name_pattern, file_type, parent_id=None):
     ))
 
 
+def download_document(file):
+    if file['mimeType'] != 'application/vnd.google-apps.document':
+        raise ValueError('File of MIME type {} should not be downloaded here.'
+                         .format(file['mimeType']))
+    request = service.files().export_media(
+        fileId=file['id'], mimeType='text/plain')
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+        print('%d%%' % int(status.progress() * 100))
+    return fh.getvalue()
+
+
+
+
+
 def analyze_issue(volume, issue):
     volume_folder = get_file(r"Volume {}".format(volume), 'folder')
     issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
@@ -151,19 +173,33 @@ def analyze_issue(volume, issue):
 
     for section_name in ['News', 'Features', 'Opinions', 'A&E', 'Humor', 'Sports']:
         section_folder = get_file(section_name, 'folder', sbc_folder['id'])
-        section_id =
+        section_id = sections.get_section_id(section_name)
         for article_file in get_children(section_folder['id'], 'document'):
+            if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat",
+                         article_file['name']):
+                print(Fore.RED + article_file['name'] + 'skipped.'
+                      + Style.RESET_ALL)
+                continue
+            print(
+                Fore.CYAN + Style.BRIGHT + section_name.upper() +
+                Fore.BLUE + ' ' + article_file['name'] + Style.RESET_ALL,
+                end=' ')
+            raw_text = download_document(article_file)
+            if articles.does_file_exist(raw_text):
+                print(Fore.RED + article_file['name'] + 'exists; skipped.'
+                      + Style.RESET_ALL)
+                continue
+            article_data = articles.analyze_article(raw_text)
+            print(article_data)
+            return
             article_data = {
                 'volume': volume,
                 'issue': issue,
-                'section_id': section_id,
+                'section_id': section_id
             }
-            analyze_article(article_file)
 
 
 def main():
-
-
     # volume_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
     print(
         Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL + '108')
@@ -189,6 +225,7 @@ def init():
         files = ast.literal_eval(f.read())
     print('Scanned in {} Drive files from storage.'.format(len(files)))
 
+    config.sign_in()
 
 if __name__ == '__main__':
     colorama.init()
@@ -197,4 +234,6 @@ if __name__ == '__main__':
         constants.init('localhost:{}'.format(flags.local))
     else:
         constants.init()
+    sections.init()
+    articles.init()
     main()
