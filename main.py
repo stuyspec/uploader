@@ -270,6 +270,10 @@ if __name__ == '__main__':
         constants.init()
     if flags.nd is False: # no drive
         drive.init(creds)
+        f = open('files.in', 'w')
+        f.write(str(drive.files))
+        f.close()
+        raise ValueError('stop it')
     sections.init()
     articles.init()
     users.init()
