@@ -35,6 +35,7 @@ def sign_in():
 
 
 def update_headers(response):
+    print(response.headers)
     print('== Updating headers ' + '=' * 30)
     try:
         headers['access-token'] = response.headers['access-token']

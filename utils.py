@@ -2,6 +2,7 @@ from colorama import Fore, Back, Style
 import re
 import requests
 import config
+import json
 
 def represents_int(s):
     s = s.strip()
@@ -110,5 +111,5 @@ def post_modify_headers(url, data={}, headers={}):
         headers=headers
     )
     response.raise_for_status()
-    config.update_headers(response)
+    # config.update_headers(response)
     return response.json()

@@ -11,6 +11,7 @@ import sections
 import articles
 import config
 import utils
+import Promise
 
 from apiclient import discovery
 from oauth2client import client
@@ -179,7 +180,6 @@ def post_article(data):
         data=json.dumps(data),
         headers=config.headers
     )
-    print(article)
     return article['id']
 
 
@@ -230,7 +230,10 @@ def analyze_issue(volume, issue):
             if confirmation == 'n':
                 continue
 
-            article_id = post_article(article_data)
+            article_data['id'] = post_article(article_data)
+            article_create = Promise(
+                lambda resolve, reject: resolve(users.post_contirbutors(article_data))
+            )
 
 
 def main():
