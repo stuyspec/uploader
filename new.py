@@ -1,4 +1,5 @@
 from __future__ import print_function
+from promise import Promise
 import httplib2
 import os
 import re
@@ -11,7 +12,7 @@ import sections
 import articles
 import config
 import utils
-import Promise
+import users
 
 from apiclient import discovery
 from oauth2client import client
@@ -177,9 +178,7 @@ def post_article(data):
     data['created_at'] = ISSUE_DATES[str(data['volume'])][str(data['issue'])]
     article = utils.post_modify_headers(
         constants.API_ARTICLES_ENDPOINT,
-        data=json.dumps(data),
-        headers=config.headers
-    )
+        data=json.dumps(data))
     return article['id']
 
 
@@ -231,9 +230,35 @@ def analyze_issue(volume, issue):
                 continue
 
             article_data['id'] = post_article(article_data)
+
+            def rollback(res):
+                try:
+                    print(
+                        Fore.RED + Style.BRIGHT + '\nCaught error: {}.'.format(
+                            res) + Style.RESET_ALL)
+                    articles.remove_article(article_data['id'])
+                    destroy_response = requests.delete(
+                        constants.API_ARTICLES_ENDPOINT + '/{}'.format(
+                            article_data['id']), config.headers)
+                    destroy_response.raise_for_status()
+                    config.update_headers(destroy_response)
+                    return True
+                except Exception as e:
+                    print('Rollback failed with {}. Article {} remains evilly.'
+                          .format(e, article_data['id']))
             article_create = Promise(
-                lambda resolve, reject: resolve(users.post_contirbutors(article_data))
-            )
+                lambda resolve, reject: resolve(users.post_contributors(article_data))
+            )\
+                .then(lambda authorship_data: articles.post_authorships(authorship_data))\
+                .then(lambda res: articles.post_outquotes(article_data))\
+                .then(lambda article_id: post_media(article_id, images)) \
+                .then(lambda article_id: print(
+                    Fore.GREEN + Style.BRIGHT
+                    + '\nSuccessfully wrote Article #{}: {}.'
+                    .format(article_data['id'], article_data['title'])
+                    + Style.RESET_ALL)) \
+                .catch(lambda res: rollback(res))
+
 
 
 def main():
