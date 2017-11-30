@@ -382,8 +382,7 @@ def post_media_file(filename, data):
     return utils.post_modify_headers(
         constants.API_MEDIA_ENDPOINT,
         files=files,
-        data=data,
-        headers=config.headers)
+        data=data)
 
 
 def post_media(article_id, medias):
