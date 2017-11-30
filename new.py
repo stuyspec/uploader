@@ -9,6 +9,8 @@ import requests
 import constants
 import sections
 import articles
+import config
+import utils
 
 from apiclient import discovery
 from oauth2client import client
@@ -43,6 +45,24 @@ APPLICATION_NAME = 'Spec CLI'
 DRIVE_STORAGE_FILENAME = 'files.in'
 files = []
 
+ISSUE_DATES = {
+    '107': {
+        '16': '2017-06-09',
+        '15': '2017-05-26',
+        '14': '2017-05-08',
+        '13': '2017-04-21',
+        '12': '2017-03-31',
+        '11': '2017-03-10',
+    },
+    '108': {
+        '1': '2017-09-11',
+        '2': '2017-09-29',
+        '3': '2017-10-17',
+        '4': '2017-10-31',
+        '5': '2017-11-10',
+        '6': '2017-11-29'
+    }
+}
 
 def get_credentials():
     """Gets valid user credentials from storage.
@@ -152,6 +172,15 @@ def download_document(file):
 
 
 
+def post_article(data):
+    data['created_at'] = ISSUE_DATES[str(data['volume'])][str(data['issue'])]
+    article = utils.post_modify_headers(
+        constants.API_ARTICLES_ENDPOINT,
+        data=json.dumps(data),
+        headers=config.headers
+    )
+    print(article)
+    return article['id']
 
 
 def analyze_issue(volume, issue):
@@ -175,9 +204,10 @@ def analyze_issue(volume, issue):
         section_folder = get_file(section_name, 'folder', sbc_folder['id'])
         section_id = sections.get_section_id(section_name)
         for article_file in get_children(section_folder['id'], 'document'):
+            print('\n')
             if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat",
                          article_file['name']):
-                print(Fore.RED + article_file['name'] + 'skipped.'
+                print(Fore.RED + Style.BRIGHT + article_file['name'] + 'skipped.'
                       + Style.RESET_ALL)
                 continue
             print(
@@ -190,13 +220,17 @@ def analyze_issue(volume, issue):
                       + Style.RESET_ALL)
                 continue
             article_data = articles.analyze_article(raw_text)
-            print(article_data)
-            return
-            article_data = {
+            article_data.update({
                 'volume': volume,
                 'issue': issue,
                 'section_id': section_id
-            }
+            })
+            confirmation = raw_input(Fore.GREEN + Style.BRIGHT
+                                     + 'post article? ' + Style.RESET_ALL)
+            if confirmation == 'n':
+                continue
+
+            article_id = post_article(article_data)
 
 
 def main():
@@ -207,6 +241,12 @@ def main():
     # issue_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
     print(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL + '5')
     issue = 6
+
+    try:
+        ISSUE_DATES[str(volume)][str(issue)]
+    except KeyError:
+        print(Fore.RED + Style.BRIGHT + 'Volume {} Issue {} does not have a date'.format(volume, issue))
+        return
 
     analyze_issue(108, 6)
 
@@ -229,11 +269,12 @@ def init():
 
 if __name__ == '__main__':
     colorama.init()
-    init()
     if flags.local is not None:
         constants.init('localhost:{}'.format(flags.local))
     else:
         constants.init()
+    config.init()
+    init()
     sections.init()
     articles.init()
     main()

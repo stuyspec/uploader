@@ -1,12 +1,16 @@
 from colorama import Fore, Back, Style
+
 import constants
 import requests
 import json
 
-
 headers = {
     'Content-Type': 'application/json'
 }
+volume = -1
+issue = -1
+art_folder_id = ''
+photo_folder_id = ''
 
 
 def sign_in():
@@ -14,7 +18,7 @@ def sign_in():
         constants.API_AUTH_ENDPOINT + '/sign_in',
         data=json.dumps({
             'email': 'jkao1@stuy.edu',
-            'password': 'password'
+            'password': 'nichsandwich729'
         }),
         headers=headers
     )

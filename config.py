@@ -1,24 +1,28 @@
+from os.path import join, dirname
+from dotenv import load_dotenv
 from colorama import Fore, Back, Style
-
 import constants
 import requests
 import json
+import os
+
 
 headers = {
     'Content-Type': 'application/json'
 }
-volume = -1
-issue = -1
-art_folder_id = ''
-photo_folder_id = ''
+
+
+def init():
+    dotenv_path = join(dirname(__file__), '.env')
+    load_dotenv(dotenv_path)
 
 
 def sign_in():
     user_auth = requests.post(
         constants.API_AUTH_ENDPOINT + '/sign_in',
         data=json.dumps({
-            'email': 'jkao1@stuy.edu',
-            'password': 'nichsandwich729'
+            'email': os.environ.get("EMAIL"),
+            'password': os.environ.get("PASSWORD")
         }),
         headers=headers
     )
