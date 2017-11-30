@@ -4,7 +4,7 @@ from slugify import slugify
 
 import requests
 import json
-import constants, utils
+import constants, utils, main, config
 import ast
 
 users = []
@@ -58,10 +58,9 @@ def update_user(user_id, data):
     update_response = requests.put(
         constants.API_USERS_ENDPOINT + '/{}'.format(user_id),
         data=json.dumps(data),
-        headers={
-            'Content-Type': 'application/json'
-        })
+        headers=config.headers)
     update_response.raise_for_status()
+    main.updateHeaders(update_response)
     updated_user_json = update_response.json()
     global users
     users.append(updated_user_json)
@@ -86,10 +85,9 @@ def make_user_role(user_id, role_name):
             'user_id': user_id,
             'role_id': role_id
         }),
-        headers={
-            'Content-Type': 'application/json'
-        })
+        headers=config.headers)
     user_role_response.raise_for_status()
+    main.updateHeaders(user_role_response)
     user_role_json = user_role_response.json()
     global user_roles
     user_roles.append(user_role_json)
@@ -130,10 +128,9 @@ def authenticate_new_user(name_dict):
     devise_response = requests.post(
         constants.API_AUTH_ENDPOINT,
         data=json.dumps(auth_params),
-        headers={
-            'Content-Type': 'application/json'
-        })
+        headers=config.headers)
     devise_response.raise_for_status()
+    main.updateHeaders(devise_response)
     print(Fore.YELLOW + Style.BRIGHT +
           'Authenticated new user with e-mail {}.'.format(email) +
           Style.RESET_ALL)
@@ -202,7 +199,9 @@ def create_artist(name, art_type):
               .format(role_name, artist_id, name) + Style.RESET_ALL)
 
     elif artist_id < 0:  # user exists, but not user_role
-        return make_user_role(-artist_id, role_name)
+        user_id = make_user_role(-artist_id, role_name)
+        print(Fore.YELLOW + Style.BRIGHT + 'Made user #{}, {}, a {}.'
+              .format(user_id, name, role_name) + Style.RESET_ALL)
 
     else:  # stuff exists
         print(Fore.YELLOW + Style.BRIGHT + 'Confirmed {} #{}: {}.'

@@ -2,7 +2,7 @@ from colorama import Fore, Back, Style
 
 import requests
 import json
-import constants
+import constants, main, config
 
 
 def post_outquotes(article_data):
@@ -13,8 +13,7 @@ def post_outquotes(article_data):
                 'article_id': article_data['id'],
                 'text': outquote.decode('utf-8')
             }),
-            headers={
-                'Content-Type': 'application/json'
-            })
+            headers=config.headers)
         outquote_response.raise_for_status()
+        main.updateHeaders(outquote_response)
     return article_data['id']
