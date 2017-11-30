@@ -104,12 +104,22 @@ def get_summary(line):
     return line
 
 
-def post_modify_headers(url, data={}, headers={}):
+def post_modify_headers(url, data={}, headers=config.headers):
     response = requests.post(
         url,
         data=data,
         headers=headers
     )
+    response.raise_for_status()
+    # config.update_headers(response)
+    return response.json()
+
+
+def put_modify_headers(url, data={}, headers=config.headers):
+    response = requests.put(
+        url,
+        data=data,
+        headers=headers)
     response.raise_for_status()
     # config.update_headers(response)
     return response.json()
