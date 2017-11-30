@@ -119,10 +119,6 @@ def merge_two_dicts(a, b):
 
 def post_modify_headers(url, data=None, headers=config.headers, files=None):
     if files:
-        print(files)
-        print(data)
-        print({key: headers[key] for key in headers if key != 'Content-Type'})
-        raw_input('as')
         response = requests.post(
             url,
             data=data,
@@ -130,7 +126,17 @@ def post_modify_headers(url, data=None, headers=config.headers, files=None):
             files=files
         )
         response.raise_for_status()
-        # config.update_headers(response)
+        config.update_headers(response)
+        return response.json()
+    if url[-len('/auth'):] == '/auth':
+        response = requests.post(
+            url,
+            data=data,
+            headers={'Content-Type': 'application/json'}
+        )
+        response.raise_for_status()
+        config.update_headers(response)
+        config.sign_in()
         return response.json()
     response = requests.post(
         url,

@@ -285,7 +285,7 @@ def analyze_issue(volume, issue):
             def rollback(res):
                 try:
                     print(
-                        Fore.RED + Style.BRIGHT + '\nCaught error: {}.'.format(
+                        Fore.RED + Style.BRIGHT + '\nCaught error: {}'.format(
                             res) + Style.RESET_ALL)
                     articles.remove_article(article_data['id'])
                     utils.delete_modify_headers(

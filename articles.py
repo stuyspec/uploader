@@ -4,6 +4,7 @@ import requests
 import constants
 import utils
 import json
+import config
 
 articles = []
 
@@ -40,7 +41,7 @@ def analyze_article(raw_text):
     }
 
     try:
-        byline = next((line for line in lines if line.find('By') >= 0))
+        byline = next((line for line in lines if line.find('By') == 0))
     except StopIteration:
         byline = lines[utils.identify_line_manually(lines, 'byline')]
     data['contributors'] = utils.get_contributors(byline)
