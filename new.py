@@ -3,6 +3,8 @@ import httplib2
 import os
 import re
 import json
+import requests
+import constants
 
 from apiclient import discovery
 from oauth2client import client
@@ -23,6 +25,7 @@ try:
     parser.add_argument('-s', dest='scan', action='store_true',
                         help='first scan files for id adjustments')
     parser.set_defaults(scan=False)
+
     flags = parser.parse_args()
 except ImportError:
     flags = None
@@ -33,11 +36,9 @@ SCOPES = 'https://www.googleapis.com/auth/drive'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Spec CLI'
 
-
 DRIVE_STORAGE_FILENAME = 'files.in'
 files = []
 service = None
-
 
 def get_credentials():
     """Gets valid user credentials from storage.
@@ -93,6 +94,28 @@ def scan_drive_files(service):
               .format(len(files), DRIVE_STORAGE_FILENAME))
 
 
+def get_children(parent_ids, file_type=None):
+    if type(parent_ids) is unicode or type(parent_ids) is str:
+        parent_ids = [parent_ids]
+    if file_type is not None:
+        if file_type in ['document', 'folder']:
+            mime_type = 'application/vnd.google-apps.' + file_type
+        elif file_type == 'image':
+            mime_type = 'image'
+        else:
+            raise ValueError(
+                'Expected file type document, folder, image, but received: {}.'.
+                format(file_type))
+        return [
+            f for f in files
+            if (mime_type in f['mimeType']
+                and any(p in f.get('parents', []) for p in parent_ids))
+        ]
+    return [
+        f for f in files if any(p in f.get('parents', []) for p in parent_ids)
+    ]
+
+
 def get_file(name_pattern, file_type, parent_id=None):
     mime_type = 'application/vnd.google-apps.' + file_type if file_type in ['folder', 'document'] else file_type
     if parent_id is not None:
@@ -117,16 +140,25 @@ def analyze_issue(volume, issue):
     newspaper_pdf = get_file("(?i)Issue\s?\d{1,2}(\.pdf)$",
                                    'application/pdf',
                                    issue_folder['id'])
-    art_folder = drive.get_file(r"(?i)art", 'folder', issue_folder['id'])
+    art_folder = get_file(r"(?i)art", 'folder', issue_folder['id'])
     try:
-        photo_folder = drive.get_file(r"(?i)(photo\s?color)", 'folder',
+        photo_folder = get_file(r"(?i)(photo\s?color)", 'folder',
                                       issue_folder['id'])
     except StopIteration:
-        photo_folder = drive.get_file(r"(?i)(photo\s?b&?w)", 'folder',
+        photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder',
                                       issue_folder['id'])
+    images = get_children([art_folder['id'], photo_folder['id']], 'image')
 
-    media_files = drive.get_children([art_folder['id'], photo_folder['id']],
-    print(volume_folder, issue_folder, sbc_folder, newspaper_pdf)
+    for section_name in ['News', 'Features', 'Opinions', 'A&E', 'Humor', 'Sports']:
+        section_folder = get_file(section_name, 'folder', sbc_folder['id'])
+        section_id =
+        for article_file in get_children(section_folder['id'], 'document'):
+            article_data = {
+                'volume': volume,
+                'issue': issue,
+                'section_id': section_id,
+            }
+            analyze_article(article_file)
 
 
 def main():
@@ -161,4 +193,8 @@ def init():
 if __name__ == '__main__':
     colorama.init()
     init()
+    if flags.local is not None:
+        constants.init('localhost:{}'.format(flags.local))
+    else:
+        constants.init()
     main()
