@@ -3,6 +3,7 @@ import re
 import requests
 import constants
 import utils
+import json
 
 articles = []
 
@@ -23,7 +24,12 @@ def does_file_exist(raw_text):
     return False
 
 
-
+def remove_article(article_id):
+    for article in reversed(articles):
+        if article['id'] == article_id:
+            articles.remove(article)
+            return True
+    raise ValueError('No article in local storage with id {}.'.format(article_id))
 
 
 def analyze_article(raw_text):
@@ -76,3 +82,26 @@ def analyze_article(raw_text):
             Style.RESET_ALL + str(data['outquotes']))
 
     return data
+
+
+def post_authorships(authorship_data):
+    article_id, contributor_ids = authorship_data
+    for c in contributor_ids:
+        utils.post_modify_headers(
+            constants.API_AUTHORSHIPS_ENDPOINT,
+            data=json.dumps({
+                'article_id': article_id,
+                'user_id': c
+            }))
+    return article_id
+
+
+def post_outquotes(article_data):
+    for outquote in article_data['outquotes']:
+        utils.post_modify_headers(
+            constants.API_OUTQUOTES_ENDPOINT,
+            data=json.dumps({
+                'article_id': article_data['id'],
+                'text': outquote.decode('utf-8')
+            }))
+    return article_data['id']
