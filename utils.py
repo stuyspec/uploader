@@ -121,11 +121,12 @@ def post_modify_headers(url, data=None, headers=config.headers, files=None):
     if files:
         print(files)
         print(data)
+        print({key: headers[key] for key in headers if key != 'Content-Type'})
         raw_input('as')
         response = requests.post(
             url,
             data=data,
-            headers=headers,
+            headers={key: headers[key] for key in headers if key != 'Content-Type'},
             files=files
         )
         response.raise_for_status()
