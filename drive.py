@@ -5,16 +5,20 @@ from PIL import Image
 import httplib2
 import requests
 from slugify import slugify
-from colorama import Fore, Back, Style
 
 import os
 import re
 import io
 
-import constants
+import constants, config
 
 files = []
 drive_service = None
+
+def utility_init(credentials):
+    http = credentials.authorize(httplib2.Http())
+    global drive_service
+    drive_service = discovery.build('drive', 'v3', http=http)
 
 
 def init(credentials):
@@ -45,6 +49,26 @@ def init(credentials):
             print('[100%] Loaded {} Drive files.'.format(len(files)))
             return
         print('Loaded {} Drive files.'.format(len(files)))
+
+
+def get_media_in_folder(folder_id):
+    page_token = None
+    images = []
+    response = drive_service.files().list(
+        q="not trashed and mimeType contains 'image'",
+        fields='nextPageToken, files(id, name, parents, mimeType)',
+        ).execute()
+    images = response.get('files',[])# [f for f in response.get('files', []) if folder_id in f.get('parents', [])]
+    print(images)
+    images = [i for i in images if folder_id in i.get('parents', [])]
+    return images
+
+def get_file_by_id(file_id):
+    response = drive_service.files().get(
+        fileId=file_id,        
+    ).execute()
+    return (response)
+
 
 
 def get_file(name_pattern, file_type, parent_id=None):
@@ -128,5 +152,6 @@ def post_media_file(filename, data):
         data['medium[{}]'.format(key)] = data.pop(key)
     files = {'medium[attachment]': open(filename, 'rb')}
     response = requests.post(
-        constants.API_MEDIA_ENDPOINT, files=files, data=data)
+        constants.API_MEDIA_ENDPOINT, files=files, data=data, headers=config.headers)
     response.raise_for_status()
+    return response
