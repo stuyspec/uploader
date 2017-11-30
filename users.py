@@ -3,7 +3,7 @@ from slugify import slugify
 from promise import Promise
 import requests
 import json
-import constants, utils, main, config
+import constants, utils
 import ast
 
 
@@ -143,7 +143,10 @@ def update_user(user_id, data):
         constants.API_USERS_ENDPOINT + '/{}'.format(user_id),
         data=json.dumps(data))
     global users
-    users.append(user)
+    for i in range(users):
+        if users[i]['id'] == user_id:
+            users[i] = user
+            break
     return user['id']
 
 

@@ -14,6 +14,7 @@ import config
 import utils
 import webbrowser
 import users
+import articles
 
 from apiclient import discovery
 from oauth2client import client
@@ -205,7 +206,7 @@ def post_article(data):
     article = utils.post_modify_headers(
         constants.API_ARTICLES_ENDPOINT,
         data=json.dumps(data))
-    return article['id']
+    return article
 
 
 def analyze_issue(volume, issue):
@@ -223,7 +224,7 @@ def analyze_issue(volume, issue):
     except StopIteration:
         photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder',
                                       issue_folder['id'])
-    images = get_children([art_folder['id'], photo_folder['id']], 'image')
+    media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
 
     if flags.window:
         webbrowser.open(
@@ -239,6 +240,12 @@ def analyze_issue(volume, issue):
         section_folder = get_file(section_name, 'folder', sbc_folder['id'])
         section_id = sections.get_section_id(section_name)
         section_articles = get_children(section_folder['id'], 'document')
+        if section_folder['name'] == 'Opinions':
+            try:
+                section_articles.append(
+                    get_file(r'(?i)staff\s?ed', 'document', sbc_folder['id']))
+            except StopIteration:
+                print(Fore.RED + Style.BRIGHT + 'No staff-ed found in Volume {} Issue {}.'.format(volume, issue))
         f = -1
         while f < len(section_articles) - 1:
             f += 1
@@ -269,7 +276,11 @@ def analyze_issue(volume, issue):
             if confirmation == 'n':
                 continue
 
-            article_data['id'] = post_article(article_data)
+            new_article = post_article(article_data)
+            article_data['id'] = new_article['id']
+            articles.articles += [new_article]
+
+            images = choose_media(media_files, photo_folder['id'])
 
             def rollback(res):
                 try:
@@ -277,11 +288,9 @@ def analyze_issue(volume, issue):
                         Fore.RED + Style.BRIGHT + '\nCaught error: {}.'.format(
                             res) + Style.RESET_ALL)
                     articles.remove_article(article_data['id'])
-                    destroy_response = requests.delete(
+                    utils.delete_modify_headers(
                         constants.API_ARTICLES_ENDPOINT + '/{}'.format(
-                            article_data['id']), config.headers)
-                    destroy_response.raise_for_status()
-                    config.update_headers(destroy_response)
+                            article_data['id']))
                     return True
                 except Exception as e:
                     print('Rollback failed with {}. Article {} remains evilly.'
@@ -304,6 +313,65 @@ def analyze_issue(volume, issue):
                 print('Rollback completed. Re-prompting article.'
                       + Style.RESET_ALL)
                 f = f - 1
+
+def choose_media(media_files, photo_folder_id):
+    images = []
+    media_confirmation = None
+    while media_confirmation != 'y' and media_confirmation != 'n':
+        media_confirmation = raw_input(
+            Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
+            Style.RESET_ALL)
+    if media_confirmation == 'n':
+        return images
+
+    while True:
+        image = {
+            'is_featured': False,
+            'media_type': 'illustration',
+        }
+        while True:
+            filename = raw_input(Fore.GREEN + Style.BRIGHT +
+                                 '-> filename (press ENTER to exit): ' +
+                                 Style.RESET_ALL).strip()
+            if filename == '':
+                return images
+            if filename[0] == '*':
+                image['is_featured'] = True
+                filename = filename[1:]
+            try:
+                target_file = next((
+                    medium for medium in media_files
+                        if medium['name'] == filename
+                ))
+                image['file'] = target_file
+                if any(parent_id == photo_folder_id
+                       for parent_id in target_file.get('parents', [])):
+                    image['media_type'] = 'photo'
+                break
+            except StopIteration:
+                print(Fore.RED + Style.BRIGHT
+                      + 'No file matches {}.'.format(filename)
+                      + Style.REST_ALL)
+
+        for optional_field in ['title', 'caption']:
+            field_input = raw_input(Fore.GREEN + Style.BRIGHT + '-> '
+                                    + optional_field + ': ' + Style.RESET_ALL)\
+                .strip()
+            image[optional_field] = field_input
+
+        while True:
+            artist_name = raw_input(Fore.GREEN + Style.BRIGHT
+                                    + '-> artist name: ' + Style.RESET_ALL)\
+                .strip()
+            if artist_name == '':
+                print(
+                    '\tartist name cannot be empty. check the Issue PDF for credits.'
+                )
+            else:
+                image['artist_name'] = artist_name
+                break
+
+        images.append(image)
 
 
 def post_media_file(filename, data):
@@ -384,5 +452,7 @@ if __name__ == '__main__':
     config.init()
     init()
     sections.init()
+
     articles.init()
+    users.init()
     main()

@@ -2,7 +2,9 @@ from colorama import Fore, Back, Style
 import re
 import requests
 import config
-import json
+import random
+import string
+
 
 def represents_int(s):
     s = s.strip()
@@ -104,8 +106,22 @@ def get_summary(line):
     return line
 
 
+def generate_password(length=16):
+    return ''.join(random.SystemRandom().choice(
+        string.ascii_uppercase + string.digits) for _ in range(length))
+
+
+def merge_two_dicts(a, b):
+    c = a.copy()
+    c.update(b)
+    return c
+
+
 def post_modify_headers(url, data=None, headers=config.headers, files=None):
     if files:
+        print(files)
+        print(data)
+        raw_input('as')
         response = requests.post(
             url,
             data=data,
@@ -121,7 +137,7 @@ def post_modify_headers(url, data=None, headers=config.headers, files=None):
         headers=headers
     )
     response.raise_for_status()
-    # config.update_headers(response)
+    config.update_headers(response)
     return response.json()
 
 
@@ -131,5 +147,13 @@ def put_modify_headers(url, data=None, headers=config.headers):
         data=data,
         headers=headers)
     response.raise_for_status()
-    # config.update_headers(response)
+    config.update_headers(response)
     return response.json()
+
+
+def delete_modify_headers(url, headers=config.headers):
+    response = requests.delete(
+        url,
+        headers=headers)
+    response.raise_for_status()
+    config.update_headers(response)

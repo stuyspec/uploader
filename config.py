@@ -35,13 +35,15 @@ def sign_in():
 
 
 def update_headers(response):
-    print(response.headers)
-    print('== Updating headers ' + '=' * 30)
+    if not ('access-token' in response.headers and 'expiry' in response.headers):
+        return
+    print('== Updating headers ' + '=' * 23)
     try:
         headers['access-token'] = response.headers['access-token']
         print(Fore.BLUE + '  access-token -> ' + headers['access-token'])
         headers['expiry'] = response.headers['expiry']
-        print('  expiry -> ' + headers['expiry'])
+        print('  expiry -> ' + headers['expiry'] + Style.RESET_ALL)
+        print('=' * 43)
     except KeyError as e:
         raise ValueError(
             'Response object {} does not have access-token or expiry'.format(
