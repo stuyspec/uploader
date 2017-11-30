@@ -69,7 +69,7 @@ ISSUE_DATES = {
         '3': '2017-10-17',
         '4': '2017-10-31',
         '5': '2017-11-10',
-        '6': '2017-11-29'
+        '6': '2017-12-01'
     }
 }
 
@@ -202,7 +202,7 @@ def download_file(file):
 
 
 def post_article(data):
-    data['created_at'] = ISSUE_DATES[str(data['volume'])][str(data['issue'])]
+    data['created_at'] = ISSUE_DATES[str(data['volume'])][str(data['issue'])] + 'T17:57:55.149-05:00'
     article = utils.post_modify_headers(
         constants.API_ARTICLES_ENDPOINT,
         data=json.dumps(data))
@@ -414,7 +414,7 @@ def main():
         Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL + '108')
     volume = 108
     # issue_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
-    print(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL + '5')
+    print(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL + '6')
     issue = 6
 
     try:
