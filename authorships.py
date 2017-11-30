@@ -1,5 +1,5 @@
 import requests, json
-import constants
+import constants, main, config
 
 
 def post_authorships(authorship_data):
@@ -11,8 +11,7 @@ def post_authorships(authorship_data):
                 'article_id': article_id,
                 'user_id': c
             }),
-            headers={
-                'Content-Type': 'application/json'
-            })
+            headers=config.headers)
         update_response.raise_for_status()
+        main.updateHeaders(update_response)
     return article_id
