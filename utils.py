@@ -104,7 +104,17 @@ def get_summary(line):
     return line
 
 
-def post_modify_headers(url, data={}, headers=config.headers):
+def post_modify_headers(url, data=None, headers=config.headers, files=None):
+    if files:
+        response = requests.post(
+            url,
+            data=data,
+            headers=headers,
+            files=files
+        )
+        response.raise_for_status()
+        # config.update_headers(response)
+        return response.json()
     response = requests.post(
         url,
         data=data,
@@ -115,7 +125,7 @@ def post_modify_headers(url, data={}, headers=config.headers):
     return response.json()
 
 
-def put_modify_headers(url, data={}, headers=config.headers):
+def put_modify_headers(url, data=None, headers=config.headers):
     response = requests.put(
         url,
         data=data,

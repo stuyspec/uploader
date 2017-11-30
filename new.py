@@ -12,6 +12,7 @@ import sections
 import articles
 import config
 import utils
+import webbrowser
 import users
 
 from apiclient import discovery
@@ -19,6 +20,8 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 from apiclient.http import MediaIoBaseDownload
+from slugify import slugify
+from PIL import Image
 
 from colorama import Fore, Back, Style
 import colorama
@@ -32,6 +35,9 @@ try:
     parser.add_argument('--local', help='post data to a specified port')
     parser.add_argument('-s', dest='scan', action='store_true',
                         help='first scan files for id adjustments')
+    parser.add_argument('--window', dest='window', action='store_true',
+                        help='open windows on Drive load')
+    parser.set_defaults(window=False)
     parser.set_defaults(scan=False)
 
     flags = parser.parse_args()
@@ -173,6 +179,26 @@ def download_document(file):
     return fh.getvalue()
 
 
+def download_file(file):
+    file_id = file['id']
+    request = service.files().get_media(fileId=file_id)
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+        print('Download {} {}%.'.format(file['name'],
+                                        int(status.progress() * 100)))
+    fh.seek(0)
+
+    image = Image.open(fh)
+    imageName = 'tmp/' + slugify(
+        file['name']) + '.' + file['mimeType'].split('/')[1]
+    open(imageName, 'a').close()  # touch the file
+    image.save(imageName)
+
+    return imageName
+
 
 def post_article(data):
     data['created_at'] = ISSUE_DATES[str(data['volume'])][str(data['issue'])]
@@ -199,10 +225,24 @@ def analyze_issue(volume, issue):
                                       issue_folder['id'])
     images = get_children([art_folder['id'], photo_folder['id']], 'image')
 
+    if flags.window:
+        webbrowser.open(
+            'https://drive.google.com/file/d/{}/view'.format(newspaper_pdf['id']), new=2)
+        webbrowser.open(
+            'https://drive.google.com/drive/folders/' + photo_folder['id'],
+            new=2)
+        webbrowser.open(
+            'https://drive.google.com/drive/folders/' + art_folder['id'],
+            new=2)
+
     for section_name in ['News', 'Features', 'Opinions', 'A&E', 'Humor', 'Sports']:
         section_folder = get_file(section_name, 'folder', sbc_folder['id'])
         section_id = sections.get_section_id(section_name)
-        for article_file in get_children(section_folder['id'], 'document'):
+        section_articles = get_children(section_folder['id'], 'document')
+        f = -1
+        while f < len(section_articles) - 1:
+            f += 1
+            article_file = section_articles[f]
             print('\n')
             if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat",
                          article_file['name']):
@@ -258,7 +298,47 @@ def analyze_issue(volume, issue):
                     .format(article_data['id'], article_data['title'])
                     + Style.RESET_ALL)) \
                 .catch(lambda res: rollback(res))
+            result = article_create.get()
 
+            if result is not None and result is True:
+                print('Rollback completed. Re-prompting article.'
+                      + Style.RESET_ALL)
+                f = f - 1
+
+
+def post_media_file(filename, data):
+    """Takes a filename and media data dictionary."""
+    for key in data.keys():
+        data['medium[{}]'.format(key)] = data.pop(key)
+    files = {'medium[attachment]': open(filename, 'rb')}
+    return utils.post_modify_headers(
+        constants.API_MEDIA_ENDPOINT,
+        files=files,
+        data=data,
+        headers=config.headers)
+
+
+def post_media(article_id, medias):
+    """Takes array of objects with artist_name, file, title, caption."""
+    for media in medias:
+        for field in [
+                'artist_name', 'file', 'title', 'caption', 'is_featured',
+                'media_type'
+        ]:
+            if field not in media:
+                raise ValueError('Media object has no attribute {}.'
+                                 .format(field))
+        filename = download_file(media['file'])
+        user_id = users.create_artist(media['artist_name'],
+                                      media['media_type'])
+        response = post_media_file(filename, {
+            'article_id': article_id,
+            'user_id': user_id,
+            'media_type': media['media_type'],
+            'is_featured': media['is_featured'],
+            'title': media['title'],
+            'caption': media['caption']
+        })
 
 
 def main():
