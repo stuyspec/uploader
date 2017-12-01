@@ -146,7 +146,8 @@ def update_user(user_id, data):
     for i in range(len(users)):
         if users[i]['id'] == user_id:
             users[i] = user
-            break
+            return user['id']
+    users.append(user)
     return user['id']
 
 
