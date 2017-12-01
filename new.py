@@ -262,17 +262,28 @@ def analyze_issue(volume, issue):
                 end=' ')
             raw_text = download_document(article_file)
             if articles.does_file_exist(raw_text):
-                print(Fore.RED + article_file['name'] + 'exists; skipped.'
+                print(Fore.RED + Style.BRIGHT + article_file['name'] + 'exists; skipped.'
                       + Style.RESET_ALL)
                 continue
             article_data = articles.analyze_article(raw_text)
+
+            if section_name == "Humor":
+                if issue == 4:
+                    subsection_id = sections.get_section_id("Spooktator")
+                if issue == 12:
+                    subsection_id = sections.get_section_id("Disrespectator")
+            elif re.search(r'(?i)staff\s?ed', article_file['name']):
+                subsection_id = sections.get_section_id('Staff Editorials')
+            else:
+                subsection_id = sections.choose_subsection(section_name)
+
             article_data.update({
                 'volume': volume,
                 'issue': issue,
-                'section_id': section_id
+                'section_id': subsection_id
             })
             confirmation = raw_input(Fore.GREEN + Style.BRIGHT
-                                     + 'post article? ' + Style.RESET_ALL)
+                                     + 'post article? (n, default: y) ' + Style.RESET_ALL)
             if confirmation == 'n':
                 continue
 
