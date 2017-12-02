@@ -85,6 +85,26 @@ def analyze_article(raw_text):
     return data
 
 
+def analyze_staffed(raw_text):
+    lines = filter(None, [line.strip() for line in raw_text.split('\n')])
+    data = {
+        'title': utils.get_title(lines[0]),
+        'contributors': ['The Editorial Board'],
+        'outquotes': [],
+        'summary': '',
+    }
+
+    content_start_index = utils.get_content_start(lines)
+    if content_start_index == -1:
+        content_start_index = utils.identify_line_manually(lines, 'content start')
+    paragraphs = lines[content_start_index:]
+    print(Fore.GREEN + Style.BRIGHT + 'content: ' + Style.RESET_ALL +
+          '({}   ...   {}) '.format(paragraphs[0], paragraphs[-1]))
+    data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
+
+    return data
+
+
 def post_authorships(authorship_data):
     article_id, contributor_ids = authorship_data
     for c in contributor_ids:
