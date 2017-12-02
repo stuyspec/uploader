@@ -253,27 +253,35 @@ def analyze_issue(volume, issue):
             print('\n')
             if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat",
                          article_file['name']):
-                print(Fore.RED + Style.BRIGHT + article_file['name'] + 'skipped.'
+                print(Fore.RED + Style.BRIGHT + article_file['name'] + ' unwanted.'
                       + Style.RESET_ALL)
                 continue
             print(
-                Fore.CYAN + Style.BRIGHT + section_name.upper() +
-                Fore.BLUE + ' ' + article_file['name'] + Style.RESET_ALL,
+                Fore.CYAN + Style.BRIGHT
+                 + ("STAFF EDITORIAL" if re.search(r'(?i)staff\s?ed', article_file['name']) else section_name.upper())
+                 + Fore.BLUE + ' ' + article_file['name'] + Style.RESET_ALL,
                 end=' ')
             raw_text = download_document(article_file)
             if articles.does_file_exist(raw_text):
-                print(Fore.RED + Style.BRIGHT + article_file['name'] + 'exists; skipped.'
+                print(Fore.RED + Style.BRIGHT + article_file['name'] + ' exists; skipped.'
                       + Style.RESET_ALL)
                 continue
-            article_data = articles.analyze_article(raw_text)
+
+            if re.search(r'(?i)staff\s?ed', article_file['name']):
+                article_data = articles.analyze_staffed(raw_text)
+            else:
+                article_data = articles.analyze_article(raw_text)
 
             if section_name == "Humor":
                 if issue == 4:
                     subsection_id = sections.get_section_id("Spooktator")
                 if issue == 12:
                     subsection_id = sections.get_section_id("Disrespectator")
-            elif re.search(r'(?i)staff\s?ed', article_file['name']):
-                subsection_id = sections.get_section_id('Staff Editorials')
+            elif section_name == "Opinions":
+                if re.search(r'(?i)staff\s?ed', article_file['name']):
+                    subsection_id = sections.get_section_id('Staff Editorials')
+                else:
+                    subsection_id = section_id
             else:
                 subsection_id = sections.choose_subsection(section_name)
 
@@ -283,15 +291,21 @@ def analyze_issue(volume, issue):
                 'section_id': subsection_id
             })
             confirmation = raw_input(Fore.GREEN + Style.BRIGHT
-                                     + 'post article? (n, default: y) ' + Style.RESET_ALL)
+                                     + 'post article? (n, r, default: y) ' + Style.RESET_ALL)
             if confirmation == 'n':
+                continue
+            if confirmation == 'r':
+                f = f - 1
                 continue
 
             new_article = post_article(article_data)
             article_data['id'] = new_article['id']
             articles.articles += [new_article]
 
-            images = choose_media(media_files, photo_folder['id'])
+            if re.search(r'(?i)staff\s?ed', article_file['name']):
+                images = []
+            else:
+                images = choose_media(media_files, photo_folder['id'])
 
             def rollback(res):
                 try:
