@@ -37,7 +37,8 @@ def analyze_article(raw_text):
     lines = filter(None, [line.strip() for line in raw_text.split('\n')])
     data = {
         'title': utils.get_title(lines[0]),
-        'outquotes': []
+        'outquotes': [],
+        'summary': ''
     }
 
     try:
@@ -50,14 +51,15 @@ def analyze_article(raw_text):
     if content_start_index == -1:
         content_start_index = utils.identify_line_manually(lines, 'content start')
     try:
-        summary = next((line for line in lines
-                        if 'focus sentence:' in line.lower()))
+        data['summary'] = next((line for line in lines
+                                if 'focus sentence:' in line.lower()))
     except StopIteration:
-        summary = lines[content_start_index]
-        summary_words = summary.split(' ')
-        if len(summary_words) > 25:
-            summary = ' '.join(summary_words[:25]) + "..."
-    data['summary'] = utils.get_summary(summary)
+        pass
+    if data['summary'] == '':
+        print(Fore.GREEN + Style.BRIGHT + 'summary/focus: ' + Style.RESET_ALL +
+          '() ')
+    else:
+        data['summary'] = utils.get_summary(data['summary'])
 
 
     paragraphs = lines[content_start_index:]
