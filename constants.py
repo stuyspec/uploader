@@ -3,7 +3,7 @@ API_ENDPOINT = 'http://{}'.format(SUBDOMAIN)
 API_ARTICLES_ENDPOINT = 'http://{}/articles'.format(SUBDOMAIN)
 API_AUTHORSHIPS_ENDPOINT = 'http://{}/authorships'.format(SUBDOMAIN)
 API_MEDIA_ENDPOINT = 'http://{}/media'.format(SUBDOMAIN)
-API_SECTIONS_ENDPOINT = 'http://{}/sections'.format(SUBDOMAIN)
+API_SECTIONS_ENDPOINT = 'http://{}/sections?include_invisible=true'.format(SUBDOMAIN)
 API_USERS_ENDPOINT = 'http://{}/users'.format(SUBDOMAIN)
 API_ROLES_ENDPOINT = 'http://{}/roles'.format(SUBDOMAIN)
 API_USER_ROLES_ENDPOINT = 'http://{}/user_roles'.format(SUBDOMAIN)
@@ -25,7 +25,7 @@ def init(SUBDOMAIN=SUBDOMAIN):
     API_MEDIA_ENDPOINT = 'http://{}/media'.format(SUBDOMAIN)
 
     global API_SECTIONS_ENDPOINT
-    API_SECTIONS_ENDPOINT = 'http://{}/sections'.format(SUBDOMAIN)
+    API_SECTIONS_ENDPOINT = 'http://{}/sections?include_invisible=true'.format(SUBDOMAIN)
 
     global API_USERS_ENDPOINT
     API_USERS_ENDPOINT = 'http://{}/users'.format(SUBDOMAIN)

@@ -201,6 +201,7 @@ def download_file(file):
     return imageName
 
 
+# TODO: this middleman function is unnecessary. just analyze_issue => post_modify_headers
 def post_article(data):
     data['created_at'] = ISSUE_DATES[str(data['volume'])][str(data['issue'])] + 'T17:57:55.149-05:00'
     article = utils.post_modify_headers(
@@ -213,17 +214,12 @@ def analyze_issue(volume, issue):
     volume_folder = get_file(r"Volume {}".format(volume), 'folder')
     issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
                                   volume_folder['id'])
-    sbc_folder = get_file(r"SBC", 'folder', issue_folder['id'])
+    sbc_folder = get_file(r"Tuesday Attack", 'folder')
     newspaper_pdf = get_file("(?i)Issue\s?\d{1,2}(\.pdf)$",
                                    'application/pdf',
                                    issue_folder['id'])
     art_folder = get_file(r"(?i)art", 'folder', issue_folder['id'])
-    try:
-        photo_folder = get_file(r"(?i)(photo\s?color)", 'folder',
-                                      issue_folder['id'])
-    except StopIteration:
-        photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder',
-                                      issue_folder['id'])
+    photo_folder = get_file(r"Photo Color Tuesday", 'folder')
     media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
 
     if flags.window:
@@ -236,7 +232,7 @@ def analyze_issue(volume, issue):
             'https://drive.google.com/drive/folders/' + art_folder['id'],
             new=2)
 
-    for section_name in ['News', 'Features', 'Opinions', 'A&E', 'Humor', 'Sports']:
+    for section_name in ['News', 'Features', 'Opinions', 'A&E']:
         section_folder = get_file(section_name, 'folder', sbc_folder['id'])
         section_id = sections.get_section_id(section_name)
         section_articles = get_children(section_folder['id'], 'document')
@@ -272,18 +268,7 @@ def analyze_issue(volume, issue):
             else:
                 article_data = articles.analyze_article(raw_text)
 
-            if section_name == "Humor":
-                if issue == 4:
-                    subsection_id = sections.get_section_id("Spooktator")
-                if issue == 12:
-                    subsection_id = sections.get_section_id("Disrespectator")
-            elif section_name == "Opinions":
-                if re.search(r'(?i)staff\s?ed', article_file['name']):
-                    subsection_id = sections.get_section_id('Staff Editorials')
-                else:
-                    subsection_id = section_id
-            else:
-                subsection_id = sections.choose_subsection(section_name)
+            subsection_id = sections.get_section_id("10/31 Terror Attack")
 
             article_data.update({
                 'volume': volume,
@@ -291,12 +276,19 @@ def analyze_issue(volume, issue):
                 'section_id': subsection_id
             })
             confirmation = raw_input(Fore.GREEN + Style.BRIGHT
-                                     + 'post article? (n, r, default: y) ' + Style.RESET_ALL)
+                                     + 'post article? (n, r, o, default: y) ' + Style.RESET_ALL)
+            while confirmation == 'o':
+                webbrowser.open(
+                    'https://docs.google.com/document/d/' + article_file['id'],
+                    new=2)
+                confirmation = raw_input(Fore.GREEN + Style.BRIGHT
+                                         + 'post article? (n, r, o, default: y) '
+                                         + Style.RESET_ALL)
             if confirmation == 'n':
                 continue
             if confirmation == 'r':
                 f = f - 1
-                continue
+                continue                
 
             new_article = post_article(article_data)
             article_data['id'] = new_article['id']
@@ -434,13 +426,13 @@ def post_media(article_id, medias):
 
 
 def main():
-    # volume_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
+    # volume = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
+    volume = 108    
     print(
-        Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL + '108')
-    volume = 108
-    # issue_number = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
-    print(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL + '6')
-    issue = 6
+        Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL + str(volume))
+    # issue = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
+    issue = 5
+    print(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL + str(issue))
 
     try:
         ISSUE_DATES[str(volume)][str(issue)]
@@ -448,7 +440,7 @@ def main():
         print(Fore.RED + Style.BRIGHT + 'Volume {} Issue {} does not have a date'.format(volume, issue))
         return
 
-    analyze_issue(108, 6)
+    analyze_issue(volume, issue)
 
 
 def init():
@@ -463,7 +455,8 @@ def init():
     global files
     with open(DRIVE_STORAGE_FILENAME, 'r') as f:
         files = ast.literal_eval(f.read())
-    print('Scanned in {} Drive files from storage.'.format(len(files)))
+    print(Fore.YELLOW + Style.BRIGHT + 'Scanned in {} Drive files from storage.'
+        .format(len(files)) + Style.RESET_ALL)
 
     config.sign_in()
 
