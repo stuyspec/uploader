@@ -214,12 +214,17 @@ def analyze_issue(volume, issue):
     volume_folder = get_file(r"Volume {}".format(volume), 'folder')
     issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
                                   volume_folder['id'])
-    sbc_folder = get_file(r"Tuesday Attack", 'folder')
+    sbc_folder = get_file(r"SBC", 'folder', issue_folder['id'])
     newspaper_pdf = get_file("(?i)Issue\s?\d{1,2}(\.pdf)$",
                                    'application/pdf',
                                    issue_folder['id'])
     art_folder = get_file(r"(?i)art", 'folder', issue_folder['id'])
-    photo_folder = get_file(r"Photo Color Tuesday", 'folder')
+    try: 
+        photo_folder = get_file(r"(?i)(photo\s?color)", 'folder', 
+                                      issue_folder['id']) 
+    except StopIteration: 
+        photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder', 
+                                      issue_folder['id']) 
     media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
 
     if flags.window:
@@ -232,7 +237,7 @@ def analyze_issue(volume, issue):
             'https://drive.google.com/drive/folders/' + art_folder['id'],
             new=2)
 
-    for section_name in ['News', 'Features', 'Opinions', 'A&E']:
+    for section_name in ['News', 'Features', 'Opinions', 'A&E', 'Humor', 'Sports']:
         section_folder = get_file(section_name, 'folder', sbc_folder['id'])
         section_id = sections.get_section_id(section_name)
         section_articles = get_children(section_folder['id'], 'document')
@@ -268,7 +273,18 @@ def analyze_issue(volume, issue):
             else:
                 article_data = articles.analyze_article(raw_text)
 
-            subsection_id = sections.get_section_id("10/31 Terror Attack")
+            if section_name == "Humor": 
+                if issue == 4: 
+                    subsection_id = sections.get_section_id("Spooktator") 
+                if issue == 12: 
+                    subsection_id = sections.get_section_id("Disrespectator") 
+            elif section_name == "Opinions": 
+                if re.search(r'(?i)staff\s?ed', article_file['name']): 
+                    subsection_id = sections.get_section_id('Staff Editorials') 
+                else: 
+                    subsection_id = section_id 
+            else: 
+                subsection_id = sections.choose_subsection(section_name)
 
             article_data.update({
                 'volume': volume,
@@ -426,13 +442,8 @@ def post_media(article_id, medias):
 
 
 def main():
-    # volume = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
-    volume = 108    
-    print(
-        Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL + str(volume))
-    # issue = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
-    issue = 5
-    print(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL + str(issue))
+    volume = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
+    issue = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
 
     try:
         ISSUE_DATES[str(volume)][str(issue)]
