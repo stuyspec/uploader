@@ -387,7 +387,7 @@ def choose_media(media_files, photo_folder_id):
             except StopIteration:
                 print(Fore.RED + Style.BRIGHT
                       + 'No file matches {}.'.format(filename)
-                      + Style.REST_ALL)
+                      + Style.RESET_ALL)
 
         for optional_field in ['title', 'caption']:
             field_input = raw_input(Fore.GREEN + Style.BRIGHT + '-> '
