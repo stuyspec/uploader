@@ -279,6 +279,8 @@ def analyze_issue(volume, issue):
                     subsection_id = sections.get_section_id("Spooktator")
                 if issue == 12:
                     subsection_id = sections.get_section_id("Disrespectator")
+                else:
+                    subsection_id = section_id
             elif section_name == "Opinions":
                 if re.search(r'(?i)staff\s?ed', article_file['name']):
                     subsection_id = sections.get_section_id('Staff Editorials')
