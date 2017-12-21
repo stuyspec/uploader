@@ -67,6 +67,8 @@ def clean_name(name):
 
 def get_contributors(byline):
     byline = re.sub(r"By:?", '', byline).strip()
+    if byline == "The Arts & Entertainment Department":
+        return [byline]
     byline = re.findall(r"[\w\p{L}\p{M}']+|[.,!-?;]", byline)
 
     contributors = []
