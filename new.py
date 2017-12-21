@@ -469,7 +469,7 @@ def init():
     global files
     with open(DRIVE_STORAGE_FILENAME, 'r') as f:
         files = ast.literal_eval(f.read())
-    print(Fore.YELLOW + Style.BRIGHT + 'Scanned in {} Drive files from storage.'
+    print(Fore.YELLOW + Style.BRIGHT + 'Scanned in {} memoized Drive files from files.in.'
         .format(len(files)) + Style.RESET_ALL)
 
     config.sign_in()
