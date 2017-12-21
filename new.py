@@ -220,12 +220,12 @@ def analyze_issue(volume, issue):
                                    'application/pdf',
                                    issue_folder['id'])
     art_folder = get_file(r"(?i)art", 'folder', issue_folder['id'])
-    try: 
-        photo_folder = get_file(r"(?i)(photo\s?color)", 'folder', 
-                                      issue_folder['id']) 
-    except StopIteration: 
-        photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder', 
-                                      issue_folder['id']) 
+    try:
+        photo_folder = get_file(r"(?i)(photo\s?color)", 'folder',
+                                      issue_folder['id'])
+    except StopIteration:
+        photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder',
+                                      issue_folder['id'])
     media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
 
     if flags.window:
@@ -253,7 +253,7 @@ def analyze_issue(volume, issue):
             f += 1
             article_file = section_articles[f]
             print('\n')
-            if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat",
+            if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat|playlist",
                          article_file['name']):
                 print(Fore.RED + Style.BRIGHT + article_file['name'] + ' unwanted.'
                       + Style.RESET_ALL)
@@ -274,17 +274,17 @@ def analyze_issue(volume, issue):
             else:
                 article_data = articles.analyze_article(raw_text)
 
-            if section_name == "Humor": 
-                if issue == 4: 
-                    subsection_id = sections.get_section_id("Spooktator") 
-                if issue == 12: 
-                    subsection_id = sections.get_section_id("Disrespectator") 
-            elif section_name == "Opinions": 
-                if re.search(r'(?i)staff\s?ed', article_file['name']): 
-                    subsection_id = sections.get_section_id('Staff Editorials') 
-                else: 
-                    subsection_id = section_id 
-            else: 
+            if section_name == "Humor":
+                if issue == 4:
+                    subsection_id = sections.get_section_id("Spooktator")
+                if issue == 12:
+                    subsection_id = sections.get_section_id("Disrespectator")
+            elif section_name == "Opinions":
+                if re.search(r'(?i)staff\s?ed', article_file['name']):
+                    subsection_id = sections.get_section_id('Staff Editorials')
+                else:
+                    subsection_id = section_id
+            else:
                 subsection_id = sections.choose_subsection(section_name)
 
             article_data.update({
@@ -305,7 +305,7 @@ def analyze_issue(volume, issue):
                 continue
             if confirmation == 'r':
                 f = f - 1
-                continue                
+                continue
 
             new_article = post_article(article_data)
             article_data['id'] = new_article['id']
