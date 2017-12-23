@@ -451,7 +451,7 @@ def main():
     try:
         ISSUE_DATES[str(volume)][str(issue)]
     except KeyError:
-        print(Fore.RED + Style.BRIGHT + 'Volume {} Issue {} does not have a date'.format(volume, issue))
+        print(Fore.RED + Style.BRIGHT + 'Volume {} Issue {} does not have a date.'.format(volume, issue))
         return
 
     analyze_issue(volume, issue)
