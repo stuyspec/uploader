@@ -250,7 +250,7 @@ def analyze_file(volume, issue, url):
     print(
         Fore.CYAN + Style.BRIGHT
         + section_name.upper()
-        + Fore.BLUE + ' CUSTOM ARTICLE' + Style.RESET_ALL)    
+        + Fore.BLUE + ' CUSTOM ARTICLE' + Style.RESET_ALL)
 
     if articles.does_file_exist(raw_text):
         print(Fore.RED + Style.BRIGHT + ' CUSTOM ARTICLE exists; skipped.'
@@ -361,7 +361,7 @@ def analyze_issue(volume, issue):
             f += 1
             article_file = section_articles[f]
             print('\n')
-            if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar",
+            if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]",
                          article_file['name']):
                 print(Fore.RED + Style.BRIGHT + article_file['name'] + ' unwanted.'
                       + Style.RESET_ALL)
