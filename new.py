@@ -253,7 +253,7 @@ def analyze_issue(volume, issue):
             f += 1
             article_file = section_articles[f]
             print('\n')
-            if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat|playlist",
+            if re.search(r"(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar",
                          article_file['name']):
                 print(Fore.RED + Style.BRIGHT + article_file['name'] + ' unwanted.'
                       + Style.RESET_ALL)

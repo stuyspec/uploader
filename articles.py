@@ -104,6 +104,20 @@ def analyze_staffed(raw_text):
           '({}   ...   {}) '.format(paragraphs[0], paragraphs[-1]))
     data['content'] = '<p>' + '</p><p>'.join(paragraphs) + '</p>'
 
+    try:
+        outquote_index = next((
+            i for i in range(len(lines))
+            if re.findall(r"(?i)outquote\(?s?\)?:?", lines[i])))
+        while (outquote_index < content_start_index
+               and not re.search(r'Request:|Article:|(?i)(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})', lines[outquote_index].lower())):
+            line = re.sub(r"(?i)outquote\(?s?\)?:?", '', lines[outquote_index])\
+                       .strip()
+            if line != '':
+                data['outquotes'].append(line)
+            outquote_index += 1
+    except StopIteration:
+        pass
+
     return data
 
 
