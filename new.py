@@ -38,7 +38,7 @@ try:
                         help='first scan files for id adjustments')
     parser.add_argument('--window', dest='window', action='store_true',
                         help='open windows on Drive load')
-    parser.add_argument('--write-article')
+    parser.add_argument('--write-article', help='post a solitary article via url')
     parser.set_defaults(window=False)
     parser.set_defaults(scan=False)
 
@@ -88,8 +88,8 @@ def get_credentials():
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
         os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   'drive-python-quickstart.json')
+        credential_path = os.path.join(credential_dir,
+                                       'drive-python-quickstart.json')
 
     store = Storage(credential_path)
     credentials = store.get()
@@ -100,7 +100,7 @@ def get_credentials():
             credentials = tools.run_flow(flow, store, flags)
         else: # Needed only for compatibility with Python 2.6
             credentials = tools.run(flow, store)
-        print('Storing credentials to ' + credential_path)
+            print('Storing credentials to ' + credential_path)
     return credentials
 
 
@@ -111,9 +111,9 @@ def scan_drive_files(service):
     while 1:
         response = service.files().list(
             q="not trashed and (mimeType='application/vnd.google-apps.folder'" +
-              " or mimeType='application/vnd.google-apps.document'" +
-              " or mimeType='application/pdf'" +
-              " or mimeType contains 'image')",
+            " or mimeType='application/vnd.google-apps.document'" +
+            " or mimeType='application/pdf'" +
+            " or mimeType contains 'image')",
             spaces='drive',
             fields='nextPageToken, files(id, name, parents, mimeType)',
             pageToken=page_token).execute()
@@ -192,7 +192,7 @@ def download_file(file):
         status, done = downloader.next_chunk()
         print('Download {} {}%.'.format(file['name'],
                                         int(status.progress() * 100)))
-    fh.seek(0)
+        fh.seek(0)
 
     image = Image.open(fh)
     imageName = 'tmp/' + slugify(
@@ -211,23 +211,133 @@ def post_article(data):
         data=json.dumps(data))
     return article
 
+def analyze_file(volume, issue, url):
+    volume_folder = get_file(r"Volume {} No. {}".format(volume, "10-18" if issue >= 10 else "1-9"), 'folder')
+    issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
+                            volume_folder['id'])
+    sbc_folder = get_file(r"SBC", 'folder', issue_folder['id'])
+    newspaper_pdf = get_file("(?i)Issue\s?\d{1,2}(\.pdf)$",
+                             'application/pdf',
+                             issue_folder['id'])
+    art_folder = get_file(r"(?i)art", 'folder', issue_folder['id'])
+    try:
+        photo_folder = get_file(r"(?i)(photo\s?color)", 'folder',
+                                issue_folder['id'])
+    except StopIteration:
+        photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder',
+                                issue_folder['id'])
+        media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
+
+    if flags.window:
+        webbrowser.open(
+            'https://drive.google.com/file/d/{}/view'.format(newspaper_pdf['id']), new=2)
+        webbrowser.open(
+            'https://drive.google.com/drive/folders/' + photo_folder['id'],
+            new=2)
+        webbrowser.open(
+            'https://drive.google.com/drive/folders/' + art_folder['id'],
+            new=2)
+
+    article_file = {
+        'id': utils.get_file_id(url)
+        'mimeType': 'application/vnd.google-apps.document'
+    }
+    print(
+        Fore.CYAN + Style.BRIGHT
+        + ("STAFF EDITORIAL" if re.search(r'(?i)staff\s?ed', article_file['name']) else section_name.upper())
+        + Fore.BLUE + ' ' + article_file['name'] + Style.RESET_ALL,
+        end=' ')
+    raw_text = download_document(article_file)
+
+    section_name = utils.get_section(raw_text)
+    section_id = sections.get_section_id(section_name)
+
+    if articles.does_file_exist(raw_text):
+        print(Fore.RED + Style.BRIGHT + article_file['name'] + ' exists; skipped.'
+              + Style.RESET_ALL)
+             continue
+
+    article_data = articles.analyze_article(raw_text)
+
+    if section_name == "Humor":
+        if issue == 4:
+            subsection_id = sections.get_section_id("Spooktator")
+        if issue == 12:
+            subsection_id = sections.get_section_id("Disrespectator")
+        else:
+            subsection_id = section_id
+    else:
+        subsection_id = sections.choose_subsection(section_name)
+
+    article_data.update({
+        'volume': volume,
+        'issue': issue,
+        'section_id': subsection_id
+    })
+    confirmation = raw_input(Fore.GREEN + Style.BRIGHT
+                             + 'post article? (n, r, o, default: y) ' + Style.RESET_ALL)
+    while confirmation == 'o':
+        webbrowser.open(
+            'https://docs.google.com/document/d/' + article_file['id'],
+            new=2)
+        confirmation = raw_input(Fore.GREEN + Style.BRIGHT
+                                 + 'post article? (n, r, o, default: y) '
+                                 + Style.RESET_ALL)
+    if confirmation == 'n':
+        continue
+    if confirmation == 'r':
+        f = f - 1
+        continue
+
+    new_article = post_article(article_data)
+    article_data['id'] = new_article['id']
+
+    images = choose_media(media_files, photo_folder['id'])
+
+    def rollback(res):
+        try:
+            print(
+                Fore.RED + Style.BRIGHT + '\nCaught error: {}'.format(
+                    res) + Style.RESET_ALL)
+            articles.remove_article(article_data['id'])
+            utils.delete_modify_headers(
+                constants.API_ARTICLES_ENDPOINT + '/{}'.format(
+                    article_data['id']))
+            return True
+        except Exception as e:
+            print('Rollback failed with {}. Article {} remains evilly.'
+                  .format(e, article_data['id']))
+    article_create = Promise(
+        lambda resolve, reject: resolve(users.post_contributors(article_data))
+    )\
+    .then(lambda authorship_data: articles.post_authorships(authorship_data))\
+    .then(lambda res: articles.post_outquotes(article_data))\
+    .then(lambda article_id: post_media(article_id, images)) \
+    .then(lambda article_id: print(
+        Fore.GREEN + Style.BRIGHT
+        + '\nSuccessfully wrote Article #{}: {}.'
+        .format(article_data['id'], article_data['title'])
+        + Style.RESET_ALL)) \
+    .catch(lambda res: rollback(res))
+    result = article_create.get()
+
 
 def analyze_issue(volume, issue):
     volume_folder = get_file(r"Volume {} No. {}".format(volume, "10-18" if issue >= 10 else "1-9"), 'folder')
     issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
-                                  volume_folder['id'])
+                            volume_folder['id'])
     sbc_folder = get_file(r"SBC", 'folder', issue_folder['id'])
     newspaper_pdf = get_file("(?i)Issue\s?\d{1,2}(\.pdf)$",
-                                   'application/pdf',
-                                   issue_folder['id'])
+                             'application/pdf',
+                             issue_folder['id'])
     art_folder = get_file(r"(?i)art", 'folder', issue_folder['id'])
     try:
         photo_folder = get_file(r"(?i)(photo\s?color)", 'folder',
-                                      issue_folder['id'])
+                                issue_folder['id'])
     except StopIteration:
         photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder',
-                                      issue_folder['id'])
-    media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
+                                issue_folder['id'])
+        media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
 
     if flags.window:
         webbrowser.open(
@@ -249,7 +359,7 @@ def analyze_issue(volume, issue):
                     get_file(r'(?i)staff\s?ed', 'document', sbc_folder['id']))
             except StopIteration:
                 print(Fore.RED + Style.BRIGHT + 'No staff-ed found in Volume {} Issue {}.'.format(volume, issue))
-        f = -1
+                f = -1
         while f < len(section_articles) - 1:
             f += 1
             article_file = section_articles[f]
@@ -261,8 +371,8 @@ def analyze_issue(volume, issue):
                 continue
             print(
                 Fore.CYAN + Style.BRIGHT
-                 + ("STAFF EDITORIAL" if re.search(r'(?i)staff\s?ed', article_file['name']) else section_name.upper())
-                 + Fore.BLUE + ' ' + article_file['name'] + Style.RESET_ALL,
+                + ("STAFF EDITORIAL" if re.search(r'(?i)staff\s?ed', article_file['name']) else section_name.upper())
+                + Fore.BLUE + ' ' + article_file['name'] + Style.RESET_ALL,
                 end=' ')
             raw_text = download_document(article_file)
             if articles.does_file_exist(raw_text):
@@ -331,19 +441,20 @@ def analyze_issue(volume, issue):
                     return True
                 except Exception as e:
                     print('Rollback failed with {}. Article {} remains evilly.'
-                          .format(e, article_data['id']))
+                         .format(e, article_data['id']))
+           
             article_create = Promise(
                 lambda resolve, reject: resolve(users.post_contributors(article_data))
             )\
-                .then(lambda authorship_data: articles.post_authorships(authorship_data))\
-                .then(lambda res: articles.post_outquotes(article_data))\
-                .then(lambda article_id: post_media(article_id, images)) \
-                .then(lambda article_id: print(
-                    Fore.GREEN + Style.BRIGHT
-                    + '\nSuccessfully wrote Article #{}: {}.'
-                    .format(article_data['id'], article_data['title'])
-                    + Style.RESET_ALL)) \
-                .catch(lambda res: rollback(res))
+            .then(lambda authorship_data: articles.post_authorships(authorship_data))\
+            .then(lambda res: articles.post_outquotes(article_data))\
+            .then(lambda article_id: post_media(article_id, images)) \
+            .then(lambda article_id: print(
+                Fore.GREEN + Style.BRIGHT
+                + '\nSuccessfully wrote Article #{}: {}.'
+                .format(article_data['id'], article_data['title'])
+                + Style.RESET_ALL)) \
+            .catch(lambda res: rollback(res))
             result = article_create.get()
 
             if result is not None and result is True:
@@ -393,13 +504,13 @@ def choose_media(media_files, photo_folder_id):
         for optional_field in ['title', 'caption']:
             field_input = raw_input(Fore.GREEN + Style.BRIGHT + '-> '
                                     + optional_field + ': ' + Style.RESET_ALL)\
-                .strip()
+                                    .strip()
             image[optional_field] = field_input
 
         while True:
             artist_name = raw_input(Fore.GREEN + Style.BRIGHT
                                     + '-> artist name: ' + Style.RESET_ALL)\
-                .strip()
+                                    .strip()
             if artist_name == '':
                 print(
                     '\tartist name cannot be empty. check the Issue PDF for credits.'
@@ -415,7 +526,7 @@ def post_media_file(filename, data):
     """Takes a filename and media data dictionary."""
     for key in data.keys():
         data['medium[{}]'.format(key)] = data.pop(key)
-    files = {'medium[attachment]': open(filename, 'rb')}
+        files = {'medium[attachment]': open(filename, 'rb')}
     return utils.post_modify_headers(
         constants.API_MEDIA_ENDPOINT,
         files=files,
@@ -432,17 +543,17 @@ def post_media(article_id, medias):
             if field not in media:
                 raise ValueError('Media object has no attribute {}.'
                                  .format(field))
-        filename = download_file(media['file'])
-        user_id = users.create_artist(media['artist_name'],
-                                      media['media_type'])
-        response = post_media_file(filename, {
-            'article_id': article_id,
-            'user_id': user_id,
-            'media_type': media['media_type'],
-            'is_featured': media['is_featured'],
-            'title': media['title'],
-            'caption': media['caption']
-        })
+            filename = download_file(media['file'])
+            user_id = users.create_artist(media['artist_name'],
+                                          media['media_type'])
+            response = post_media_file(filename, {
+                'article_id': article_id,
+                'user_id': user_id,
+                'media_type': media['media_type'],
+                'is_featured': media['is_featured'],
+                'title': media['title'],
+                'caption': media['caption']
+            })
 
 
 def main(filename=None):
@@ -455,10 +566,11 @@ def main(filename=None):
         print(Fore.RED + Style.BRIGHT + 'Volume {} Issue {} does not have a date.'.format(volume, issue))
         return
 
-    if filename is None:
+    if filename is None:        
         analyze_issue(volume, issue)
     else:
-        analyze_file(volume, issue, filename)
+        with open(filename) as content:
+            analyze_file(volume, issue, content)
 
 
 def init():
@@ -473,8 +585,8 @@ def init():
     global files
     with open(DRIVE_STORAGE_FILENAME, 'r') as f:
         files = ast.literal_eval(f.read())
-    print(Fore.YELLOW + Style.BRIGHT + 'Scanned in {} memoized Drive files from files.in.'
-        .format(len(files)) + Style.RESET_ALL)
+        print(Fore.YELLOW + Style.BRIGHT + 'Scanned in {} memoized Drive files from files.in.'
+              .format(len(files)) + Style.RESET_ALL)
 
     config.sign_in()
 
@@ -484,11 +596,11 @@ if __name__ == '__main__':
         constants.init('localhost:{}'.format(flags.local))
     else:
         constants.init()
-    config.init()
-    init()
-    sections.init()
-    articles.init()
-    users.init()
+        config.init()
+        init()
+        sections.init()
+        articles.init()
+        users.init()
     if flags.write_article is not None:
         main(flags.write_article)
     else:

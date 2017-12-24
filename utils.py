@@ -95,7 +95,9 @@ def get_content_start(lines):
     try:
         header_end = next((index
                            for index, value in enumerate(reversed(lines))
-                           if HEADER_LINE_PATTERN.search(value)))
+                           if (HEADER_LINE_PATTERN.search(value) or
+                               value[:3] == 'By:' or value[:3] == 'By ')
+                        ))
         return len(lines) - header_end
     except StopIteration:
         return -1
@@ -166,3 +168,14 @@ def delete_modify_headers(url, headers=config.headers):
         headers=headers)
     response.raise_for_status()
     config.update_headers(response)
+
+
+def get_file_id(url):
+    return re.search(r"[-\w]{25,}", url).group(0)
+
+
+def get_section(content):
+    meta = re.search(r"The Spectator\s?\/[^\/]*\/\s?Issue\s?\d\d?", content)
+    if meta is None:
+        raise ValueError('content has no meta line (ex: The Spectator/News/Issue 4)')
+    return meta.split('/')[1].strip()
