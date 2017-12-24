@@ -212,7 +212,7 @@ def post_article(data):
 
 
 def analyze_issue(volume, issue):
-    volume_folder = get_file(r"Volume {}".format(volume), 'folder')
+    volume_folder = get_file(r"Volume {} No. {}".format(volume, "10-18" if issue >= 10 else "1-9"), 'folder')
     issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
                                   volume_folder['id'])
     sbc_folder = get_file(r"SBC", 'folder', issue_folder['id'])
