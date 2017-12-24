@@ -88,8 +88,8 @@ def get_credentials():
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
         os.makedirs(credential_dir)
-        credential_path = os.path.join(credential_dir,
-                                       'drive-python-quickstart.json')
+    credential_path = os.path.join(credential_dir,
+                                   'drive-python-quickstart.json')
 
     store = Storage(credential_path)
     credentials = store.get()
@@ -226,7 +226,7 @@ def analyze_file(volume, issue, url):
     except StopIteration:
         photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder',
                                 issue_folder['id'])
-        media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
+    media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
 
     if flags.window:
         webbrowser.open(
@@ -239,23 +239,23 @@ def analyze_file(volume, issue, url):
             new=2)
 
     article_file = {
-        'id': utils.get_file_id(url)
+        'id': utils.get_file_id(url),
         'mimeType': 'application/vnd.google-apps.document'
     }
-    print(
-        Fore.CYAN + Style.BRIGHT
-        + ("STAFF EDITORIAL" if re.search(r'(?i)staff\s?ed', article_file['name']) else section_name.upper())
-        + Fore.BLUE + ' ' + article_file['name'] + Style.RESET_ALL,
-        end=' ')
-    raw_text = download_document(article_file)
 
+    raw_text = download_document(article_file)
     section_name = utils.get_section(raw_text)
     section_id = sections.get_section_id(section_name)
 
+    print(
+        Fore.CYAN + Style.BRIGHT
+        + section_name.upper()
+        + Fore.BLUE + ' CUSTOM ARTICLE' + Style.RESET_ALL)    
+
     if articles.does_file_exist(raw_text):
-        print(Fore.RED + Style.BRIGHT + article_file['name'] + ' exists; skipped.'
+        print(Fore.RED + Style.BRIGHT + ' CUSTOM ARTICLE exists; skipped.'
               + Style.RESET_ALL)
-             continue
+        return
 
     article_data = articles.analyze_article(raw_text)
 
@@ -277,17 +277,14 @@ def analyze_file(volume, issue, url):
     confirmation = raw_input(Fore.GREEN + Style.BRIGHT
                              + 'post article? (n, r, o, default: y) ' + Style.RESET_ALL)
     while confirmation == 'o':
-        webbrowser.open(
-            'https://docs.google.com/document/d/' + article_file['id'],
-            new=2)
+        webbrowser.open(url, new=2)
         confirmation = raw_input(Fore.GREEN + Style.BRIGHT
                                  + 'post article? (n, r, o, default: y) '
                                  + Style.RESET_ALL)
     if confirmation == 'n':
-        continue
+        return
     if confirmation == 'r':
-        f = f - 1
-        continue
+        return analyze_file(volume, issue, url)
 
     new_article = post_article(article_data)
     article_data['id'] = new_article['id']
@@ -337,7 +334,7 @@ def analyze_issue(volume, issue):
     except StopIteration:
         photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder',
                                 issue_folder['id'])
-        media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
+    media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
 
     if flags.window:
         webbrowser.open(
@@ -556,7 +553,7 @@ def post_media(article_id, medias):
             })
 
 
-def main(filename=None):
+def main(url=None):
     volume = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
     issue = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
 
@@ -566,11 +563,10 @@ def main(filename=None):
         print(Fore.RED + Style.BRIGHT + 'Volume {} Issue {} does not have a date.'.format(volume, issue))
         return
 
-    if filename is None:        
+    if url is None:        
         analyze_issue(volume, issue)
     else:
-        with open(filename) as content:
-            analyze_file(volume, issue, content)
+        analyze_file(volume, issue, url)
 
 
 def init():
@@ -596,11 +592,11 @@ if __name__ == '__main__':
         constants.init('localhost:{}'.format(flags.local))
     else:
         constants.init()
-        config.init()
-        init()
-        sections.init()
-        articles.init()
-        users.init()
+    config.init()
+    init()
+    sections.init()
+    articles.init()
+    users.init()
     if flags.write_article is not None:
         main(flags.write_article)
     else:

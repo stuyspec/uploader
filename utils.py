@@ -178,4 +178,4 @@ def get_section(content):
     meta = re.search(r"The Spectator\s?\/[^\/]*\/\s?Issue\s?\d\d?", content)
     if meta is None:
         raise ValueError('content has no meta line (ex: The Spectator/News/Issue 4)')
-    return meta.split('/')[1].strip()
+    return meta.group(0).split('/')[1].strip()
