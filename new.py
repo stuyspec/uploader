@@ -38,6 +38,7 @@ try:
                         help='first scan files for id adjustments')
     parser.add_argument('--window', dest='window', action='store_true',
                         help='open windows on Drive load')
+    parser.add_argument('--write-article')
     parser.set_defaults(window=False)
     parser.set_defaults(scan=False)
 
@@ -444,7 +445,7 @@ def post_media(article_id, medias):
         })
 
 
-def main():
+def main(filename=None):
     volume = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
     issue = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
 
@@ -454,7 +455,10 @@ def main():
         print(Fore.RED + Style.BRIGHT + 'Volume {} Issue {} does not have a date.'.format(volume, issue))
         return
 
-    analyze_issue(volume, issue)
+    if filename is None:
+        analyze_issue(volume, issue)
+    else:
+        analyze_file(volume, issue, filename)
 
 
 def init():
@@ -483,7 +487,9 @@ if __name__ == '__main__':
     config.init()
     init()
     sections.init()
-
     articles.init()
     users.init()
-    main()
+    if flags.write_article is not None:
+        main(flags.write_article)
+    else:
+        main()
