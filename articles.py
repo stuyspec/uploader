@@ -34,7 +34,7 @@ def remove_article(article_id):
 
 
 def analyze_article(raw_text):
-    lines = filter(None, [line.strip() for line in raw_text.split('\n')])
+    lines = filter(None, [line.strip() for line in raw_text.encode('utf-8').split('\n')])
     data = {
         'title': utils.get_title(lines[0]),
         'outquotes': [],
