@@ -6,6 +6,7 @@ import re
 import io
 import ast
 import json
+import docx
 import requests
 import constants
 import sections
@@ -38,7 +39,10 @@ try:
                         help='first scan files for id adjustments')
     parser.add_argument('--window', dest='window', action='store_true',
                         help='open windows on Drive load')
-    parser.add_argument('--write-article', help='post a solitary article via url')
+    parser.add_argument('--write-url', help='post a solitary article via url')
+    parser.add_argument('--write-path', help='post a solitary article via path')
+    parser.add_argument('-volume')
+    parser.add_argument('-issue')
     parser.set_defaults(window=False)
     parser.set_defaults(scan=False)
 
@@ -56,13 +60,22 @@ DRIVE_STORAGE_FILENAME = 'files.in'
 files = []
 
 ISSUE_DATES = {
+    '105': {
+        '13': '2015-04-17',
+        '14': '2015-05-06',
+    },
+    '106': {
+        '3': '2015-10-16',
+        '4': '2015-10-30',
+        '6': '2015-12-02',
+    },
     '107': {
-        '16': '2017-06-09',
-        '15': '2017-05-26',
-        '14': '2017-05-08',
-        '13': '2017-04-21',
-        '12': '2017-03-31',
         '11': '2017-03-10',
+        '12': '2017-03-31',
+        '13': '2017-04-21',
+        '14': '2017-05-08',
+        '15': '2017-05-26',
+        '16': '2017-06-09',
     },
     '108': {
         '1': '2017-09-11',
@@ -211,7 +224,90 @@ def post_article(data):
         data=json.dumps(data))
     return article
 
-def analyze_file(volume, issue, url):
+
+def analyze_file(volume, issue, filename):
+    if filename.find('.docx') >= 0:
+        doc = docx.Document(filename)
+        full_text = []
+        for p in doc.paragraphs:
+            full_text.append(p.text)
+        raw_text = '\n'.join(full_text)
+    else:
+        raise ValueError('File extension for %s is unsupported.' % filename)
+    section_name = utils.get_section(raw_text)
+    section_id = sections.get_section_id(section_name)
+    print(
+        Fore.CYAN + Style.BRIGHT
+        + section_name.upper()
+        + Fore.BLUE + ' CUSTOM ARTICLE' + Style.RESET_ALL)
+
+    try:
+        existence_status = articles.does_file_exist(raw_text)
+        if existence_status:
+            print(Fore.RED + Style.BRIGHT + ' CUSTOM ARTICLE exists; skipped.'
+                  + Style.RESET_ALL)
+            return
+    except TypeError:
+        pass
+
+    article_data = articles.analyze_article(raw_text)
+
+    if section_name == "Humor":
+        if issue == 4:
+            subsection_id = sections.get_section_id("Spooktator")
+        if issue == 12:
+            subsection_id = sections.get_section_id("Disrespectator")
+        else:
+            subsection_id = section_id
+    else:
+        subsection_id = sections.choose_subsection(section_name)
+
+    article_data.update({
+        'volume': volume,
+        'issue': issue,
+        'section_id': subsection_id
+    })
+    confirmation = raw_input(Fore.GREEN + Style.BRIGHT
+                             + 'post article? (n, r, default: y) ' + Style.RESET_ALL)
+    if confirmation == 'n':
+        return
+    if confirmation == 'r':
+        return analyze_file(volume, issue, filename)
+
+    new_article = post_article(article_data)
+    article_data['id'] = new_article['id']
+
+    images = choose_local_media()
+    
+    def rollback(res):
+        try:
+            print(
+                Fore.RED + Style.BRIGHT + '\nCaught error: {}'.format(
+                    res) + Style.RESET_ALL)
+            articles.remove_article(article_data['id'])
+            utils.delete_modify_headers(
+                constants.API_ARTICLES_ENDPOINT + '/{}'.format(
+                    article_data['id']))
+            return True
+        except Exception as e:
+            print('Rollback failed with {}. Article {} remains evilly.'
+                  .format(e, article_data['id']))
+    article_create = Promise(
+        lambda resolve, reject: resolve(users.post_contributors(article_data))
+    )\
+    .then(lambda authorship_data: articles.post_authorships(authorship_data))\
+    .then(lambda res: articles.post_outquotes(article_data))\
+    .then(lambda article_id: post_media(article_id, images)) \
+    .then(lambda article_id: print(
+        Fore.GREEN + Style.BRIGHT
+        + '\nSuccessfully wrote Article #{}: {}.'
+        .format(article_data['id'], article_data['title'])
+        + Style.RESET_ALL)) \
+    .catch(lambda res: rollback(res))
+    result = article_create.get()
+
+    
+def analyze_url(volume, issue, url):
     volume_folder = get_file(r"Volume {} No. {}".format(volume, "10-18" if issue >= 10 else "1-9"), 'folder')
     issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
                             volume_folder['id'])
@@ -284,7 +380,7 @@ def analyze_file(volume, issue, url):
     if confirmation == 'n':
         return
     if confirmation == 'r':
-        return analyze_file(volume, issue, url)
+        return analyze_url(volume, issue, url)
 
     new_article = post_article(article_data)
     article_data['id'] = new_article['id']
@@ -439,7 +535,6 @@ def analyze_issue(volume, issue):
                 except Exception as e:
                     print('Rollback failed with {}. Article {} remains evilly.'
                          .format(e, article_data['id']))
-           
             article_create = Promise(
                 lambda resolve, reject: resolve(users.post_contributors(article_data))
             )\
@@ -518,6 +613,65 @@ def choose_media(media_files, photo_folder_id):
 
         images.append(image)
 
+def choose_local_media():
+    images = []
+    media_files = os.listdir('./tmp')
+    media_confirmation = None
+    while media_confirmation != 'y' and media_confirmation != 'n':
+        media_confirmation = raw_input(
+            Fore.GREEN + Style.BRIGHT + 'upload media? (y/n): ' +
+            Style.RESET_ALL)
+    if media_confirmation == 'n':
+        return images
+
+    while True:
+        image = {
+            'is_featured': False,
+        }
+        while True:
+            filename = raw_input(Fore.GREEN + Style.BRIGHT +
+                                 '-> filename (press ENTER to exit): ' +
+                                 Style.RESET_ALL).strip()
+            if filename == '':
+                return images
+            if filename[0] == '*':
+                image['is_featured'] = True
+                filename = filename[1:]
+            try:
+                target_file = next((
+                    medium for medium in media_files
+                        if medium['name'] == filename
+                ))
+                image['file'] = target_file
+                if any(parent_id == photo_folder_id
+                       for parent_id in target_file.get('parents', [])):
+                    image['media_type'] = 'photo'
+                break
+            except StopIteration:
+                print(Fore.RED + Style.BRIGHT
+                      + 'No file matches {}.'.format(filename)
+                      + Style.RESET_ALL)
+
+        for optional_field in ['title', 'caption', 'media_type']:
+            field_input = raw_input(Fore.GREEN + Style.BRIGHT + '-> '
+                                    + optional_field + ': ' + Style.RESET_ALL)\
+                                    .strip()
+            image[optional_field] = field_input
+
+        while True:
+            artist_name = raw_input(Fore.GREEN + Style.BRIGHT
+                                    + '-> artist name: ' + Style.RESET_ALL)\
+                                    .strip()
+            if artist_name == '':
+                print(
+                    '\tartist name cannot be empty. check the Issue PDF for credits.'
+                )
+            else:
+                image['artist_name'] = artist_name
+                break
+
+        images.append(image)
+
 
 def post_media_file(filename, data):
     """Takes a filename and media data dictionary."""
@@ -553,9 +707,15 @@ def post_media(article_id, medias):
             })
 
 
-def main(url=None):
-    volume = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
-    issue = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
+def main(url=None, filename=None):
+    if flags.volume is None:
+        volume = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Volume #: ' + Style.RESET_ALL).strip())
+    else:
+        volume = int(flags.volume)
+    if flags.issue is None:
+        issue = int(raw_input(Fore.BLUE + Style.BRIGHT + 'Issue #: ' + Style.RESET_ALL.strip()))
+    else:
+        issue = int(flags.issue)
 
     try:
         ISSUE_DATES[str(volume)][str(issue)]
@@ -563,10 +723,12 @@ def main(url=None):
         print(Fore.RED + Style.BRIGHT + 'Volume {} Issue {} does not have a date.'.format(volume, issue))
         return
 
-    if url is None:        
-        analyze_issue(volume, issue)
+    if url is not None:
+        analyze_url(volume, issue, url)
+    elif filename is not None:
+        analyze_file(volume, issue, filename)
     else:
-        analyze_file(volume, issue, url)
+        analyze_issue(volume, issue)
 
 
 def init():
@@ -593,11 +755,11 @@ if __name__ == '__main__':
     else:
         constants.init()
     config.init()
-    init()
+    if flags.write_path is None:
+        init()
+    else:
+        config.sign_in()
     sections.init()
     articles.init()
     users.init()
-    if flags.write_article is not None:
-        main(flags.write_article)
-    else:
-        main()
+    main(url=flags.write_url, filename=flags.write_path)
