@@ -14,10 +14,11 @@ def init():
 
 
 def get_section_id(name):
+    if name == 'A&E' or name == 'Arts and Entertainment':
+        name = 'Arts & Entertainment'
     return next((
         s for s in sections
-        if (s['name'].lower() == name.lower()
-            or name == 'A&E' and s['name'] == "Arts & Entertainment")
+        if s['name'].lower() == name.lower()
     ))['id']
 
 

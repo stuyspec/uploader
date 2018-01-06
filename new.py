@@ -70,6 +70,9 @@ ISSUE_DATES = {
         '6': '2015-12-02',
     },
     '107': {
+        '1': '2017-09-09',
+        '2': '2017-09-30',
+        '3': '2016-10-17',
         '11': '2017-03-10',
         '12': '2017-03-31',
         '13': '2017-04-21',
@@ -232,6 +235,10 @@ def analyze_file(volume, issue, filename):
         for p in doc.paragraphs:
             full_text.append(p.text)
         raw_text = '\n'.join(full_text)
+    elif filename.find('.txt') >= 0:
+        f = open(filename)
+        raw_text = f.read()
+        f.close()
     else:
         raise ValueError('File extension for %s is unsupported.' % filename)
     section_name = utils.get_section(raw_text)
@@ -312,9 +319,12 @@ def analyze_url(volume, issue, url):
     issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
                             volume_folder['id'])
     sbc_folder = get_file(r"SBC", 'folder', issue_folder['id'])
-    newspaper_pdf = get_file("(?i)Issue\s?\d{1,2}(\.pdf)$",
-                             'application/pdf',
-                             issue_folder['id'])
+    try:
+        newspaper_pdf = get_file("(?i)Issue\s?\d{1,2}(\.pdf)$",
+                                 'application/pdf',
+                                 issue_folder['id'])
+    except StopIteration:
+        pass
     art_folder = get_file(r"(?i)art", 'folder', issue_folder['id'])
     try:
         photo_folder = get_file(r"(?i)(photo\s?color)", 'folder',
@@ -325,8 +335,9 @@ def analyze_url(volume, issue, url):
     media_files = get_children([art_folder['id'], photo_folder['id']], 'image')
 
     if flags.window:
-        webbrowser.open(
-            'https://drive.google.com/file/d/{}/view'.format(newspaper_pdf['id']), new=2)
+        if newspaper_pdf is not None:
+            webbrowser.open(
+                'https://drive.google.com/file/d/{}/view'.format(newspaper_pdf['id']), new=2)
         webbrowser.open(
             'https://drive.google.com/drive/folders/' + photo_folder['id'],
             new=2)
