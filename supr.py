@@ -463,7 +463,7 @@ def analyze_issue(volume, issue):
                     get_file(r'(?i)staff\s?ed', 'document', sbc_folder['id']))
             except StopIteration:
                 print(Fore.RED + Style.BRIGHT + 'No staff-ed found in Volume {} Issue {}.'.format(volume, issue))
-                f = -1
+        f = -1
         while f < len(section_articles) - 1:
             f += 1
             article_file = section_articles[f]
