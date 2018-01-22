@@ -7,6 +7,8 @@ import io
 import ast
 import json
 import docx
+import datetime
+import pytz
 import requests
 import constants
 import sections
@@ -88,6 +90,7 @@ ISSUE_DATES = {
         '5': '2017-11-10',
         '6': '2017-12-01',
         '7': '2017-12-20',
+        '8': '2018-01-19'
     },
 }
 
@@ -219,7 +222,9 @@ def download_file(file):
 
 # TODO: this middleman function is unnecessary. just analyze_issue => post_modify_headers
 def post_article(data):
-    data['created_at'] = ISSUE_DATES[str(data['volume'])][str(data['issue'])] + 'T17:57:55.149-05:00'
+    est_now = pytz.utc.localize(datetime.datetime.utcnow()).astimezone(pytz.timezone("America/New_York")).isoformat()
+    data['created_at'] = ISSUE_DATES[str(data['volume'])][str(data['issue'])] + est_now[est_now.find('T'):]
+    # we only want the time part of datetime because the date is manufactured to match distribution date
     article = utils.post_modify_headers(
         constants.API_ARTICLES_ENDPOINT,
         data=json.dumps(data))
@@ -283,7 +288,7 @@ def analyze_file(volume, issue, filename):
     article_data['id'] = new_article['id']
 
     images = choose_local_media()
-    
+
     def rollback(res):
         try:
             print(
@@ -311,7 +316,7 @@ def analyze_file(volume, issue, filename):
     .catch(lambda res: rollback(res))
     result = article_create.get()
 
-    
+
 def analyze_url(volume, issue, url):
     volume_folder = get_file(r"Volume {} No. {}".format(volume, "10-18" if issue >= 10 else "1-9"), 'folder')
     issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
