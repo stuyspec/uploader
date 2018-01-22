@@ -141,8 +141,6 @@ def scan_drive_files(service):
 
     with open(DRIVE_STORAGE_FILENAME, 'w') as f:
         f.write(str(files))
-        print('[100%] Scanned all {} Drive files into {}.'
-              .format(len(files), DRIVE_STORAGE_FILENAME))
 
 
 def get_children(parent_ids, file_type=None):
