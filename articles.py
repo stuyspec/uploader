@@ -61,7 +61,6 @@ def analyze_article(raw_text):
     else:
         data['summary'] = utils.get_summary(data['summary'])
 
-
     paragraphs = lines[content_start_index:]
     print(Fore.GREEN + Style.BRIGHT + 'content: ' + Style.RESET_ALL +
           '({}   ...   {}) '.format(paragraphs[0], paragraphs[-1]))

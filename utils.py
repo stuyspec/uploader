@@ -92,15 +92,12 @@ HEADER_LINE_PATTERN = re.compile(
 
 
 def get_content_start(lines):
-    try:
-        header_end = next((index
-                           for index, value in enumerate(reversed(lines))
-                           if (HEADER_LINE_PATTERN.search(value) or
-                               value[:3] == 'By:' or value[:3] == 'By ')
-                        ))
-        return len(lines) - header_end
-    except StopIteration:
-        return -1
+    for index, value in enumerate(reversed(lines)):
+        if (HEADER_LINE_PATTERN.search(value) or
+            value[:3] == 'By:' or
+            (value[:3] == 'By ' and value[3].isupper())):
+            return len(lines) - index
+    return -1
 
 
 def get_summary(line):
