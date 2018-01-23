@@ -17,12 +17,12 @@ def init():
     load_dotenv(dotenv_path)
 
 
-def sign_in():
+def sign_in(local=False):
     user_auth = requests.post(
         constants.API_AUTH_ENDPOINT + '/sign_in',
         data=json.dumps({
             'email': os.environ.get("EMAIL"),
-            'password': os.environ.get("PASSWORD")
+            'password': 'local' if local else os.environ.get("PASSWORD")
         }),
         headers=headers
     )

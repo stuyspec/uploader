@@ -626,6 +626,10 @@ def choose_media(media_files, photo_folder_id):
                 break
 
         images.append(image)
+    print(images)
+    if len(images) > 1:
+        raise ValueError()
+    return images
 
 def choose_local_media():
     images = []
@@ -700,6 +704,8 @@ def post_media_file(filename, data):
 
 def post_media(article_id, medias):
     """Takes array of objects with artist_name, file, title, caption."""
+    print(medias)
+    raise ValueError
     for media in medias:
         for field in [
                 'artist_name', 'file', 'title', 'caption', 'is_featured',
@@ -708,17 +714,17 @@ def post_media(article_id, medias):
             if field not in media:
                 raise ValueError('Media object has no attribute {}.'
                                  .format(field))
-            filename = download_file(media['file'])
-            user_id = users.create_artist(media['artist_name'],
-                                          media['media_type'])
-            response = post_media_file(filename, {
-                'article_id': article_id,
-                'user_id': user_id,
-                'media_type': media['media_type'],
-                'is_featured': media['is_featured'],
-                'title': media['title'],
-                'caption': media['caption']
-            })
+        filename = download_file(media['file'])
+        user_id = users.create_artist(media['artist_name'],
+                                      media['media_type'])
+        response = post_media_file(filename, {
+            'article_id': article_id,
+            'user_id': user_id,
+            'media_type': media['media_type'],
+            'is_featured': media['is_featured'],
+            'title': media['title'],
+            'caption': media['caption']
+        })
 
 
 def main(url=None, filename=None):
@@ -757,7 +763,7 @@ def init():
     global files
     with open(DRIVE_STORAGE_FILENAME, 'r') as f:
         files = ast.literal_eval(f.read())
-        print(Fore.YELLOW + Style.BRIGHT + 'Scanned in {} memoized Drive files from files.in.'
+        print(Fore.YELLOW + Style.BRIGHT + 'Memoized {} Drive files from files.in.'
               .format(len(files)) + Style.RESET_ALL)
 
     config.sign_in()
