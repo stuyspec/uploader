@@ -704,8 +704,6 @@ def post_media_file(filename, data):
 
 def post_media(article_id, medias):
     """Takes array of objects with artist_name, file, title, caption."""
-    print(medias)
-    raise ValueError
     for media in medias:
         for field in [
                 'artist_name', 'file', 'title', 'caption', 'is_featured',
