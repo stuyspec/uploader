@@ -41,8 +41,8 @@ try:
                         help='rescan Drive files for adjustments')
     parser.add_argument('--window', dest='window', action='store_true',
                         help='open windows on Drive load')
-    parser.add_argument('--write-url', help='post a solitary article via url')
-    parser.add_argument('--write-path', help='post a solitary article via file path')
+    parser.add_argument('--write_url', help='post a solitary article via url')
+    parser.add_argument('--write_path', help='post a solitary article via file path')
     parser.add_argument('--volume', help='supply volume number')
     parser.add_argument('--issue', help='supply issue number')
     parser.set_defaults(window=False)
