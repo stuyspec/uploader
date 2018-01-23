@@ -37,16 +37,16 @@ try:
         description='Automatically upload Spectator articles.',
         parents=[tools.argparser])
     parser.add_argument('--local', help='post data to a specified port')
-    parser.add_argument('-s', dest='scan', action='store_true',
-                        help='first scan files for id adjustments')
+    parser.add_argument('--rescan', dest='rescan', action='store_true',
+                        help='rescan Drive files for adjustments')
     parser.add_argument('--window', dest='window', action='store_true',
                         help='open windows on Drive load')
     parser.add_argument('--write-url', help='post a solitary article via url')
-    parser.add_argument('--write-path', help='post a solitary article via path')
-    parser.add_argument('-volume')
-    parser.add_argument('-issue')
+    parser.add_argument('--write-path', help='post a solitary article via file path')
+    parser.add_argument('--volume', help='supply volume number')
+    parser.add_argument('--issue', help='supply issue number')
     parser.set_defaults(window=False)
-    parser.set_defaults(scan=False)
+    parser.set_defaults(rescan=False)
 
     flags = parser.parse_args()
 except ImportError:
@@ -755,7 +755,7 @@ def init():
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('drive', 'v3', http=http)
 
-    if flags.scan:
+    if flags.rescan:
         scan_drive_files(service)
 
     global files
