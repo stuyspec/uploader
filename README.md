@@ -25,8 +25,7 @@ PASSWORD=yourpassword
 ```
 
 ### Rails API
-1. We need something to upload to. If you are testing/developing this project rather than uploading from it, you will need a test API for your garbage data.
-2. Follow the instructions on the [Rails API repo](http://github.com/stuyspec/stuy-spec-api) to install/localhost.
+If you are testing/developing this project rather than uploading from it, you will need a test API for your garbage and possibly messed up data. Follow the instructions on the [Rails API repo](http://github.com/stuyspec/stuy-spec-api) to install and host it locally.
 
 ## Running the program
 Simply run the program with `python supr.py` and follow the prompts. If it is your first time running, use the flag `--rescan` to memoize all Drive files.
