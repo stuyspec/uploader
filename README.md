@@ -25,12 +25,44 @@ PASSWORD=yourpassword
 ```
 
 ### Rails API
+
 If you are testing/developing this project rather than uploading from it, you will need a test API for your garbage and possibly messed up data. Follow the instructions on the [Rails API repo](http://github.com/stuyspec/stuy-spec-api) to install and host it locally.
 
+## Cleaning content to be uploaded
+
+Before you can run the program, housekeeping needs to be done on the writers' content.
+
+1. In the Drive folder (named Issue N), make sure the photo and art folders are named Photo Color/Photo and Art (not fart, which is common).
+
+2. Go into `SBC` (seen by copy) and make sure the staff editorial is a direct child (the program will look for any file with any name like "staff ed", "staff editorial", etc.)
+
+3. In each department's folder, open every article and make sure:
+- The first line is the title (it's okay if it starts with "Title: ")
+- There is a byline
+- The way the content uploader finds the content start is it starts from the last paragraph and increments upwards until it hits what it deems the start of the slug (a sentence with "Focus sentence", "NN words", "Outquote:", etc.) Make sure such a sentence exists.
+  - Some writers put outquotes on multiple lines, and the `cli-uploadeer` does not know which line is the slug start. In cases like those, move the focus sentence, which is always on one line, after the outquote. Or add a blank "Focus sentence:" on a newline after the outquote
+  - If the outquote is "At least two" or the focus sentence is "none" or something like that, make it empty
+- RESOLVE/REMOVE ALL COMMENTS/SUGGESTIONS
+- If there are notes below the article from the writer (e.g. email interview, quotes) delete them.
+
+Don't worry about "fixing" these ignored [files](https://github.com/stuyspec/cli-uploader/blob/master/supr.py#L474).
+  
+4. Formatting: there are several styles that can be applied via markup (HTML) in the doc. These are hardcoded into the body of `client-app` and as a whole can be viewed [here](https://github.com/stuyspec/client-app/blob/develop/src/js/modules/articles/components/ArticleBody.js#L25). Available markup is as follows:
+- `<t></t>`: indent, useful for faking a `<ul>` (hopefully we'll add `<ul>` into this list at a later point)
+- `<hr/>`: horizontal rule/line, often used to separate footer notes from content
+- `<h5> ... </h5>`: bold and uppercase
+- `<h4> ... </h4>`: bold, uppercase, and centered
+
+These are the ones styled specially in client-app, but any HTML markup can be used (e.g. `<b>`, `<i>`, `<u>`).
+
+
+
 ## Running the program
+
 Simply run the program with `python supr.py` and follow the prompts. If it is your first time running, use the flag `--rescan` to memoize all Drive files.
 
 ### Optional Flags
+
 - **local**: Post data to a specific local port. To use with the Rails API, usage would be `python supr.py --local 3000`.
 - **rescan**: If there have been structural or content changes in the Drive folders, use `--rescan` to update `files.in` (where the memoized Drive files are stored).
 - **window**: If you want to open the Issue PDF, photo folder, and art folder, use the `--window` flag.
