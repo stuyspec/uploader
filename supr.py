@@ -199,7 +199,6 @@ def download_document(file):
         print('%d%%' % int(status.progress() * 100))
     return fh.getvalue()
 
-
 def download_file(file):
     file_id = file['id']
     request = service.files().get_media(fileId=file_id)
@@ -211,10 +210,9 @@ def download_file(file):
         print('Download {} {}%.'.format(file['name'],
                                         int(status.progress() * 100)))
         fh.seek(0)
-    print(fh)
-    fh.seek(0)
-    image = Image.open(fh)
-    print(image)
+    byteImg = fh.read()
+    dataBytesIO = io.BytesIO(byteImg)
+    image = Image.open(io.BytesIO(dataBytesIO))
     imageName = 'tmp/' + slugify(
         file['name']) + '.' + file['mimeType'].split('/')[1]
     open(imageName, 'a').close()  # touch the file
