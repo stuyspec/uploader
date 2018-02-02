@@ -22,7 +22,7 @@ def sign_in(local=False):
         constants.API_AUTH_ENDPOINT + '/sign_in',
         data=json.dumps({
             'email': os.environ.get("EMAIL"),
-            'password': 'local' if local else os.environ.get("PASSWORD")
+            'password': os.environ.get("PASSWORD")
         }),
         headers=headers
     )

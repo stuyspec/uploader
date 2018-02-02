@@ -90,7 +90,8 @@ ISSUE_DATES = {
         '5': '2017-11-10',
         '6': '2017-12-01',
         '7': '2017-12-20',
-        '8': '2018-01-19'
+        '8': '2018-01-19',
+        '9': '2018-02-02',
     },
 }
 
@@ -210,8 +211,10 @@ def download_file(file):
         print('Download {} {}%.'.format(file['name'],
                                         int(status.progress() * 100)))
         fh.seek(0)
-
+    print(fh)
+    fh.seek(0)
     image = Image.open(fh)
+    print(image)
     imageName = 'tmp/' + slugify(
         file['name']) + '.' + file['mimeType'].split('/')[1]
     open(imageName, 'a').close()  # touch the file
@@ -220,7 +223,6 @@ def download_file(file):
     return imageName
 
 
-# TODO: this middleman function is unnecessary. just analyze_issue => post_modify_headers
 def post_article(data):
     est_now = pytz.utc.localize(datetime.datetime.utcnow()).astimezone(pytz.timezone("America/New_York")).isoformat()
     data['created_at'] = ISSUE_DATES[str(data['volume'])][str(data['issue'])] + est_now[est_now.find('T'):]
