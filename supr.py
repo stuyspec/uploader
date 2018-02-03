@@ -18,6 +18,7 @@ import utils
 import webbrowser
 import users
 import articles
+import shutil
 
 from apiclient import discovery
 from oauth2client import client
@@ -695,6 +696,8 @@ def post_media_file(filename, data):
 
 def post_media(article_id, medias):
     """Takes array of objects with artist_name, file, title, caption."""
+    if len(medias) > 0:
+        print('\nCollecting media')
     for media in medias:
         for field in [
                 'artist_name', 'file', 'title', 'caption', 'is_featured',
@@ -703,9 +706,12 @@ def post_media(article_id, medias):
             if field not in media:
                 raise ValueError('Media object has no attribute {}.'
                                  .format(field))
+
+        print('  Downloading {} ...'.format(media['file']['name']))
         filename = download_file(media['file'])
         user_id = users.create_artist(media['artist_name'],
                                       media['media_type'])
+        print('  Uploading {} ...'.format(media['file']['name']))
         response = post_media_file(filename, {
             'article_id': article_id,
             'user_id': user_id,
@@ -714,6 +720,8 @@ def post_media(article_id, medias):
             'title': media['title'],
             'caption': media['caption']
         })
+
+    print()
 
 
 def main(url=None, filename=None):
