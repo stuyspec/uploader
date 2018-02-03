@@ -135,7 +135,7 @@ def scan_drive_files(service):
             " or mimeType='application/pdf'" +
             " or mimeType contains 'image')",
             spaces='drive',
-            fields='nextPageToken, files(id, name, parents, mimeType)',
+            fields='nextPageToken, files(id, name, parents, mimeType, webContentLink)',
             pageToken=page_token).execute()
         files += response.get('files', [])
         page_token = response.get('nextPageToken', None)
@@ -200,25 +200,16 @@ def download_document(file):
     return fh.getvalue()
 
 def download_file(file):
-    file_id = file['id']
-    request = service.files().get_media(fileId=file_id)
-    fh = io.BytesIO()
-    downloader = MediaIoBaseDownload(fh, request)
-    done = False
-    while done is False:
-        status, done = downloader.next_chunk()
-        print('Download {} {}%.'.format(file['name'],
-                                        int(status.progress() * 100)))
-        fh.seek(0)
-    byteImg = fh.read()
-    dataBytesIO = io.BytesIO(byteImg)
-    image = Image.open(io.BytesIO(dataBytesIO))
-    imageName = 'tmp/' + slugify(
+    if not 'webContentLink' in file:
+        raise ValueError('File {name} ({id}) is missing webContentLink.'
+                         .format(**file))
+    filename = 'tmp/' + slugify(
         file['name']) + '.' + file['mimeType'].split('/')[1]
-    open(imageName, 'a').close()  # touch the file
-    image.save(imageName)
 
-    return imageName
+    r = requests.get(file['webContentLink'], stream=True)
+    with open(filename, 'wb') as f:
+        shutil.copyfileobj(r.raw, f)
+    return filename
 
 
 def post_article(data):
