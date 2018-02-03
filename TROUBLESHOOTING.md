@@ -1,5 +1,8 @@
 # Troubleshooting
 
+- [('Connection aborted.', error("(32, 'EPIPE')",))](#connection-aborted-error32-epipe)
+- [422 Client Error: Unprocessable Entity for url: .../auth]
+
 ### ('Connection aborted.', error("(32, 'EPIPE')",))
 
 S3 has a concept of virtual addressing and path style addressing. Virtual host style is preferred, but it relies on DNS propagation and so until that has happened, S3 sends a redirect when you make a request on the virtual host. The problem is the way the API handles different body types. For file-like objects, it will send a packet before the rest of the body. It will then have time to receive the redirect. For raw string or bytes, however, it will send everything in one go. If that results in a big enough body, S3 will close the connection.
@@ -49,4 +52,22 @@ If proxy.conf does not exist or `cat`-ing it does not have the output, create it
 Reload the nginx service (`sudo service nginx reload`).
 
 
+### 422 Client Error: Unprocessable Entity for url: .../auth
 
+This usually means that the uploader tried to make an account with an email that has already been taken. It is probable that the author/artist's name in the Google Doc or media input has a typo or is a nickname. Log into the AWS console and navigate to the Elastic Beanstalk service. Select the application API you tried to upload to and navigate to the logs. Request the last 100 lines and find the email that triggered the 422 error.
+
+In the rails console (directions in the previous troubleshooting section) find the User with that email (`User.find_by(email: FAULTY_EMAIL)`). If the `first_name` and `last_name` of the user are correct, re-run the cli-uploader and enter the correct names when prompted. If the names in the database are incorrect, fix them in the rails console:
+
+```rb
+# Find the user with the taken email
+> u = User.find_by(email: "FAULTY_EMAIL")
+
+# Change the names
+> u.first_name = CORRECT_FIRST_NAME
+> u.last_name = CORRECT_LAST_NAME
+
+# Update the user in the database
+> u.save
+```
+
+After the names are fixed, re-run the cli-uploader.

@@ -589,7 +589,7 @@ def choose_media(media_files, photo_folder_id):
                     medium for medium in media_files
                         if medium['name'] == filename.decode('utf-8')
                 ))
-                target_file['name'] = target_file['name'].encode('utf-8')
+                target_file['name'] = target_file['name'].encode('utf-8').lower()
                 image['file'] = target_file
                 if any(parent_id == photo_folder_id
                        for parent_id in target_file.get('parents', [])):
@@ -682,6 +682,7 @@ def choose_local_media():
                 break
 
         images.append(image)
+    return images
 
 
 def post_media_file(filename, data):
