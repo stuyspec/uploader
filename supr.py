@@ -587,7 +587,7 @@ def choose_media(media_files, photo_folder_id):
             try:
                 target_file = next((
                     medium for medium in media_files
-                        if medium['name'] == filename
+                        if medium['name'] == filename.decode('utf-8')
                 ))
                 image['file'] = target_file
                 if any(parent_id == photo_folder_id
@@ -720,8 +720,7 @@ def post_media(article_id, medias):
             'title': media['title'],
             'caption': media['caption']
         })
-
-    print()
+        print()
 
 
 def main(url=None, filename=None):
