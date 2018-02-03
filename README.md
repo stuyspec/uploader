@@ -80,6 +80,10 @@ Simply run the program with `python supr.py` and follow the prompts. If it is yo
 
 If the article upload is interrupted by "no email found for ...", find the author's email by searching their name in GMail's "To: ..." prompt. Names/emails will pop up for their stuy.edu account.
 
+### Troubleshooting
+
+For troubleshooting tips, see <TROUBLESHOOTING.md>.
+
 ### Optional Flags
 
 - **local**: Post data to a specific local port. To use with the Rails API, usage would be `python supr.py --local 3000`.
