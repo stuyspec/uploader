@@ -114,7 +114,7 @@ def authenticate_new_user(name_dict):
         email = ''
         while email == '':
             email = raw_input(
-                (Fore.RED + Style.BRIGHT + 'no email found for ' +
+                (Fore.RED + Style.BRIGHT + '  no email found for ' +
                  '{first_name} {last_name}. '.format(**name_dict) + 'email: ' +
                  Style.RESET_ALL))
     password = utils.generate_password(16)  # generates password of length 16
@@ -188,17 +188,17 @@ def create_artist(name, art_type):
             .then(lambda user_id: make_user_role(user_id, role_name)) \
             .then(lambda user_id: user_id)
         artist_id = create_artist_promise.get()
-        print(Fore.YELLOW + Style.BRIGHT + 'Created {} #{}: {}.'
-              .format(role_name, artist_id, name) + Style.RESET_ALL)
+        print('    Created {} #{}: {}.'
+              .format(role_name, artist_id, name))
 
     elif artist_id < 0:  # user exists, but not user_role
         user_id = make_user_role(-artist_id, role_name)
-        print(Fore.YELLOW + Style.BRIGHT + 'Made user #{}, {}, a {}.'
-              .format(user_id, name, role_name) + Style.RESET_ALL)
+        print('    Made user #{}, {}, a {}.'
+              .format(user_id, name, role_name))
 
     else:  # stuff exists
-        print(Fore.YELLOW + Style.BRIGHT + 'Confirmed {} #{}: {}.'
-              .format(role_name, artist_id, name) + Style.RESET_ALL)
+        print('    Confirmed {} #{}: {}.'
+              .format(role_name, artist_id, name))
 
     return artist_id
 
