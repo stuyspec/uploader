@@ -1,4 +1,6 @@
-### `('Connection aborted.', error("(32, 'EPIPE')",))`
+# Troubleshooting
+
+### ('Connection aborted.', error("(32, 'EPIPE')",))
 
 S3 has a concept of virtual addressing and path style addressing. Virtual host style is preferred, but it relies on DNS propagation and so until that has happened, S3 sends a redirect when you make a request on the virtual host. The problem is the way the API handles different body types. For file-like objects, it will send a packet before the rest of the body. It will then have time to receive the redirect. For raw string or bytes, however, it will send everything in one go. If that results in a big enough body, S3 will close the connection.
 
