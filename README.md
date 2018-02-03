@@ -82,7 +82,7 @@ If the article upload is interrupted by "no email found for ...", find the autho
 
 ### Troubleshooting
 
-For troubleshooting tips, see <TROUBLESHOOTING.md>.
+For troubleshooting tips, see our [troubleshooting document](TROUBLESHOOTING.md).
 
 ### Optional Flags
 
