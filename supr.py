@@ -589,6 +589,7 @@ def choose_media(media_files, photo_folder_id):
                     medium for medium in media_files
                         if medium['name'] == filename.decode('utf-8')
                 ))
+                target_file['name'] = target_file['name'].encode('utf-8')
                 image['file'] = target_file
                 if any(parent_id == photo_folder_id
                        for parent_id in target_file.get('parents', [])):
@@ -706,7 +707,6 @@ def post_media(article_id, medias):
             if field not in media:
                 raise ValueError('Media object has no attribute {}.'
                                  .format(field))
-
         print('  Downloading {} ...'.format(media['file']['name']))
         filename = download_file(media['file'])
         user_id = users.create_artist(media['artist_name'],
