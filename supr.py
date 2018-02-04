@@ -1,35 +1,36 @@
 from __future__ import print_function
-from promise import Promise
+
 import httplib2
 import os
 import re
 import io
 import ast
+import sys
 import json
 import docx
-import datetime
 import pytz
+import utils
+import users
+import shutil
+import config
+import colorama
+import articles
 import requests
-import constants
 import sections
 import articles
-import config
-import utils
+import datetime
+import constants
 import webbrowser
-import users
-import articles
-import shutil
 
-from apiclient import discovery
-from oauth2client import client
-from oauth2client import tools
-from oauth2client.file import Storage
-from apiclient.http import MediaIoBaseDownload
-from slugify import slugify
 from PIL import Image
-
+from slugify import slugify
+from promise import Promise
+from oauth2client import tools
+from oauth2client import client
+from apiclient import discovery
+from oauth2client.file import Storage
 from colorama import Fore, Back, Style
-import colorama
+from apiclient.http import MediaIoBaseDownload
 
 try:
     import argparse
@@ -426,9 +427,14 @@ def analyze_issue(volume, issue):
     issue_folder = get_file(r"Issue\s?{}".format(issue), 'folder',
                             volume_folder['id'])
     sbc_folder = get_file(r"SBC", 'folder', issue_folder['id'])
-    newspaper_pdf = get_file("(?i)Issue\s?\d{1,2}(\.pdf)$",
-                             'application/pdf',
-                             issue_folder['id'])
+    try:
+        newspaper_pdf = get_file("(?i)Issue\s?\d{1,2}(\.pdf)$",
+                                 'application/pdf',
+                                 issue_folder['id'])
+    except StopIteration:
+        print('\nMake sure there is a newspaper PDF inside the issue folder named "Issue N.pdf".')
+        sys.exit(1)
+
     art_folder = get_file(r"(?i)art", 'folder', issue_folder['id'])
     try:
         photo_folder = get_file(r"(?i)(photo\s?color)", 'folder',
