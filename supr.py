@@ -94,6 +94,7 @@ ISSUE_DATES = {
         '7': '2017-12-20',
         '8': '2018-01-19',
         '9': '2018-02-02',
+        '10': '2018-02-15',
     },
 }
 
@@ -437,7 +438,7 @@ def analyze_issue(volume, issue):
 
     art_folder = get_file(r"(?i)art", 'folder', issue_folder['id'])
     try:
-        photo_folder = get_file(r"(?i)(photo\s?color)", 'folder',
+        photo_folder = get_file(r"(?i)(photo\s?color)|photo", 'folder',
                                 issue_folder['id'])
     except StopIteration:
         photo_folder = get_file(r"(?i)(photo\s?b&?w)", 'folder',
