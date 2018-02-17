@@ -87,7 +87,7 @@ def get_contributors(byline):
 
 
 HEADER_LINE_PATTERN = re.compile(
-    r'(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})|focus:|article:'
+    r'(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:'
 )
 
 
