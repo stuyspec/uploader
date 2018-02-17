@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import httplib2
 import os
 import re
 import io
@@ -19,6 +18,7 @@ import requests
 import sections
 import articles
 import datetime
+import httplib2
 import constants
 import webbrowser
 
