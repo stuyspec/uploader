@@ -1,7 +1,7 @@
 # Troubleshooting
 
 - [('Connection aborted.', error("(32, 'EPIPE')",))](#connection-aborted-error32-epipe)
-- [422 Client Error: Unprocessable Entity for url: .../auth]
+- [422 Client Error: Unprocessable Entity for url: .../auth](#422-client-error-unprocessable-entity-for-url-auth)
 
 ### ('Connection aborted.', error("(32, 'EPIPE')",))
 
