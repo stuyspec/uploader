@@ -1,4 +1,4 @@
-package main
+package drive
 
 import (
 	"encoding/json"
@@ -18,6 +18,8 @@ import (
 
 	"github.com/skratchdot/open-golang/open"
 )
+
+var httpClient *http.Client
 
 // getClient uses a Context and Config to retrieve an auth Token
 // then generate a Drive Client object. It returns the generated Client.
@@ -91,7 +93,7 @@ func saveToken(file string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func main() {
+func init() {
 	ctx := context.Background()
 
 	b, err := ioutil.ReadFile("client_secret.json")
@@ -105,9 +107,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
-	client := getClient(ctx, config)
+	httpClient = getClient(ctx, config)
+}
 
-	srv, err := drive.New(client)
+func ScanDriveFiles() {
+	srv, err := drive.New(httpClient)
 	if err != nil {
 		log.Fatalf("Unable to retrieve drive Client %v", err)
 	}
