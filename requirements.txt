@@ -1,4 +1,0 @@
-httplib2==0.10.3
-colorama==0.3.9
-requests==2.18.4
-google_api_python_client==1.6.4
