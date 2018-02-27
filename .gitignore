@@ -1,6 +1,0 @@
-.DS_Store
-client_secret.json
-.idea/*
-*.pyc
-node_modules/*
-tmp/*
