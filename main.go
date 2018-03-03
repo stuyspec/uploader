@@ -1,36 +1,50 @@
 package main
 
 import (
-	"./db"
+	"./cache"
 	"./driveclient"
+	"./drivefile"
 
 	"github.com/urfave/cli"
 	"log"
 	"os"
 )
 
-func main() {
-	defer db.CloseDB()
+var cliApp *cli.App
 
-	app := cli.NewApp()
-	app.Name = "Spectator Uploader"
-	app.Usage = "Automagically upload Spec articles"
-	app.Flags = []cli.Flag{
+func init() {
+
+	// Create CLI App
+	cliApp = cli.NewApp()
+	cliApp.Name = "Spectator Uploader"
+	cliApp.Usage = "Upload Spectator articles"
+	cliApp.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "reload, r",
-			Usage: "should reload/memoize Drive files?",
+			Usage: "reload and cache Drive files?",
 		},
 	}
 
-	app.Action = func(c *cli.Context) error {
+	cliApp.Action = func(c *cli.Context) error {
 		if c.Bool("reload") {
 			driveFiles := driveclient.ScanDriveFiles()
-			db.InsertDriveFiles(driveFiles)
+			cache.Set("DriveFiles", driveFiles)
+			err := cache.SaveFile()
+			if err != nil {
+				log.Fatalf("Unable to save cache. %v", err)
+			}
+		} else {
+			driveFiles, found := cache.Get("DriveFiles")
+			if found {
+				log.Println(driveFiles.(*map[string]*drivefile.DriveFile))
+			}
 		}
 		return nil
 	}
+}
 
-	err := app.Run(os.Args)
+func main() {
+	err := cliApp.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
