@@ -51,12 +51,62 @@ func InitDB(dataSourceName string) {
     }
 }
 
-// InsertDriveFiles inserts DriveFile records into the DB.
-func InsertDriveFiles(driveFiles *map[string]*driveclient.DriveFile) {
-	insertDriveFileStmt.Exec()
+// InsertDriveFile inserts a Drive file after creating its parents.
+func InsertDriveFile(
+	file *drivefile.DriveFile,
+	driveFileMap *map[string]*drivefile.DriveFile) {
+
+	parentID := file.TrueParent(driveFileMap)
+
+	log.Printf("inserting =====\n%v\n=====\n", file)
+	for _, parentID := range file.Parents {
+		var res string
+		err := findDriveFileStmt.QueryRow(parentID).Scan(&res)
+		if err != nil {
+			parent, ok := (*driveFileMap)[parentID]
+			if ok {
+				log.Printf("No parent exists, found Drive parent: %v", parentID)
+				InsertDriveFile(parent, driveFileMap)
+			}
+		}
+	}
+	log.Printf("ready to execute insert for file with id %v\n", file.Id)
+
+	var err error
+	if len(file.Parents) > 0 {
+		log.Println("Found parents, inserting...")
+		_, err = insertDriveFileWithParentStmt.Exec(
+			file.Id,
+			file.Name,
+			file.MimeType,
+			file.WebContentLink,
+			file.Parents[0],
+		)
+	} else {
+		log.Println("No parents, inserting...")
+		_, err = insertDriveFileStmt.Exec(
+			file.Id,
+			file.Name,
+			file.MimeType,
+			file.WebContentLink,
+		)
+	}
+	if err != nil {
+		log.Fatalf("Unable to execute insert statement. %v", err)
+	}
+	log.Println("Insert successful!")
 }
 
-// CloseDB closes the database.
+// InsertDriveFiles inserts DriveFile records into the DB.
+func InsertDriveFiles(driveFiles *map[string]*drivefile.DriveFile) {
+	for _, driveFile := range *driveFiles {
+		InsertDriveFile(driveFile, driveFiles)
+	}
+}
+
+// CloseDB closes the database and all connections/resources.
 func CloseDB() {
+	insertDriveFileStmt.Close()
+	findDriveFileStmt.Close()
 	db.Close()
 }
