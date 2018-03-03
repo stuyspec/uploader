@@ -1,3 +1,5 @@
+// Package driveclient contains useful functions for creating and interacting
+// with the Drive client API.
 package driveclient
 
 import (
@@ -19,7 +21,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 )
 
-var httpClient *http.Client
+var driveService *drive.Service
 
 // getClient uses a Context and Config to retrieve an auth Token
 // then generate a Drive Client object. It returns the generated Client.
@@ -96,9 +98,9 @@ func saveToken(file string, token *oauth2.Token) {
 func init() {
 	ctx := context.Background()
 
-	b, err := ioutil.ReadFile("client_secret.json")
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
+	b, readErr := ioutil.ReadFile("client_secret.json")
+	if readErr != nil {
+		log.Fatalf("Unable to read client secret file: %v", readErr)
 	}
 
 	// If modifying these scopes, delete your previously saved credentials
@@ -107,22 +109,25 @@ func init() {
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
-	httpClient = getClient(ctx, config)
+	httpClient := getClient(ctx, config)
+
+	var driveErr error
+	driveService, driveErr = drive.New(httpClient)
+	if driveErr != nil {
+		log.Fatalf("Unable to retrieve drive Client %v", driveErr)
+	}
 }
 
+// ScanDriveFiles memoizes all Drive file metadata into a text file.
 func ScanDriveFiles() {
-	srv, err := drive.New(httpClient)
-	if err != nil {
-		log.Fatalf("Unable to retrieve drive Client %v", err)
-	}
-
-	driveFiles := make([]*drive.File, 0) // make empty slice
+	driveFiles := make([]*drive.File, 0)
 
 	// Loop through pages of files
 	var nextPageToken string
 	for {
-		query := srv.Files.List().PageSize(10).
-			Fields("nextPageToken, files(id, name, parents, mimeType, webContentLink)")
+		query := driveService.Files.List().PageSize(10).
+			Fields("nextPageToken, " +
+			"files(id, name, parents, mimeType, webContentLink)")
 		if len(nextPageToken) > 0 {
 			query = query.PageToken(nextPageToken)
 		}
@@ -143,10 +148,10 @@ func ScanDriveFiles() {
 
 		nextPageToken = r.NextPageToken
 	}
-	printDriveFiles(&driveFiles)
+	PrintDriveFiles(&driveFiles)
 }
 
-func printDriveFiles(files *[]*drive.File) {
+func PrintDriveFiles(files *[]*drive.File) {
 	stringedFiles := ""
 	for _, f := range *files {
 		stringedFiles += "\n" + StringDriveFile(f) + ","
@@ -155,7 +160,7 @@ func printDriveFiles(files *[]*drive.File) {
 }
 
 func StringDriveFile(file *drive.File) string {
-	output += "  {\n" +
+	return "  {\n" +
 		"    id: " + file.Id +
 		",\n    name: " + file.Name +
 		",\n    mimeType: " + file.MimeType +
