@@ -120,12 +120,12 @@ func init() {
 
 // MemoizeDriveFiles memoizes all Drive file metadata into a text file.
 func MemoizeDriveFiles() {
-	driveFiles := make([]*drive.File, 0)
+	driveFiles := make([]*DriveFile, 0)
 
 	// Loop through pages of files
 	var nextPageToken string
 	for {
-		query := driveService.Files.List().PageSize(10).
+		query := driveService.Files.List().PageSize(100).
 			Fields("nextPageToken, " +
 			"files(id, name, parents, mimeType, webContentLink)")
 		if len(nextPageToken) > 0 {
@@ -143,28 +143,43 @@ func MemoizeDriveFiles() {
 			break
 		}
 
-		driveFiles = append(driveFiles, r.Files...)
-		break
+		for _, f := range r.Files {
+			driveFiles = append(driveFiles, NewDriveFile(f))
+		}
+
+		fmt.Printf("Scanned %d Drive files.\n", len(driveFiles))
 
 		nextPageToken = r.NextPageToken
 	}
-	PrintDriveFiles(&driveFiles)
 }
 
-func PrintDriveFiles(files *[]*drive.File) {
-	stringedFiles := ""
-	for _, f := range *files {
-		stringedFiles += "\n" + StringDriveFile(f) + ","
-	}
-	fmt.Printf("[%s\n]\n", stringedFiles)
+type DriveFile struct {
+	Id string
+	Name string
+	MimeType string
+	Parents []string
+	WebContentLink string
 }
 
-func StringDriveFile(file *drive.File) string {
-	return "  {\n" +
+func (file *DriveFile) String() string {
+	return "{\n" +
 		"    id: " + file.Id +
 		",\n    name: " + file.Name +
 		",\n    mimeType: " + file.MimeType +
 		",\n    parents: " + fmt.Sprint(file.Parents) +
 		",\n    webContentLink: " + file.WebContentLink +
-		",\n  }"
+		",\n }\n"
+}
+
+func NewDriveFile(f *drive.File) *DriveFile {
+	if len(f.Parents) > 1 {
+		println(fmt.Sprintf("%s: %v", f.Name, f.Parents))
+	}
+	return &DriveFile{
+		f.Id,
+		f.Name,
+		f.MimeType,
+		f.Parents,
+		f.WebContentLink,
+	}
 }
