@@ -119,7 +119,17 @@ func init() {
 		log.Fatalf("Unable to retrieve drive Client %v", driveErr)
 	}
 }
-
+/*
+{u'mimeType': u'application/vnd.google-apps.document', u'parents': [u'1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H'], u'id': u'1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y', u'name': u'[CLOSED] Issue9_News_BigSibConstitution'}
+>>> m['1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H']
+{u'mimeType': u'application/vnd.google-apps.folder', u'parents': [u'12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1'], u'id': u'1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H', u'name': u'News'}
+>>> m['12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1']
+{u'mimeType': u'application/vnd.google-apps.folder', u'parents': [u'1fuzEQFBcKBNiysFjaI_zzFN-jNVEPASy'], u'id': u'12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1', u'name': u'SBC'}
+>>> m['1fuzEQFBcKBNiysFjaI_zzFN-jNVEPASy']
+{u'mimeType': u'application/vnd.google-apps.folder', u'parents': [u'0B_nzfPsNLo6oTEhVdmJNV1diY28'], u'id': u'1fuzEQFBcKBNiysFjaI_zzFN-jNVEPASy', u'name': u'Issue 9'}
+>>> m['0B_nzfPsNLo6oTEhVdmJNV1diY28']
+{u'mimeType': u'application/vnd.google-apps.folder', u'id': u'0B_nzfPsNLo6oTEhVdmJNV1diY28', u'name': u'Volume 108 No. 1-9'}
+*/
 // ScanDriveFiles reads metadata on all Drive files from the Drive client.
 // It returns the DriveFiles.
 func ScanDriveFiles() *map[string]*drivefile.DriveFile {
