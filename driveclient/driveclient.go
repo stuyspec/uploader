@@ -1,4 +1,4 @@
-package drive
+package driveclient
 
 import (
 	"encoding/json"
@@ -116,11 +116,13 @@ func ScanDriveFiles() {
 		log.Fatalf("Unable to retrieve drive Client %v", err)
 	}
 
+	driveFiles := make([]*drive.File, 0) // make empty slice
+
 	// Loop through pages of files
 	var nextPageToken string
 	for {
-		query := srv.Files.List().PageSize(100).
-			Fields("nextPageToken, files(id, name)")
+		query := srv.Files.List().PageSize(10).
+			Fields("nextPageToken, files(id, name, parents, mimeType, webContentLink)")
 		if len(nextPageToken) > 0 {
 			query = query.PageToken(nextPageToken)
 		}
@@ -135,14 +137,29 @@ func ScanDriveFiles() {
 			fmt.Println("No more files.")
 			break
 		}
-		nextPageToken = r.NextPageToken
 
-		if len(r.Files) > 0 {
-			for _, i := range r.Files {
-				fmt.Printf("%s\n", i.Name)
-			}
-		} else {
-			fmt.Println("No files found.")
-		}
+		driveFiles = append(driveFiles, r.Files...)
+		break
+
+		nextPageToken = r.NextPageToken
 	}
+	printDriveFiles(&driveFiles)
+}
+
+func printDriveFiles(files *[]*drive.File) {
+	stringedFiles := ""
+	for _, f := range *files {
+		stringedFiles += "\n" + StringDriveFile(f) + ","
+	}
+	fmt.Printf("[%s\n]\n", stringedFiles)
+}
+
+func StringDriveFile(file *drive.File) string {
+	output += "  {\n" +
+		"    id: " + file.Id +
+		",\n    name: " + file.Name +
+		",\n    mimeType: " + file.MimeType +
+		",\n    parents: " + fmt.Sprint(file.Parents) +
+		",\n    webContentLink: " + file.WebContentLink +
+		",\n  }"
 }
