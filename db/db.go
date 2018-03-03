@@ -2,7 +2,7 @@
 package db
 
 import (
-	"../driveclient"
+	"../drivefile"
 
 	"log"
 
@@ -11,15 +11,28 @@ import (
 )
 
 var db *sql.DB
-var insertDriveFileStmt *sql.Stmt
+var insertDriveFileStmt, insertDriveFileWithParentStmt, findDriveFileStmt *sql.Stmt
 
 func init() {
 	InitDB("user=stuyspecweb dbname=stuy-spec-uploader sslmode=disable")
 
-	var error err
-	insertDriveFileStmt, err = db.Prepare("INSERT INTO " +
-		"(DriveFileID, Filename, MimeType, WebContentLink, ParentID) " +
-		"VALUES(?, ?, ?, ?, ?)")
+	var err error
+	insertDriveFileStmt, err = db.Prepare(
+		`INSERT INTO DriveFiles (DriveFileID, Filename, MimeType, WebContentLink)
+VALUES ($1, $2, $3, $4);`)
+	if err != nil {
+		log.Fatalf("Unable to prepare insert statement. %v", err)
+	}
+
+	insertDriveFileWithParentStmt, err = db.Prepare(
+		`INSERT INTO DriveFiles (DriveFileID, Filename, MimeType, WebContentLink, ParentID)
+VALUES ($1, $2, $3, $4, $5);`)
+	if err != nil {
+		log.Fatalf("Unable to prepare insert statement. %v", err)
+	}
+
+	findDriveFileStmt, err = db.Prepare(
+		`SELECT Filename from DriveFiles WHERE DriveFileID = $1`)
 	if err != nil {
 		log.Fatalf("Unable to prepare insert statement. %v", err)
 	}
