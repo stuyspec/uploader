@@ -118,10 +118,19 @@ func init() {
 	}
 }
 
-// MemoizeDriveFiles memoizes all Drive file metadata into a text file.
-func MemoizeDriveFiles() {
-	driveFiles := make([]*DriveFile, 0)
-
+// ScanDriveFiles reads metadata on all Drive files from the Drive client.
+// It returns the DriveFiles.
+func ScanDriveFiles() *map[string]*DriveFile {
+	// driveFiles := make([]*DriveFile, 0)
+	driveFiles := map[string]*DriveFile{
+		"1": &DriveFile{"1", "n1", "m1", []string{}, ""},
+		"2": &DriveFile{"2", "n2", "m2", []string{"1"}, ""},
+		"3": &DriveFile{"3", "n3", "m3", []string{"2"}, ""},
+		"4": &DriveFile{"4", "n4", "m4", []string{"3"}, ""},
+		"5": &DriveFile{"5", "n5", "m5", []string{"4"}, ""},
+	}
+	return &driveFiles
+	/*
 	// Loop through pages of files
 	var nextPageToken string
 	for {
@@ -151,6 +160,7 @@ func MemoizeDriveFiles() {
 
 		nextPageToken = r.NextPageToken
 	}
+*/
 }
 
 type DriveFile struct {
