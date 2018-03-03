@@ -19,3 +19,7 @@ client_secret.json
 
 # macOS
 .DS_Store
+
+# Emacs
+\#*\#
+.\#*
