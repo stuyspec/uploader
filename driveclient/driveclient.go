@@ -119,29 +119,49 @@ func init() {
 		log.Fatalf("Unable to retrieve drive Client %v", driveErr)
 	}
 }
-/*
-{u'mimeType': u'application/vnd.google-apps.document', u'parents': [u'1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H'], u'id': u'1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y', u'name': u'[CLOSED] Issue9_News_BigSibConstitution'}
->>> m['1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H']
-{u'mimeType': u'application/vnd.google-apps.folder', u'parents': [u'12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1'], u'id': u'1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H', u'name': u'News'}
->>> m['12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1']
-{u'mimeType': u'application/vnd.google-apps.folder', u'parents': [u'1fuzEQFBcKBNiysFjaI_zzFN-jNVEPASy'], u'id': u'12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1', u'name': u'SBC'}
->>> m['1fuzEQFBcKBNiysFjaI_zzFN-jNVEPASy']
-{u'mimeType': u'application/vnd.google-apps.folder', u'parents': [u'0B_nzfPsNLo6oTEhVdmJNV1diY28'], u'id': u'1fuzEQFBcKBNiysFjaI_zzFN-jNVEPASy', u'name': u'Issue 9'}
->>> m['0B_nzfPsNLo6oTEhVdmJNV1diY28']
-{u'mimeType': u'application/vnd.google-apps.folder', u'id': u'0B_nzfPsNLo6oTEhVdmJNV1diY28', u'name': u'Volume 108 No. 1-9'}
-*/
+
 // ScanDriveFiles reads metadata on all Drive files from the Drive client.
 // It returns the DriveFiles.
 func ScanDriveFiles() *map[string]*drivefile.DriveFile {
-	// driveFiles := make([]*drivefile.DriveFile, 0)
 	driveFiles := map[string]*drivefile.DriveFile{
-		"1": &drivefile.DriveFile{"1", "n1", "m1", []string{}, ""},
-		"2": &drivefile.DriveFile{"2", "n2", "m2", []string{"1"}, ""},
-		"3": &drivefile.DriveFile{"3", "n3", "m3", []string{"2"}, ""},
-		"4": &drivefile.DriveFile{"4", "n4", "m4", []string{"3"}, ""},
-		"5": &drivefile.DriveFile{"5", "n5", "m5", []string{"4"}, ""},
+		"1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y": drivefile.NewDriveFile(
+			"1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y",
+			"[CLOSED] Issue9_News_BigSibConstitution",
+			"application/vnd.google-apps.document",
+			"",
+			[]string{"1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H"},
+		),
+		"1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H": drivefile.NewDriveFile(
+			"1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H",
+			"News",
+			"application/vnd.google-apps.folder",
+			"",
+			[]string{"12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1"},
+		),
+		"12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1": drivefile.NewDriveFile(
+			"12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1",
+			"SBC",
+			"application/vnd.google-apps.folder",
+			"",
+			[]string{"1fuzEQFBcKBNiysFjaI_zzFN-jNVEPAS"},
+		),
+		"1fuzEQFBcKBNiysFjaI_zzFN-jNVEPAS": drivefile.NewDriveFile(
+			"1fuzEQFBcKBNiysFjaI_zzFN-jNVEPAS",
+			"Issue 9",
+			"application/vnd.google-apps.folder",
+			"",
+			[]string{"0B_nzfPsNLo6oTEhVdmJNV1diY28"},
+		),
+		"0B_nzfPsNLo6oTEhVdmJNV1diY28": drivefile.NewDriveFile(
+			"0B_nzfPsNLo6oTEhVdmJNV1diY28",
+			"Volume 108 No. 1-9",
+			"application/vnd.google-apps.folder",
+			"",
+			[]string{},
+		),
 	}
 	return &driveFiles
+
 	/*
 	// Loop through pages of files
 	var nextPageToken string
