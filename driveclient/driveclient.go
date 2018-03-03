@@ -118,8 +118,8 @@ func init() {
 	}
 }
 
-// ScanDriveFiles memoizes all Drive file metadata into a text file.
-func ScanDriveFiles() {
+// MemoizeDriveFiles memoizes all Drive file metadata into a text file.
+func MemoizeDriveFiles() {
 	driveFiles := make([]*drive.File, 0)
 
 	// Loop through pages of files
