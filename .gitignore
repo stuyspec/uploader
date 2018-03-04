@@ -23,3 +23,6 @@ client_secret.json
 # Emacs
 \#*\#
 .\#*
+
+# Cache files from go-cache
+*.cache
