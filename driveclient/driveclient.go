@@ -3,7 +3,7 @@
 package driveclient
 
 import (
-	"../drivefile"
+	"cli-uploader/drivefile"
 
 	"encoding/json"
 	"fmt"
@@ -122,7 +122,7 @@ func init() {
 
 // ScanDriveFiles reads metadata on all Drive files from the Drive client.
 // It returns the DriveFiles.
-func ScanDriveFiles() *map[string]*drivefile.DriveFile {
+func ScanDriveFiles() map[string]*drivefile.DriveFile {
 	driveFiles := map[string]*drivefile.DriveFile{
 		"1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y": drivefile.NewDriveFile(
 			"1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y",
@@ -160,7 +160,7 @@ func ScanDriveFiles() *map[string]*drivefile.DriveFile {
 			[]string{},
 		),
 	}
-	return &driveFiles
+	return driveFiles
 
 	/*
 	// Loop through pages of files
