@@ -30,12 +30,9 @@ func init() {
 		if c.Bool("reload") || !found {
 			driveFiles = driveclient.ScanDriveFiles()
 			cache.Set("DriveFiles", driveFiles)
-			cacheErr := cache.SaveCache()
-			if cacheErr != nil {
-				log.Fatalf("Unable to save cache. %v", cacheErr)
-			}
 		}
 	}
+
 }
 
 func main() {

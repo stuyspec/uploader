@@ -52,35 +52,3 @@ func NewDriveFileFromDrive(file *drive.File) *DriveFile {
 		file.Parents,
 	)
 }
-
-// TrueParent finds the true parent of a DriveFile. Drive files often have
-// multiple parents, and parents are crucial to knowing which files belong to
-// issues.
-// It returns the true parent.
-func (f *DriveFile) TrueParent(driveFileMap *map[string]*DriveFile) (parent *DriveFile, err bool) {
-	parents := f.Parents
-	for i := 0; i < len(parents); i++ {
-		_, ok := (*driveFileMap)[parents[i]]
-		if !ok {
-			// If no such parent exists, remove the parentID
-			parents = append(parents[:i], parents[i+1:]...)
-		}
-	}
-
-	if len(parents) < 2 {
-		if len(parents) == 1 {
-			parent = (*driveFileMap)[parents[0]]
-		} else {
-			err = true
-		}
-		return
-	}
-
-	// If the file is an image, we want the parent that is a Photo/Art folder.
-	if strings.Contains(f.MimeType, "image") {
-
-	}
-
-	err = true
-	return
-}

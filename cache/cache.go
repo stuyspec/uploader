@@ -34,8 +34,10 @@ func init() {
 }
 
 // Set adds an item to the cache, replacing any existing item.
-func Set(k string, x interface{}) {
+func Set(k string, x interface{}) (err error) {
 	c.Set(k, x, cache.DefaultExpiration)
+	err = saveCache()
+	return
 }
 
 // Get gets an item from the cache.
@@ -44,8 +46,8 @@ func Get(k string) (interface{}, bool) {
 	return c.Get(k)
 }
 
-// SaveCache saves the cache map.
-func SaveCache() (err error) {
+// saveCache saves the cache map.
+func saveCache() (err error) {
 	var encodedBinary string
 	encodedBinary, err = CacheMapToGOB64(c.Items())
 	if err != nil {
