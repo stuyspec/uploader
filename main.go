@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./cache"
-	"./driveclient"
-	"./drivefile"
+	"cli-uploader/cache"
+	"cli-uploader/driveclient"
+	// "./drivefile"
 
 	"github.com/urfave/cli"
 	"log"
@@ -26,20 +26,15 @@ func init() {
 	}
 
 	cliApp.Action = func(c *cli.Context) error {
-		if c.Bool("reload") {
-			driveFiles := driveclient.ScanDriveFiles()
+		driveFiles, found := cache.Get("DriveFiles")
+		if c.Bool("reload") || !found {
+			driveFiles = driveclient.ScanDriveFiles()
 			cache.Set("DriveFiles", driveFiles)
-			err := cache.SaveFile()
-			if err != nil {
-				log.Fatalf("Unable to save cache. %v", err)
-			}
-		} else {
-			driveFiles, found := cache.Get("DriveFiles")
-			if found {
-				log.Println(driveFiles.(*map[string]*drivefile.DriveFile))
+			cacheErr := cache.SaveCache()
+			if cacheErr != nil {
+				log.Fatalf("Unable to save cache. %v", cacheErr)
 			}
 		}
-		return nil
 	}
 }
 
