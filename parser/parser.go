@@ -78,3 +78,31 @@ func ArticleContributors(byline string) (contributors []map[string]string) {
     contributors.append(clean_name(' '.join(
         byline[cutoff:])))
 }
+
+// nameVariables splits a name of variable length into a first name and a last
+// name and removes nickname formatting (e.g. Ying Zi (Jessy) Mei).
+// It returns the formatted name as a map with a first_name and last_name.
+func nameVariables(name string) map[string]string {
+	variables := make(map[string]string)
+
+	// Remove redundant spaces and nicknames
+	name = strings.Join(strings.Fields(name), " ")
+	// name = nicknamePattern.ReplaceAllString(name, "")
+
+	var first_name, last_name string
+	components := strings.Split(name, " ")
+	if len(name) == 0 {
+		log.Fatalf("No name given or whole name faulty.")
+	} else	if len(components) == 1 {
+		first_name, last_name = name, name
+	} else if len(components) > 2 {
+		first_name = strings.Join(components[0:len(components)-1], " ")
+		last_name = components[len(components)-1]
+	} else {
+		first_name, last_name = components[0], components[1]
+	}
+
+	variables["first_name"], variables["last_name"] = first_name, last_name
+
+	return variables
+}
