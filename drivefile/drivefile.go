@@ -4,7 +4,6 @@ package drivefile
 import (
 	"google.golang.org/api/drive/v3"
 	"fmt"
-	"strings"
 )
 
 type DriveFile struct {

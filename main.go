@@ -1,9 +1,11 @@
+// Package main automatically uploads Spectator articles.
 package main
 
 import (
 	"cli-uploader/cache"
 	"cli-uploader/driveclient"
 	"cli-uploader/drivefile"
+	"cli-uploader/parser"
 
 	"github.com/urfave/cli"
 	"log"
@@ -46,6 +48,8 @@ func main() {
 		log.Fatalf("No file found. %v", file)
 	}
 	content := driveclient.DownloadGoogleDoc(file)
+	attributes := parser.ArticleAttributes(content)
+	log.Printf("%v\n", attributes)
 
 	err := cliApp.Run(os.Args)
 	if err != nil {
