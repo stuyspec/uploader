@@ -9,12 +9,16 @@ import (
 
 var slugPattern *regexp.Regexp = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:`)
 
+var nicknamePattern *regexp.Regexp = regexp.MustCompile(`\([\w\s-]*\)\s`)
 
 // Paddings are patterns we want to remove from the desired value
 // (e.g. "Title: ", "Outquote(s): ")
 var bylinePadding *regexp.Regexp = regexp.MustCompile(`By:/\s+`)
 var focusPadding *regexp.Regexp = regexp.MustCompile(`(?i)Focus Sentence:?\s+`)
 var titlePadding *regexp.Regexp = regexp.MustCompile(`Title:\s+`)
+
+// Components are patterns that can split a string into easy-to-read components.
+var bylineComponent *regexp.Regexp = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!-?;]`)
 
 // ArticleAttributes finds the articles of an article for posting.
 // It returns attributes.
@@ -65,8 +69,15 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 func ArticleContributors(byline string) (contributors []map[string]string) {
 	contributors = make([]map[string]string, 0)
 	byline = bylinePadding.ReplaceAllString(byline, "")
+	components := bylineComponent.FindAllString(byline, -1)
 
-	cutoff := 0
+	slicerIndex := 0
+	for i, symbol := range components {
+		if symbol == "&" || symbol == "," || symbol == "and" {
+			name = strings.Join(" ", byline[slicerIndex:i])
+			contributors = append(contributors, nameVariables(name))
+		}
+	}
 	for i, c := range byline {
 		if c == // need to find all string for the byline match in backup.python
 	}
