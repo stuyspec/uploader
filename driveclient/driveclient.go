@@ -25,6 +25,30 @@ import (
 
 var driveService *drive.Service
 
+func init() {
+	ctx := context.Background()
+
+	b, readErr := ioutil.ReadFile("client_secret.json")
+	if readErr != nil {
+		log.Fatalf("Unable to read client secret file: %v", readErr)
+	}
+
+	// If modifying these scopes, delete your previously saved credentials
+	// at ~/.credentials/drive-go-stuy-spec-uploader.json. The DriveScope allows
+	// us to view and manage the files in Drive.
+	config, err := google.ConfigFromJSON(b, drive.DriveScope)
+	if err != nil {
+		log.Fatalf("Unable to parse client secret file to config: %v", err)
+	}
+	httpClient := getClient(ctx, config)
+
+	var driveErr error
+	driveService, driveErr = drive.New(httpClient)
+	if driveErr != nil {
+		log.Fatalf("Unable to retrieve drive Client %v", driveErr)
+	}
+}
+
 // getClient uses a Context and Config to retrieve an auth Token
 // then generate a Drive Client object. It returns the generated Client.
 func getClient(ctx context.Context, config *oauth2.Config) *http.Client {
@@ -69,7 +93,7 @@ func tokenCacheFile() (string, error) {
 	tokenCacheDir := filepath.Join(usr.HomeDir, ".credentials")
 	os.MkdirAll(tokenCacheDir, 0700)
 	return filepath.Join(tokenCacheDir,
-		url.QueryEscape("drive-go-quickstart.json")), err
+		url.QueryEscape("drive-go-stuy-spec-uploader.json")), err
 }
 
 // tokenFromFile retrieves a Token from a given file path.
@@ -95,29 +119,6 @@ func saveToken(file string, token *oauth2.Token) {
 	}
 	defer f.Close()
 	json.NewEncoder(f).Encode(token)
-}
-
-func init() {
-	ctx := context.Background()
-
-	b, readErr := ioutil.ReadFile("client_secret.json")
-	if readErr != nil {
-		log.Fatalf("Unable to read client secret file: %v", readErr)
-	}
-
-	// If modifying these scopes, delete your previously saved credentials
-	// at ~/.credentials/drive-go-quickstart.json
-	config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope)
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-	httpClient := getClient(ctx, config)
-
-	var driveErr error
-	driveService, driveErr = drive.New(httpClient)
-	if driveErr != nil {
-		log.Fatalf("Unable to retrieve drive Client %v", driveErr)
-	}
 }
 
 // ScanDriveFiles reads metadata on all Drive files from the Drive client.
