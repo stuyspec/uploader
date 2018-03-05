@@ -3,6 +3,7 @@ package parser
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 )
@@ -13,7 +14,7 @@ var nicknamePattern *regexp.Regexp = regexp.MustCompile(`\([\w\s-]*\)\s`)
 
 // Paddings are patterns we want to remove from the desired value
 // (e.g. "Title: ", "Outquote(s): ")
-var bylinePadding *regexp.Regexp = regexp.MustCompile(`By:/\s+`)
+var bylinePadding *regexp.Regexp = regexp.MustCompile(`By:?\s+`)
 var focusPadding *regexp.Regexp = regexp.MustCompile(`(?i)Focus Sentence:?\s+`)
 var titlePadding *regexp.Regexp = regexp.MustCompile(`Title:\s+`)
 
@@ -57,7 +58,7 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 		}
 
 		if len(bylinePadding.FindStringSubmatch(line)) > 0 {
-			contributors := ArticleContributors(line)
+			attrs["contributors"] = ArticleContributors(line)
 		}
 	}
 
@@ -74,20 +75,13 @@ func ArticleContributors(byline string) (contributors []map[string]string) {
 	slicerIndex := 0
 	for i, symbol := range components {
 		if symbol == "&" || symbol == "," || symbol == "and" {
-			name = strings.Join(" ", byline[slicerIndex:i])
+			name := strings.Join(components[slicerIndex:i], " ")
 			contributors = append(contributors, nameVariables(name))
+			slicerIndex = i + 1
 		}
 	}
-	for i, c := range byline {
-		if c == // need to find all string for the byline match in backup.python
-	}
-    for i in range(0, len(byline)):
-        if byline[i] in ',&' or byline[i] == 'and':
-            name = clean_name(' '.join(byline[cutoff:i]))
-            contributors.append(name)
-            cutoff = i + 1
-    contributors.append(clean_name(' '.join(
-        byline[cutoff:])))
+	contributors = append(contributors, nameVariables(strings.Join(components[slicerIndex:], " ")))
+	return
 }
 
 // nameVariables splits a name of variable length into a first name and a last

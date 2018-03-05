@@ -49,7 +49,7 @@ func main() {
 	}
 	content := driveclient.DownloadGoogleDoc(file)
 	attributes := parser.ArticleAttributes(content)
-	log.Printf("%v\n", attributes)
+	log.Printf("attributes: %v", attributes)
 
 	err := cliApp.Run(os.Args)
 	if err != nil {
