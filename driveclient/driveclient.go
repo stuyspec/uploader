@@ -196,3 +196,22 @@ func ScanDriveFiles() map[string]*drivefile.DriveFile {
 */
 }
 
+// DownloadGoogleDoc downloads a DriveFile by its ID.
+// It returns the plain text of the Doc.
+func DownloadGoogleDoc(file *drivefile.DriveFile) (text string) {
+	res, err := driveService.Files.Export(file.Id, "text/plain").Download()
+	if err != nil {
+		log.Fatalf("Unable to download file. %v", err)
+	}
+
+	if res.StatusCode == http.StatusOK {
+    bodyBytes, readErr := ioutil.ReadAll(res.Body)
+		if readErr != nil {
+			log.Fatalf("Unable to read response body. %v", readErr)
+		}
+    text = string(bodyBytes)
+	} else {
+		log.Fatalf("Request failed. %v", res)
+	}
+	return
+}
