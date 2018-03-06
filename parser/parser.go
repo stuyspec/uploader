@@ -50,7 +50,7 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 		} else if patterns.IsFocus(line) {
 			attrs["summary"] = patterns.CleanFocus(line)
 		} else if patterns.IsOutquote(line) {
-			outquotes := make([]map[string]string, 0)
+			outquotes := make([]string, 0)
 
 			// Outquotes are often put on multiple lines. We loop forwards to get all
 			// outquotes.
@@ -63,12 +63,7 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 					break
 				}
 
-				outquotes = append(
-					outquotes,
-					map[string]string{
-						"text": outquoteStr,
-					},
-				)
+				outquotes = append(outquotes, outquoteStr)
 				j++
 			}
 
