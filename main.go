@@ -14,6 +14,10 @@ import (
 
 var volume, issue int
 
+func init() {
+	
+}
+
 func main() {
 	// Get DriveFiles from cache, if any exist
 	driveFiles, foundDriveFiles := cache.Get("DriveFiles")
@@ -51,6 +55,8 @@ func main() {
 	}
 	content := driveclient.DownloadGoogleDoc(file)
 	attributes := parser.ArticleAttributes(content)
+
+	log.Printf("%v", attributes)
 
 	err := cliApp.Run(os.Args)
 	if err != nil {
