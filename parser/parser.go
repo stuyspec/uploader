@@ -47,6 +47,32 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 
 		if patterns.IsByline(line) {
 			attrs["contributors"] = ArticleContributors(line)
+		} else if patterns.IsFocus(line) {
+			attrs["summary"] = patterns.CleanFocus(line)
+		} else if patterns.IsOutquote(line) {
+			outquotes := make([]map[string]string, 0)
+
+			// Outquotes are often put on multiple lines. We loop forwards to get all
+			// outquotes.
+			for j <= i {
+				outquoteStr := patterns.CleanOutquote(rawLines[j])
+
+				// If what we think is an outquote is actually another part of the
+				// slug, we know we have found all the outquotes.
+				if patterns.IsSlugMember(outquoteStr) {
+					break
+				}
+
+				outquotes = append(
+					outquotes,
+					map[string]string{
+						"text": outquoteStr,
+					},
+				)
+				j++
+			}
+
+			attrs["outquotes"] = outquotes
 		}
 	}
 
