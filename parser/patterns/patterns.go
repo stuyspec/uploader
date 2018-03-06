@@ -6,15 +6,24 @@ import (
 	"strings"
 )
 
-var slugPattern *regexp.Regexp = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:`)
-var nicknamePattern *regexp.Regexp = regexp.MustCompile(`\([\w\s-]*\)\s`)
+// slugPattern matches any line that is part of an article slug.
+var slugPattern *regexp.Regexp = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?`)
+
+// aePattern matches any string that may represent the Arts & Entertainment
+// department.
+var aePattern *regexp.Regexp = regexp.MustCompile(`Arts\s?&\s?Entertainment|A&?E`)
 
 // Paddings are patterns we want to remove from the desired value
-// (e.g. "Title: ", "Outquote(s): ")
-var bylinePadding *regexp.Regexp = regexp.MustCompile(`By:?\s+`)
-var outquotePadding *regexp.Regexp = regexp.MustCompile(`(?i)outquote\(?s?\)?:?`)
-var focusPadding *regexp.Regexp = regexp.MustCompile(`(?i)Focus Sentence:?\s+`)
+// (e.g. "Title: ", "Outquote(s): ").
 var titlePadding *regexp.Regexp = regexp.MustCompile(`Title:\s+`)
+var bylinePadding *regexp.Regexp = regexp.MustCompile(`By:?\s+`)
+var focusPadding *regexp.Regexp = regexp.MustCompile(`(?i)Focus Sentence:?\s+`)
+var outquotePadding *regexp.Regexp = regexp.MustCompile(`(?i)outquote\(?s?\)?:?`)
+var nicknamePadding *regexp.Regexp = regexp.MustCompile(`\([\w\s-]*\)\s`)
+
+// Captures are the opposite of paddings. For some information, it is easier to
+// extract it than to remove the padding of it.
+var departmentCapture *regexp.Regexp = regexp.MustCompile(`The Spectator\s*\/([^\/]+)\s*\/`)
 
 // Components are patterns that can split a string into easy-to-read components.
 var bylineComponent *regexp.Regexp = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!-?;]`)
@@ -25,22 +34,35 @@ func IsSlugMember(str string) bool {
 	return len(slugPattern.FindStringSubmatch(str)) > 0
 }
 
+// IsDepartmentMarker determines whether a string marks the department.
+// (e.g. "The Spectator/Opinions/Issue 10")
+func IsDepartmentMarker(str string) bool {
+	return len(departmentCapture.FindStringSubmatch(str)) > 0
+}
+
 // IsByline determines whether a string is a byline.
 // It returns true or false.
 func IsByline(str string) bool {
 	return len(bylinePadding.FindStringSubmatch(str)) > 0
 }
 
-// IsOutquote determins whether a string is an outquote.
+// IsOutquote determines whether a string is an outquote.
 // It returns true or false.
 func IsOutquote(str string) bool {
 	return len(outquotePadding.FindStringSubmatch(str)) > 0
 }
 
-// IsFocus determins whether a string is a focus sentence.
+// IsFocus determines whether a string is a focus sentence.
 // It returns true or false.
 func IsFocus(str string) bool {
 	return len(focusPadding.FindStringSubmatch(str)) > 0
+}
+
+// IsAE determines whether a string represents the Arts & Entertainment
+// department.
+// It returns true or false.
+func IsAE(str string) bool {
+	return len(aePattern.FindStringSubmatch(str)) > 0
 }
 
 // CleanTitle rids a title of its paddings (e.g. "Title:").
@@ -71,7 +93,7 @@ func CleanFocus(focusSentence string) string {
 // (e.g. "Ying Zi (Jessy) Mei").
 func CleanName(name string) string {
 	name = strings.Join(strings.Fields(name), " ") // Remove redundant spaces
-	return nicknamePattern.ReplaceAllString(name, "") // Remove nicknames
+	return nicknamePadding.ReplaceAllString(name, "") // Remove nicknames
 }
 
 // BylineComponents extracts the components of a byline crucial to parsing
@@ -80,4 +102,14 @@ func CleanName(name string) string {
 func BylineComponents(byline string) []string {
 	byline = CleanByline(byline)
 	return bylineComponent.FindAllString(byline, -1)
+}
+
+// DepartmentName extracts the department name of a slug line.
+// It returns the department name.
+func DepartmentName(marker string) string {
+	name := strings.TrimSpace(departmentCapture.FindStringSubmatch(marker)[0])
+	if IsAE(marker) {
+		name = "Arts & Entertainment"
+	}
+	return name
 }
