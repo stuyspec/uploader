@@ -2,24 +2,12 @@
 package parser
 
 import (
+	"cli-uploader/parser/patterns"
+
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 )
-
-var slugPattern *regexp.Regexp = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:`)
-
-var nicknamePattern *regexp.Regexp = regexp.MustCompile(`\([\w\s-]*\)\s`)
-
-// Paddings are patterns we want to remove from the desired value
-// (e.g. "Title: ", "Outquote(s): ")
-var bylinePadding *regexp.Regexp = regexp.MustCompile(`By:?\s+`)
-var focusPadding *regexp.Regexp = regexp.MustCompile(`(?i)Focus Sentence:?\s+`)
-var titlePadding *regexp.Regexp = regexp.MustCompile(`Title:\s+`)
-
-// Components are patterns that can split a string into easy-to-read components.
-var bylineComponent *regexp.Regexp = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!-?;]`)
 
 // ArticleAttributes finds the articles of an article for posting.
 // It returns attributes.
@@ -30,7 +18,7 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 	rawLines := strings.Split(text, "\n")
 	content := make([]string, 0)
 
-	attrs["title"] = titlePadding.ReplaceAllString(rawLines[0], "")
+	attrs["title"] = patterns.CleanTitle(rawLines[0])
 
 	// Start from the end of the article and add lines of content until we reach
 	// the slug (header).
@@ -40,7 +28,7 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 		if len(line) == 0 {
 			continue
 		}
-		if len(slugPattern.FindStringSubmatch(line)) > 0 {
+		if patterns.IsSlugMember(line) {
 			break
 		}
 		// Prepend line to content
@@ -57,7 +45,7 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 			continue
 		}
 
-		if len(bylinePadding.FindStringSubmatch(line)) > 0 {
+		if patterns.IsByline(line) {
 			attrs["contributors"] = ArticleContributors(line)
 		}
 	}
@@ -69,8 +57,7 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 // It returns the contributors.
 func ArticleContributors(byline string) (contributors []map[string]string) {
 	contributors = make([]map[string]string, 0)
-	byline = bylinePadding.ReplaceAllString(byline, "")
-	components := bylineComponent.FindAllString(byline, -1)
+	components := patterns.BylineComponents(byline)
 
 	slicerIndex := 0
 	for i, symbol := range components {
@@ -80,24 +67,24 @@ func ArticleContributors(byline string) (contributors []map[string]string) {
 			slicerIndex = i + 1
 		}
 	}
-	contributors = append(contributors, nameVariables(strings.Join(components[slicerIndex:], " ")))
+	remainingName := strings.Join(components[slicerIndex:], " ")
+	contributors = append(contributors, nameVariables(remainingName))
+
 	return
 }
 
 // nameVariables splits a name of variable length into a first name and a last
-// name and removes nickname formatting (e.g. Ying Zi (Jessy) Mei).
+// name.
 // It returns the formatted name as a map with a first_name and last_name.
 func nameVariables(name string) map[string]string {
 	variables := make(map[string]string)
 
-	// Remove redundant spaces and nicknames
-	name = strings.Join(strings.Fields(name), " ")
-	// name = nicknamePattern.ReplaceAllString(name, "")
+	name = patterns.CleanName(name)
 
 	var first_name, last_name string
 	components := strings.Split(name, " ")
 	if len(name) == 0 {
-		log.Fatalf("No name given or whole name faulty.")
+		log.Fatalf("No name given or cleaning cleared the entire name.")
 	} else	if len(components) == 1 {
 		first_name, last_name = name, name
 	} else if len(components) > 2 {
