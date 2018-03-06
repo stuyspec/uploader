@@ -3,7 +3,9 @@ package graphql
 
 import (
 	"github.com/joho/godotenv"
-	"github.com/machinebox/graphql"
+	"github.com/shurcooL/graphql"
+	"log"
+	"context"
 	"os"
 )
 
@@ -21,5 +23,13 @@ func init() {
 		apiEndpoint = envApiEndpoint
 	}
 
-	client = graphql.NewClient(apiEndpoint + "/graphql")
+	client = graphql.NewClient(apiEndpoint + "/graphql", nil)
+}
+
+func AllSections() {
+	err := client.Query(context.Background(), &query, nil)
+	if err != nil {
+		log.Printf("GraphQL AllSectionsQuery failed. %v", err)
+	}
+	log.Printf("%v %T", query, query)
 }

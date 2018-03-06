@@ -5,6 +5,7 @@ import (
 	"cli-uploader/cache"
 	"cli-uploader/driveclient"
 	"cli-uploader/drivefile"
+	"cli-uploader/graphql"
 	"cli-uploader/parser"
 
 	"github.com/urfave/cli"
@@ -15,7 +16,7 @@ import (
 var volume, issue int
 
 func init() {
-	
+	graphql.AllSections()
 }
 
 func main() {
@@ -55,8 +56,9 @@ func main() {
 	}
 	content := driveclient.DownloadGoogleDoc(file)
 	attributes := parser.ArticleAttributes(content)
-
-	log.Printf("%v", attributes)
+	if attributes != nil {
+		println()
+	}
 
 	err := cliApp.Run(os.Args)
 	if err != nil {
