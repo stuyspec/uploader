@@ -28,6 +28,7 @@ func init() {
 	}
 
 	client = graphql.NewClient(apiUrl + resource)
+	client.Log = func(s string) { log.Println(s) }
 }
 
 type Section struct {
@@ -39,7 +40,6 @@ type AllSectionsResponse struct {
 }
 
 func AllSections() []Section {
-	client := graphql.NewClient("http://localhost:3000/graphql")
 	req := graphql.NewRequest(`
     query {
       allSections {
@@ -48,6 +48,7 @@ func AllSections() []Section {
       }
     }
   `)
+	req.Header.Set("Hi", "There")
 	ctx := context.Background()
 
 	var res AllSectionsResponse
