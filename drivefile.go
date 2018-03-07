@@ -1,4 +1,4 @@
-package uploader
+package main
 
 import (
 	"google.golang.org/api/drive/v3"
