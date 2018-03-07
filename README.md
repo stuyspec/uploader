@@ -1,12 +1,11 @@
 # cli-uploader
 
-A command line interface (CLI) for uploading articles from Google Drive Volume folders to our Rails API. 
+A command line interface (CLI) for uploading articles from Google Drive Volume folders to our Rails API.
 
-We are currently rewriting our codebase to Go and GraphQL.
-
-## Go Developer Resources
-- [Go GraphQL Client](https://github.com/graphql-go/graphql)
-- [Drive API Go Quickstart](https://developers.google.com/drive/v3/web/quickstart/go)
+## Usage
+```sh
+$ go run main.go
+```
 
 ## Roadmap
 
