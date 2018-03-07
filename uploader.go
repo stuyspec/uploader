@@ -1,4 +1,5 @@
-// Package uploader automatically uploads Spectator articles.
+// uploader is a command line application that assists the automatic uploading
+// of articles of The Stuyvesant Spectator.
 package uploader
 
 import (
