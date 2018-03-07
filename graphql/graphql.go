@@ -3,9 +3,12 @@ package graphql
 
 import (
 	"github.com/joho/godotenv"
-	"github.com/shurcooL/graphql"
-	"log"
+	"github.com/machinebox/graphql"
+
 	"context"
+	"log"
+	// "net/http"
+	// "net/url"
 	"os"
 )
 
@@ -17,19 +20,40 @@ func init() {
     log.Fatal("Error loading .env file in package graphql.")
   }
 
-	apiEndpoint := "https://api.stuyspec.com"
-	envApiEndpoint, found := os.LookupEnv("API_ENDPOINT")
+	apiUrl := "https://api.stuyspec.com"
+	resource := "/graphql/"
+	envApiUrl, found := os.LookupEnv("API_ENDPOINT")
 	if found {
-		apiEndpoint = envApiEndpoint
+		apiUrl = envApiUrl
 	}
 
-	client = graphql.NewClient(apiEndpoint + "/graphql", nil)
+	client = graphql.NewClient(apiUrl + resource)
 }
 
-func AllSections() {
-	err := client.Query(context.Background(), &query, nil)
-	if err != nil {
-		log.Printf("GraphQL AllSectionsQuery failed. %v", err)
+type Section struct {
+	Id, Name string
+}
+
+type AllSectionsResponse struct {
+	AllSections []Section
+}
+
+func AllSections() []Section {
+	client := graphql.NewClient("http://localhost:3000/graphql")
+	req := graphql.NewRequest(`
+    query {
+      allSections {
+        id
+        name
+      }
+    }
+  `)
+	ctx := context.Background()
+
+	var res AllSectionsResponse
+	if err := client.Run(ctx, req, &res); err != nil {
+		log.Fatal(err)
 	}
-	log.Printf("%v %T", query, query)
+
+	return res.AllSections
 }
