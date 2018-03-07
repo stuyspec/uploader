@@ -2,7 +2,7 @@
 package color
 
 import (
-	github.com/fatih/color
+	"github.com/fatih/color"
 )
 
 // These are all functions that print the passed arguments as colorized with
