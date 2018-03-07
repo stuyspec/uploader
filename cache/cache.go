@@ -2,7 +2,7 @@
 package cache
 
 import (
-	"cli-uploader/drivefile"
+	"github.com/stuyspec/uploader/drivefile"
 
 	"bytes"
 	"encoding/gob"

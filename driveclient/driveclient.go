@@ -3,7 +3,7 @@
 package driveclient
 
 import (
-	"cli-uploader/drivefile"
+	"github.com/stuyspec/uploader/drivefile"
 
 	"encoding/json"
 	"fmt"

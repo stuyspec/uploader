@@ -2,7 +2,7 @@
 package parser
 
 import (
-	"cli-uploader/parser/patterns"
+	"github.com/stuyspec/uploader/parser/patterns"
 
 	"fmt"
 	"log"
