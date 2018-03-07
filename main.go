@@ -1,5 +1,5 @@
-// Package main automatically uploads Spectator articles.
-package main
+// Package uploader automatically uploads Spectator articles.
+package uploader
 
 import (
 	"github.com/stuyspec/uploader/cache"
