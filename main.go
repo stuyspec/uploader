@@ -2,10 +2,10 @@
 package main
 
 import (
-	"cli-uploader/cache"
-	"cli-uploader/driveclient"
-	"cli-uploader/drivefile"
-	"cli-uploader/graphql"
+	"github.com/stuyspec/uploader/cache"
+	"github.com/stuyspec/uploader/driveclient"
+	"github.com/stuyspec/uploader/drivefile"
+	"github.com/stuyspec/uploader/graphql"
 
 	"github.com/urfave/cli"
 	"log"
@@ -62,6 +62,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// TODO: AUTH
 
   allSections = graphql.AllSections()
 }
