@@ -1,5 +1,4 @@
-// Package drivefile contains the DriveFile struct.
-package drivefile
+package uploader
 
 import (
 	"google.golang.org/api/drive/v3"

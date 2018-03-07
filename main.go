@@ -1,11 +1,10 @@
 // uploader is a command line application that assists the automatic uploading
 // of articles of The Stuyvesant Spectator.
-package uploader
+package main
 
 import (
 	"github.com/stuyspec/uploader/cache"
 	"github.com/stuyspec/uploader/driveclient"
-	"github.com/stuyspec/uploader/drivefile"
 	"github.com/stuyspec/uploader/graphql"
 
 	"github.com/urfave/cli"
@@ -16,7 +15,7 @@ import (
 var volume, issue int
 var allSections []graphql.Section
 
-var driveFilesMap map[string]*drivefile.DriveFile
+var driveFilesMap map[string]*DriveFile
 var cliApp *cli.App
 
 func init() {
@@ -37,7 +36,7 @@ func init() {
 	}
 
 	var typeErr bool
-	driveFilesMap, typeErr = driveFiles.(map[string]*drivefile.DriveFile)
+	driveFilesMap, typeErr = driveFiles.(map[string]*DriveFile)
 	if !typeErr {
 		log.Fatalf("Unable to type driveFiles to map. %v", typeErr)
 	}
