@@ -7,26 +7,26 @@ import (
 )
 
 // slugPattern matches any line that is part of an article slug.
-var slugPattern *regexp.Regexp = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?`)
+var slugPattern = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?`)
 
 // aePattern matches any string that may represent the Arts & Entertainment
 // department.
-var aePattern *regexp.Regexp = regexp.MustCompile(`Arts\s?&\s?Entertainment|A&?E`)
+var aePattern = regexp.MustCompile(`Arts\s?&\s?Entertainment|A&?E`)
 
 // Paddings are patterns we want to remove from the desired value
 // (e.g. "Title: ", "Outquote(s): ").
-var titlePadding *regexp.Regexp = regexp.MustCompile(`Title:\s+`)
-var bylinePadding *regexp.Regexp = regexp.MustCompile(`By:?\s+`)
-var focusPadding *regexp.Regexp = regexp.MustCompile(`(?i)Focus Sentence:?\s+`)
-var outquotePadding *regexp.Regexp = regexp.MustCompile(`(?i)outquote\(?s?\)?:?`)
-var nicknamePadding *regexp.Regexp = regexp.MustCompile(`\([\w\s-]*\)\s`)
+var titlePadding = regexp.MustCompile(`Title:\s+`)
+var bylinePadding = regexp.MustCompile(`By:?\s+`)
+var focusPadding = regexp.MustCompile(`(?i)Focus Sentence:?\s+`)
+var outquotePadding = regexp.MustCompile(`(?i)outquote\(?s?\)?:?`)
+var nicknamePadding = regexp.MustCompile(`\([\w\s-]*\)\s`)
 
 // Captures are the opposite of paddings. For some information, it is easier to
 // extract it than to remove the padding of it.
-var departmentCapture *regexp.Regexp = regexp.MustCompile(`The Spectator\s*\/([^\/]+)\s*\/`)
+var departmentCapture = regexp.MustCompile(`The Spectator\s*\/([^\/]+)\s*\/`)
 
 // Components are patterns that can split a string into easy-to-read components.
-var bylineComponent *regexp.Regexp = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!-?;]`)
+var bylineComponent = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!-?;]`)
 
 // IsSlugMember determines whether a string is a member of an article slug.
 // It returns true or false.

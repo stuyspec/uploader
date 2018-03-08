@@ -21,14 +21,17 @@ func InitClient(params ...int) {
 	}
 }
 
+// Section represents a department/section of the newspaper.
 type Section struct {
-	Id, Name string
+	ID, Name, Slug string
 }
 
-type AllSectionsResponse struct {
+type allSectionsResponse struct {
 	AllSections []Section
 }
 
+// AllSections creates an allSections GraphQL query.
+// It returns the resulting sections.
 func AllSections() []Section {
 	req := graphql.NewRequest(`
     query {
@@ -40,7 +43,7 @@ func AllSections() []Section {
   `)
 	ctx := context.Background()
 
-	var res AllSectionsResponse
+	var res allSectionsResponse
 	if err := client.Run(ctx, req, &res); err != nil {
 		log.Fatal(err)
 	}

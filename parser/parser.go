@@ -1,4 +1,4 @@
-// Package parser implements functions to parse Spectator article text.
+// Package parser implements functions to parse the text of Spectator articles.
 package parser
 
 import (
@@ -96,26 +96,26 @@ func ArticleContributors(byline string) (contributors []map[string]string) {
 
 // nameVariables splits a name of variable length into a first name and a last
 // name.
-// It returns the formatted name as a map with a first_name and last_name.
+// It returns the formatted name as a map with a firstName and lastName.
 func nameVariables(name string) map[string]string {
 	variables := make(map[string]string)
 
 	name = patterns.CleanName(name)
 
-	var first_name, last_name string
+	var firstName, lastName string
 	components := strings.Split(name, " ")
 	if len(name) == 0 {
 		log.Fatalf("No name given or cleaning cleared the entire name.")
 	} else	if len(components) == 1 {
-		first_name, last_name = name, name
+		firstName, lastName = name, name
 	} else if len(components) > 2 {
-		first_name = strings.Join(components[0:len(components)-1], " ")
-		last_name = components[len(components)-1]
+		firstName = strings.Join(components[0:len(components)-1], " ")
+		lastName = components[len(components)-1]
 	} else {
-		first_name, last_name = components[0], components[1]
+		firstName, lastName = components[0], components[1]
 	}
 
-	variables["first_name"], variables["last_name"] = first_name, last_name
+	variables["firstName"], variables["lastName"] = firstName, lastName
 
 	return variables
 }

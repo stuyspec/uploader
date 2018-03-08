@@ -103,6 +103,9 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
+
+	hi := graphql.AllSections()
+	fmt.Printf("%T, %v", hi, hi)
 }
 
 // stringDriveFile creates a custom string representation of a Drive file.

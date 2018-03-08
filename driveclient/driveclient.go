@@ -166,8 +166,8 @@ func ScanDriveFiles() map[string]*drive.File {
 
 // DownloadGoogleDoc downloads a Drive file by its ID.
 // It returns the plain text of the Doc.
-func DownloadGoogleDoc(fileId string) (text string) {
-	res, err := driveService.Files.Export(fileId, "text/plain").Download()
+func DownloadGoogleDoc(fileID string) (text string) {
+	res, err := driveService.Files.Export(fileID, "text/plain").Download()
 	if err != nil {
 		log.Fatalf("Unable to download file. %v", err)
 	}
