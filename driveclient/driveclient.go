@@ -3,8 +3,6 @@
 package driveclient
 
 import (
-	"github.com/stuyspec/uploader/drivefile"
-
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -123,7 +121,8 @@ func saveToken(file string, token *oauth2.Token) {
 
 // ScanDriveFiles reads metadata on all Drive files from the Drive client.
 // It returns the DriveFiles.
-func ScanDriveFiles() map[string]*drivefile.DriveFile {
+func ScanDriveFiles() []*drive.File {
+	/*
 	driveFiles := map[string]*drivefile.DriveFile{
 		"1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y": drivefile.NewDriveFile(
 			"1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y",
@@ -162,8 +161,10 @@ func ScanDriveFiles() map[string]*drivefile.DriveFile {
 		),
 	}
 	return driveFiles
+*/
 
-	/*
+	var driveFiles []*drive.File
+
 	// Loop through pages of files
 	var nextPageToken string
 	for {
@@ -180,26 +181,30 @@ func ScanDriveFiles() map[string]*drivefile.DriveFile {
 			break
 		}
 
-		if len(r.NextPageToken) == 0 {
+		if r.NextPageToken == "" {
 			fmt.Println("No more files.")
 			break
 		}
 
-		for _, f := range r.Files {
-			driveFiles = append(driveFiles, NewDriveFile(f))
-		}
+		driveFiles = r.Files
 
 		fmt.Printf("Scanned %d Drive files.\n", len(driveFiles))
 
+		break // remove after done testing
+
 		nextPageToken = r.NextPageToken
 	}
-*/
+
+	log.Printf("%T: %v\n", driveFiles, driveFiles)
+
+	return driveFiles
+
 }
 
-// DownloadGoogleDoc downloads a DriveFile by its ID.
+// DownloadGoogleDoc downloads a Drive file by its ID.
 // It returns the plain text of the Doc.
-func DownloadGoogleDoc(file *drivefile.DriveFile) (text string) {
-	res, err := driveService.Files.Export(file.Id, "text/plain").Download()
+func DownloadGoogleDoc(fileId string) (text string) {
+	res, err := driveService.Files.Export(fileId, "text/plain").Download()
 	if err != nil {
 		log.Fatalf("Unable to download file. %v", err)
 	}

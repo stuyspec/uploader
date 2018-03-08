@@ -3,11 +3,12 @@
 package main
 
 import (
-	"github.com/stuyspec/uploader/cache"
 	"github.com/stuyspec/uploader/driveclient"
 	"github.com/stuyspec/uploader/graphql"
 
+	"github.com/patrickmn/go-cache"
 	"github.com/urfave/cli"
+	"google.golang.org/api/drive/v3"
 	"log"
 	"os"
 )
@@ -15,14 +16,20 @@ import (
 var volume, issue int
 var allSections []graphql.Section
 
-var driveFilesMap map[string]*DriveFile
+var driveFilesMap map[string]*drive.File
 var cliApp *cli.App
 
-func init() {
-	// Get DriveFiles from cache, if any exist
-	driveFiles, found := cache.Get("DriveFiles")
+// CacheFilename is the name of the file where an encoded cache is saved.
+const CacheFilename = "file.cache"
 
+gob.Register(map[string]drive.File{})
+
+func init() {
 	cliApp = createCliApp()
+	uploaderCache := CreateUploaderCache()
+
+	// Get Drive files from cache, if any exist
+	driveFiles, found := uploaderCache.Get("DriveFiles")
 
 	// Define app behavior
 	cliApp.Action = func(c *cli.Context) (err error) {
@@ -30,20 +37,22 @@ func init() {
 		// current cache.
 		if c.Bool("reload") || !found {
 			driveFiles = driveclient.ScanDriveFiles()
-			err = cache.Set("DriveFiles", driveFiles)
+			uploaderCache.Set("DriveFiles", driveFiles, cache.DefaultExpiration)
+			err = SaveCache(uploaderCache)
+			if err != nil {
+				log.Fatalf("Unable to save cache. %v", err)
+			}
+		}
+
+		var typeErr bool
+		driveFilesMap, typeErr = driveFiles.(map[string]*drive.File)
+		if !typeErr {
+			log.Fatalf("Unable to type driveFiles to map. %v", typeErr)
 		}
 		return
 	}
-
-	var typeErr bool
-	driveFilesMap, typeErr = driveFiles.(map[string]*DriveFile)
-	if !typeErr {
-		log.Fatalf("Unable to type driveFiles to map. %v", typeErr)
-	}
 }
 
-// createCliApp generates a CLI App.
-// It returns the generated app.
 func createCliApp() *cli.App {
 	app := cli.NewApp()
 	app.Name = "stuy-spec-uploader"
@@ -57,6 +66,8 @@ func createCliApp() *cli.App {
 	return app
 }
 
+
+
 func main() {
 	err := cliApp.Run(os.Args)
 	if err != nil {
@@ -65,5 +76,7 @@ func main() {
 
 	// TODO: AUTH
 
-  allSections = graphql.AllSections()
+	driveFiles := driveclient.ScanDriveFiles()
+
+	log.Printf("%T: %v\n", driveFiles, driveFiles)
 }
