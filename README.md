@@ -2,6 +2,7 @@
 
 [![GoDoc](https://godoc.org/github.com/stuyspec/uploader?status.svg)](https://godoc.org/github.com/stuyspec/uploader)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stuyspec/uploader)](https://goreportcard.com/report/github.com/stuyspec/uploader)
+[![codebeat badge](https://codebeat.co/badges/1b7c5b89-9c46-4267-a7bc-f29017c5138a)](https://codebeat.co/projects/github-com-stuyspec-uploader-master)
 
 A command line interface (CLI) for uploading articles from Google Drive Volume folders to our Rails API.
 
