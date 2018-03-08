@@ -46,37 +46,20 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 		}
 
 		if patterns.IsByline(line) {
-			attrs["contributors"] = ArticleContributors(line)
+			attrs["contributors"] = Contributors(line)
 		} else if patterns.IsFocus(line) {
 			attrs["summary"] = patterns.CleanFocus(line)
 		} else if patterns.IsOutquote(line) {
-			outquotes := make([]string, 0)
-
-			// Outquotes are often put on multiple lines. We loop forwards to get all
-			// outquotes.
-			for j <= i {
-				outquoteStr := patterns.CleanOutquote(rawLines[j])
-
-				// If what we think is an outquote is actually another part of the
-				// slug, we know we have found all the outquotes.
-				if patterns.IsSlugMember(outquoteStr) {
-					break
-				}
-
-				outquotes = append(outquotes, outquoteStr)
-				j++
-			}
-
-			attrs["outquotes"] = outquotes
+			attrs["outquotes"] = Outquotes(rawLines, j, i)
 		}
 	}
 
 	return
 }
 
-// ArticleContributors finds the contributors in a byline.
+// Contributors finds the contributors in a byline.
 // It returns the contributors.
-func ArticleContributors(byline string) (contributors []map[string]string) {
+func Contributors(byline string) (contributors []map[string]string) {
 	contributors = make([]map[string]string, 0)
 	components := patterns.BylineComponents(byline)
 
@@ -91,6 +74,27 @@ func ArticleContributors(byline string) (contributors []map[string]string) {
 	remainingName := strings.Join(components[slicerIndex:], " ")
 	contributors = append(contributors, nameVariables(remainingName))
 
+	return
+}
+
+// Outquotes looks for outquotes in an array of lines between two indices.
+// We search through an entire area of content because outquotes are often put
+// on multiple lines. We loop forwards to get all outquotes.
+// It returns the outquotes as a string slice.
+func Outquotes(lines []string, start, end int) (outquotes []string) {
+	outquotes = make([]string, 0)
+	for start <= end {
+		outquoteStr := patterns.CleanOutquote(rawLines[start])
+
+		// If what we think is an outquote is actually another part of the
+		// slug, we know we have found all the outquotes.
+		if patterns.IsSlugMember(outquoteStr) {
+			break
+		}
+
+		outquotes = append(outquotes, outquoteStr)
+		start++
+	}
 	return
 }
 
