@@ -4,7 +4,11 @@ A command line interface (CLI) for uploading articles from Google Drive Volume f
 
 ## Usage
 ```sh
-$ go run main.go
+# Compile program and create binary
+$ go install
+
+# Run program
+$ uploader
 ```
 
 ## Roadmap
