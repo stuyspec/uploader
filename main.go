@@ -18,8 +18,14 @@ import (
 	"strings"
 )
 
+var Volume, Issue int
+
 var driveFilesMap map[string]*drive.File
 var cliApp *cli.App
+
+// TODO:
+// where declare log?
+// move cli action out of init9)?
 
 // CacheFilename is the name of the file where an encoded cache is saved.
 const CacheFilename = "file.cache"
@@ -29,7 +35,7 @@ func init() {
 
 	cliApp = CreateCliApp()
 	log = CreateLogger()
-	uploaderCache := CreateUploaderCache()
+	uploaderCache = CreateUploaderCache()
 
 	// Get Drive files from cache, if any exist
 	driveFiles, found := uploaderCache.Get("DriveFiles")
@@ -81,6 +87,15 @@ func CreateCliApp() *cli.App {
 			Name:  "local, l",
 			Usage: "use locally hosted API for graphql",
 		},
+
+		cli.IntFlag{
+			Name:  "volume, v",
+			Usage: "volume number",
+		},
+		cli.IntFlag{
+			Name:  "issue, i",
+			Usage: "issue number",
+		},
 	}
 	return app
 }
@@ -108,9 +123,6 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
-
-	i := graphql.AllSections()
-	fmt.Printf("%T, %v", hi, hi)
 }
 
 // stringDriveFile creates a custom string representation of a Drive file.
