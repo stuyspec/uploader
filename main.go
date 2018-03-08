@@ -18,15 +18,6 @@ import (
 	"strings"
 )
 
-var log = logging.MustGetLogger("stuy-spec-uploader")
-
-// Log format string. Everything except the message has a custom color
-// which is dependent on the log level. Many fields have a custom output
-// formatting too, eg. the time returns the hour down to the milli second.
-var format = logging.MustStringFormatter(
-	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
-)
-
 var driveFilesMap map[string]*drive.File
 var cliApp *cli.App
 
@@ -37,12 +28,8 @@ func init() {
 	gob.Register(map[string]*drive.File{})
 
 	cliApp = CreateCliApp()
+	log = CreateLogger()
 	uploaderCache := CreateUploaderCache()
-
-	// Create backend for log
-	backend := logging.NewLogBackend(os.Stderr, "", 0)
-	backendFormatter := logging.NewBackendFormatter(backend, format)
-	logging.SetBackend(backendFormatter) // Set backends to be used
 
 	// Get Drive files from cache, if any exist
 	driveFiles, found := uploaderCache.Get("DriveFiles")
@@ -98,13 +85,31 @@ func CreateCliApp() *cli.App {
 	return app
 }
 
+// CreateLogger creates a logger and sets the backend formatter for logging.
+// It returns the logger.
+func CreateLogger() *logging.Logger {
+	log := logging.MustGetLogger("stuy-spec-uploader")
+
+	// Log format string. Everything except the message has a custom color
+	// which is dependent on the log level. Many fields have a custom output
+	// formatting too, eg. the time returns the hour down to the milli second.
+	var format = logging.MustStringFormatter(
+		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	)
+
+	backend := logging.NewLogBackend(os.Stderr, "", 0)
+	backendFormatter := logging.NewBackendFormatter(backend, format)
+	logging.SetBackend(backendFormatter) // Set backends to be used
+
+}
+
 func main() {
 	err := cliApp.Run(os.Args)
 	if err != nil {
 		log.Error(err)
 	}
 
-	hi := graphql.AllSections()
+	i := graphql.AllSections()
 	fmt.Printf("%T, %v", hi, hi)
 }
 
