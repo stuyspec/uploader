@@ -6,18 +6,26 @@ import (
 	"github.com/stuyspec/uploader/driveclient"
 	"github.com/stuyspec/uploader/graphql"
 
-	"encoding/gob"
-	// "github.com/op/go-logging"
-	"log"
+	"github.com/op/go-logging"
 	"github.com/patrickmn/go-cache"
 	"github.com/urfave/cli"
+
+	"encoding/gob"
+	"fmt"
 	"google.golang.org/api/drive/v3"
 	"os"
 	"strconv"
+	"strings"
 )
 
-var volume, issue int
-var allSections []graphql.Section
+var log = logging.MustGetLogger("stuy-spec-uploader")
+
+// Log format string. Everything except the message has a custom color
+// which is dependent on the log level. Many fields have a custom output
+// formatting too, eg. the time returns the hour down to the milli second.
+var format = logging.MustStringFormatter(
+	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+)
 
 var driveFilesMap map[string]*drive.File
 var cliApp *cli.App
@@ -31,6 +39,11 @@ func init() {
 	cliApp = CreateCliApp()
 	uploaderCache := CreateUploaderCache()
 
+	// Create backend for log
+	backend := logging.NewLogBackend(os.Stderr, "", 0)
+	backendFormatter := logging.NewBackendFormatter(backend, format)
+	logging.SetBackend(backendFormatter) // Set backends to be used
+
 	// Get Drive files from cache, if any exist
 	driveFiles, found := uploaderCache.Get("DriveFiles")
 
@@ -43,16 +56,16 @@ func init() {
 			uploaderCache.Set("DriveFiles", driveFiles, cache.DefaultExpiration)
 			err = SaveCache(uploaderCache)
 			if err != nil {
-				log.Fatalf("Unable to save cache. %v", err)
+				log.Errorf("Unable to save cache. %v", err)
 			}
 		}
 
 		var typeErr bool
 		driveFilesMap, typeErr = driveFiles.(map[string]*drive.File)
 		if !typeErr {
-			log.Fatalf("Unable to type driveFiles to map. %v", typeErr)
+			log.Errorf("Unable to type driveFiles to map. %v", typeErr)
 		} else {
-			log.Println("Successfully loaded Drive files into map.")
+			log.Info("Loaded Drive files into map.")
 		}
 
 		if port, err := strconv.Atoi(c.String("local")); err == nil {
@@ -77,20 +90,35 @@ func CreateCliApp() *cli.App {
 			Usage: "should reload and cache Drive files?",
 		},
 
-    cli.StringFlag{
-      Name: "local, l",
-      Usage: "use locally hosted API for graphql",
-    },
+		cli.StringFlag{
+			Name:  "local, l",
+			Usage: "use locally hosted API for graphql",
+		},
 	}
 	return app
 }
 
-
 func main() {
 	err := cliApp.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
+}
 
-	// TODO: AUTH
+// stringDriveFile creates a custom string representation of a Drive file.
+// It returns this string.
+func stringDriveFile(f *drive.File) (output string) {
+	var webContentLink string
+	if strings.Contains(f.MimeType, "image") {
+		webContentLink = fmt.Sprintf("\n   WebContentLink: %v,", f.WebContentLink)
+	}
+	output = fmt.Sprintf(`{
+  Id: %s,
+  Name: %s,
+  MimeType: %s,%s
+  Parents: %v,
+}`,
+		f.Id, f.Name, f.MimeType, webContentLink, f.Parents,
+	)
+	return
 }

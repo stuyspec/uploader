@@ -17,7 +17,7 @@ func InitClient(params ...int) {
 			fmt.Sprintf("http://localhost:%d/graphql", params[0]),
 		)
 	} else {
-		client = graphql.NewClient("https://api.stuyspec.com")
+		client = graphql.NewClient("https://api.stuyspec.com/graphql")
 	}
 }
 

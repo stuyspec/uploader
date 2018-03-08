@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
-	"encoding/gob"
 	"encoding/base64"
+	"encoding/gob"
 	"github.com/patrickmn/go-cache"
 	"io/ioutil"
 	"time"
@@ -65,9 +65,9 @@ func CreateUploaderCache() (c *cache.Cache) {
 
 	if itemsMap, err := GOB64ToCacheMap(string(cacheBytes)); err != nil ||
 		readErr != nil {
-		c = cache.New(168 * time.Hour, 168 * time.Hour)
+		c = cache.New(168*time.Hour, 168*time.Hour)
 	} else {
-		c = cache.NewFrom(168 * time.Hour, 168 * time.Hour, itemsMap)
+		c = cache.NewFrom(168*time.Hour, 168*time.Hour, itemsMap)
 	}
 
 	return
