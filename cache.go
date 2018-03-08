@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"encoding/base64"
 	"github.com/patrickmn/go-cache"
-	"google.golang.org/api/drive/v3"
 	"io/ioutil"
 	"time"
 )
@@ -60,8 +59,6 @@ func CacheMapToGOB64(m map[string]cache.Item) (str string, e error) {
 // CreateUploaderCache creates a new cache for the uploader.
 // It returns the new cache.
 func CreateUploaderCache() (c *cache.Cache) {
-  gob.Register(map[string]drive.File{})
-
 	// Create a cache from a deserialized items map. It is given a default
 	// expiration duration of one week and a cleanup interval of one week.
 	cacheBytes, readErr := ioutil.ReadFile(CacheFilename)

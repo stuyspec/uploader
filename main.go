@@ -6,11 +6,14 @@ import (
 	"github.com/stuyspec/uploader/driveclient"
 	"github.com/stuyspec/uploader/graphql"
 
+	"encoding/gob"
+	// "github.com/op/go-logging"
+	"log"
 	"github.com/patrickmn/go-cache"
 	"github.com/urfave/cli"
 	"google.golang.org/api/drive/v3"
-	"log"
 	"os"
+	"strconv"
 )
 
 var volume, issue int
@@ -23,9 +26,9 @@ var cliApp *cli.App
 const CacheFilename = "file.cache"
 
 func init() {
-	gob.Register(map[string]drive.File{})
+	gob.Register(map[string]*drive.File{})
 
-	cliApp = createCliApp()
+	cliApp = CreateCliApp()
 	uploaderCache := CreateUploaderCache()
 
 	// Get Drive files from cache, if any exist
@@ -48,24 +51,39 @@ func init() {
 		driveFilesMap, typeErr = driveFiles.(map[string]*drive.File)
 		if !typeErr {
 			log.Fatalf("Unable to type driveFiles to map. %v", typeErr)
+		} else {
+			log.Println("Successfully loaded Drive files into map.")
 		}
+
+		if port, err := strconv.Atoi(c.String("local")); err == nil {
+			graphql.InitClient(port)
+		} else {
+			graphql.InitClient()
+		}
+
 		return
 	}
 }
 
-func createCliApp() *cli.App {
+// CreateCliApp creates a new CLI app for the uploader.
+// It returns the new app.
+func CreateCliApp() *cli.App {
 	app := cli.NewApp()
 	app.Name = "stuy-spec-uploader"
-	app.Usage = "Automatically upload articles and graphics of The Spectator."
+	app.Usage = "Automatically upload the articles and graphics of The Spectator."
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "reload, r",
 			Usage: "should reload and cache Drive files?",
 		},
+
+    cli.StringFlag{
+      Name: "local, l",
+      Usage: "use locally hosted API for graphql",
+    },
 	}
 	return app
 }
-
 
 
 func main() {
@@ -75,8 +93,4 @@ func main() {
 	}
 
 	// TODO: AUTH
-
-	driveFiles := driveclient.ScanDriveFiles()
-
-	log.Printf("%T: %v\n", driveFiles, driveFiles)
 }

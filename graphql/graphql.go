@@ -2,31 +2,23 @@
 package graphql
 
 import (
-	"github.com/joho/godotenv"
-	"github.com/machinebox/graphql"
-
 	"context"
+	"fmt"
+	"github.com/machinebox/graphql"
 	"log"
-	"os"
 )
 
 var client *graphql.Client
 
-func init() {
-	err := godotenv.Load()
-  if err != nil {
-    log.Fatal("Error loading .env file in package graphql.")
-  }
-
-	apiUrl := "https://api.stuyspec.com"
-	resource := "/graphql/"
-	envApiUrl, found := os.LookupEnv("API_ENDPOINT")
-	if found {
-		apiUrl = envApiUrl
+// InitClient initiates the graphql.Client with an optional port parameter.
+func InitClient(params ...int) {
+	if len(params) > 0 {
+		client = graphql.NewClient(
+			fmt.Sprintf("http://localhost:%d/graphql", params[0]),
+		)
+	} else {
+		client = graphql.NewClient("https://api.stuyspec.com")
 	}
-
-	client = graphql.NewClient(apiUrl + resource)
-	client.Log = func(s string) { log.Println(s) }
 }
 
 type Section struct {
@@ -46,7 +38,6 @@ func AllSections() []Section {
       }
     }
   `)
-	req.Header.Set("Hi", "There")
 	ctx := context.Background()
 
 	var res AllSectionsResponse

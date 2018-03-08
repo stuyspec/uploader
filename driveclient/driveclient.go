@@ -128,8 +128,8 @@ func saveToken(file string, token *oauth2.Token) {
 
 // ScanDriveFiles reads metadata on all Drive files from the Drive client.
 // It returns the DriveFiles.
-func ScanDriveFiles() []*drive.File {
-	var driveFiles []*drive.File
+func ScanDriveFiles() map[string]*drive.File {
+	driveFiles := make(map[string]*drive.File)
 
 	// Loop through pages of files
 	var nextPageToken string
@@ -146,17 +146,16 @@ func ScanDriveFiles() []*drive.File {
 			log.Fatalf("Unable to retrieve files: %v", err)
 			break
 		}
-
 		if r.NextPageToken == "" {
 			fmt.Println("No more files.")
 			break
 		}
 
-		driveFiles = r.Files
+		for _, f := range r.Files {
+			driveFiles[f.Id] = f
+		}
 
 		fmt.Printf("Scanned %d Drive files.\n", len(driveFiles))
-
-		break // remove after done testing
 
 		nextPageToken = r.NextPageToken
 	}
