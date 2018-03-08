@@ -119,50 +119,16 @@ func saveToken(file string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
+/*
+"1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y"
+"[CLOSED] Issue9_News_BigSibConstitution",
+"application/vnd.google-apps.document",
+[]string{"1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H"},
+*/
+
 // ScanDriveFiles reads metadata on all Drive files from the Drive client.
 // It returns the DriveFiles.
 func ScanDriveFiles() []*drive.File {
-	/*
-	driveFiles := map[string]*drivefile.DriveFile{
-		"1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y": drivefile.NewDriveFile(
-			"1cVqKaP6JVXHELBG2IEU5SEz1Xt9bLVZmrwtSLly_P7Y",
-			"[CLOSED] Issue9_News_BigSibConstitution",
-			"application/vnd.google-apps.document",
-			"",
-			[]string{"1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H"},
-		),
-		"1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H": drivefile.NewDriveFile(
-			"1DSDSpkPIq_7R69BXO_pLwPKT-cxK0D8H",
-			"News",
-			"application/vnd.google-apps.folder",
-			"",
-			[]string{"12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1"},
-		),
-		"12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1": drivefile.NewDriveFile(
-			"12OIh37WDtC2l-v5ifMTNxZNaHam-G5B1",
-			"SBC",
-			"application/vnd.google-apps.folder",
-			"",
-			[]string{"1fuzEQFBcKBNiysFjaI_zzFN-jNVEPAS"},
-		),
-		"1fuzEQFBcKBNiysFjaI_zzFN-jNVEPAS": drivefile.NewDriveFile(
-			"1fuzEQFBcKBNiysFjaI_zzFN-jNVEPAS",
-			"Issue 9",
-			"application/vnd.google-apps.folder",
-			"",
-			[]string{"0B_nzfPsNLo6oTEhVdmJNV1diY28"},
-		),
-		"0B_nzfPsNLo6oTEhVdmJNV1diY28": drivefile.NewDriveFile(
-			"0B_nzfPsNLo6oTEhVdmJNV1diY28",
-			"Volume 108 No. 1-9",
-			"application/vnd.google-apps.folder",
-			"",
-			[]string{},
-		),
-	}
-	return driveFiles
-*/
-
 	var driveFiles []*drive.File
 
 	// Loop through pages of files
@@ -194,8 +160,6 @@ func ScanDriveFiles() []*drive.File {
 
 		nextPageToken = r.NextPageToken
 	}
-
-	log.Printf("%T: %v\n", driveFiles, driveFiles)
 
 	return driveFiles
 
