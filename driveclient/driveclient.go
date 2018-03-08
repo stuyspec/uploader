@@ -136,7 +136,7 @@ func ScanDriveFiles() map[string]*drive.File {
 	for {
 		query := driveService.Files.List().PageSize(100).
 			Fields("nextPageToken, " +
-			"files(id, name, parents, mimeType, webContentLink)")
+				"files(id, name, parents, mimeType, webContentLink)")
 		if len(nextPageToken) > 0 {
 			query = query.PageToken(nextPageToken)
 		}
@@ -173,11 +173,11 @@ func DownloadGoogleDoc(fileID string) (text string) {
 	}
 
 	if res.StatusCode == http.StatusOK {
-    bodyBytes, readErr := ioutil.ReadAll(res.Body)
+		bodyBytes, readErr := ioutil.ReadAll(res.Body)
 		if readErr != nil {
 			log.Fatalf("Unable to read response body. %v", readErr)
 		}
-    text = string(bodyBytes)
+		text = string(bodyBytes)
 	} else {
 		log.Fatalf("Request failed. %v", res)
 	}

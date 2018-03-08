@@ -106,7 +106,7 @@ func nameVariables(name string) map[string]string {
 	components := strings.Split(name, " ")
 	if len(name) == 0 {
 		log.Fatalf("No name given or cleaning cleared the entire name.")
-	} else	if len(components) == 1 {
+	} else if len(components) == 1 {
 		firstName, lastName = name, name
 	} else if len(components) > 2 {
 		firstName = strings.Join(components[0:len(components)-1], " ")

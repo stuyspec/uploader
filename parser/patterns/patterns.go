@@ -92,7 +92,7 @@ func CleanFocus(focusSentence string) string {
 // CleanName rids a name of nicknames and redundant spaces
 // (e.g. "Ying Zi (Jessy) Mei").
 func CleanName(name string) string {
-	name = strings.Join(strings.Fields(name), " ") // Remove redundant spaces
+	name = strings.Join(strings.Fields(name), " ")    // Remove redundant spaces
 	return nicknamePadding.ReplaceAllString(name, "") // Remove nicknames
 }
 
