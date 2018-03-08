@@ -22,9 +22,9 @@ var cliApp *cli.App
 // CacheFilename is the name of the file where an encoded cache is saved.
 const CacheFilename = "file.cache"
 
-gob.Register(map[string]drive.File{})
-
 func init() {
+	gob.Register(map[string]drive.File{})
+
 	cliApp = createCliApp()
 	uploaderCache := CreateUploaderCache()
 
