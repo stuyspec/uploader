@@ -4,17 +4,15 @@ package main
 
 import (
 	"github.com/stuyspec/uploader/driveclient"
-	"github.com/stuyspec/uploader/graphql"
 
-	"github.com/op/go-logging"
-	"github.com/patrickmn/go-cache"
 	"github.com/urfave/cli"
+	"github.com/patrickmn/go-cache"
+	"github.com/op/go-logging"
 
 	"encoding/gob"
 	"fmt"
 	"google.golang.org/api/drive/v3"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -37,64 +35,6 @@ func init() {
 	cliApp = CreateCliApp()
 	log = CreateLogger()
 	uploaderCache = CreateUploaderCache()
-}
-
-// CreateCliApp creates a new CLI app for the uploader.
-// It returns the new app.
-func CreateCliApp() *cli.App {
-	app := cli.NewApp()
-	app.Name = "stuy-spec-uploader"
-	app.Usage = "Automatically upload the articles and graphics of The Spectator."
-	app.Flags = []cli.Flag{
-		cli.BoolFlag{
-			Name:  "reload, r",
-			Usage: "should reload and cache Drive files?",
-		},
-
-		cli.StringFlag{
-			Name:  "local, l",
-			Usage: "use locally hosted API for graphql",
-		},
-
-		cli.IntFlag{
-			Name:  "volume, m",
-			Usage: "volume number",
-		},
-		cli.IntFlag{
-			Name:  "issue, i",
-			Usage: "issue number",
-		},
-	}
-	app.Action = func(c *cli.Context) (err error) {
-		DriveFilesMap = GenerateDriveFilesMap(c.Bool("reload"))
-		if port, err := strconv.Atoi(c.String("local")); err == nil {
-			graphql.InitClient(port)
-		} else {
-			graphql.InitClient()
-		}
-		TransferFlags(c) // Move flag information to global variables
-		return
-	}
-	return app
-}
-
-// CreateLogger creates a logger and sets the backend formatter for logging.
-// It returns the logger.
-func CreateLogger() *logging.Logger {
-	log := logging.MustGetLogger("stuy-spec-uploader")
-
-	// Log format string. Everything except the message has a custom color
-	// which is dependent on the log level. Many fields have a custom output
-	// formatting too, eg. the time returns the hour down to the milli second.
-	var format = logging.MustStringFormatter(
-		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
-	)
-
-	backend := logging.NewLogBackend(os.Stderr, "", 0)
-	backendFormatter := logging.NewBackendFormatter(backend, format)
-	logging.SetBackend(backendFormatter) // Set backends to be used
-
-	return log
 }
 
 func main() {
