@@ -4,7 +4,7 @@ The roadmap here is a living document of where this CLI uploader is intending to
 
 ## Text-only Uploading for Volume/Issues
 
-- [ ] Traverse the Drive file tree and find relevant files
+- [x] Traverse the Drive file tree and find relevant files
 - [x] Download file bytes
 - [ ] Open CLI to text options (r, o, y, n)
 - [ ] Subsection choosing
