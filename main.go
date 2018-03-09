@@ -64,6 +64,16 @@ func CreateCliApp() *cli.App {
 			Usage: "issue number",
 		},
 	}
+	app.Action = func(c *cli.Context) (err error) {
+		DriveFilesMap = GenerateDriveFilesMap(c.Bool("reload"))
+		if port, err := strconv.Atoi(c.String("local")); err == nil {
+			graphql.InitClient(port)
+		} else {
+			graphql.InitClient()
+		}
+		TransferFlags(c) // Move flag information to global variables
+		return
+	}
 	return app
 }
 
@@ -87,21 +97,6 @@ func CreateLogger() *logging.Logger {
 }
 
 func main() {
-	// Define app behavior
-	cliApp.Action = func(c *cli.Context) (err error) {
-		DriveFilesMap = GenerateDriveFilesMap(c.Bool("reload"))
-
-		if port, err := strconv.Atoi(c.String("local")); err == nil {
-			graphql.InitClient(port)
-		} else {
-			graphql.InitClient()
-		}
-
-		TransferFlags(c) // Move flag information to global variables
-
-		return
-	}
-
 	err := cliApp.Run(os.Args)
 	if err != nil {
 		log.Error(err)
