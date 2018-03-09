@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"google.golang.org/api/drive/v3"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -35,16 +37,6 @@ func init() {
 	cliApp = CreateCliApp()
 	log = CreateLogger()
 	uploaderCache = CreateUploaderCache()
-}
-
-func main() {
-	err := cliApp.Run(os.Args)
-	if err != nil {
-		log.Error(err)
-	}
-
-	println(volume)
-	println(issue)
 }
 
 // GenerateDriveFilesMap generates a map[string]*drive.File from the cache
@@ -99,4 +91,84 @@ func stringDriveFile(f *drive.File) (output string) {
 		f.Id, f.Name, f.MimeType, webContentLink, f.Parents,
 	)
 	return
+}
+
+func main() {
+	err := cliApp.Run(os.Args)
+	if err != nil {
+		log.Error(err)
+	}
+
+	UploadIssue(volume, issue)
+}
+
+// UploadIssue uploads an issue of a volume.
+func UploadIssue(volume, issue int) {
+	issueRange := "1-9"
+	if issue > 9 {
+		issueRange = "10-18"
+	}
+	volumeFolder := DriveFileByName(
+		fmt.Sprintf("Volume %d No. %s", volume, issueRange),
+		"folder",
+	)
+	issueFolder := DriveFileByName(
+		regexp.MustCompile(`Issue\s?` + strconv.Itoa(issue)),
+		"folder",
+		volumeFolder.Id,
+	)
+	fmt.Printf("%v\n\n%v\n", volumeFolder, issueFolder)
+}
+
+// DriveFileByName finds a Drive file by its name (and optional MIME type and
+// parent ID).
+// It returns the Drive file.
+func DriveFileByName(name interface{}, args ...string) *drive.File {
+	var parentID, mimeType string
+	if len(args) > 0 {
+		switch args[0] {
+		case "folder":
+			mimeType = "application/vnd.google-apps.folder"
+		case "document":
+			mimeType = "application/vnd.google-apps.document"
+		default:
+			mimeType = args[0]
+		}
+		if len(args) > 1 {
+			parentID = args[1]
+		}
+	}
+	var matchFunc func(string) bool
+	switch name.(type) {
+	default:
+		log.Errorf("Unexpected matcher type in DriveFileByName: %T", name)
+	case string:
+		matchFunc = func(str string) bool {
+			return name == str
+		}
+	case *regexp.Regexp:
+		pattern := name.(*regexp.Regexp)
+		matchFunc = func(str string) bool {
+			return len(pattern.FindStringSubmatch(str)) > 0
+		}
+	}
+	for _, f := range DriveFilesMap {
+		if matchFunc(f.Name) &&
+			(parentID == "" || stringSliceContains(f.Parents, parentID)) &&
+			(mimeType == "" || mimeType == f.MimeType) {
+			return f
+		}
+	}
+	return nil
+}
+
+// stringSliceContains returns true if a string slice contains a specified
+// string.
+func stringSliceContains(slice []string, str string) bool {
+	for _, v := range slice {
+		if v == str {
+			return true
+		}
+	}
+	return false
 }
