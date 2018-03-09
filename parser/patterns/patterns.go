@@ -9,9 +9,9 @@ import (
 // slugPattern matches any line that is part of an article slug.
 var slugPattern = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?`)
 
-// aePattern matches any string that may represent the Arts & Entertainment
+// AePattern matches any string that may represent the Arts & Entertainment
 // department.
-var aePattern = regexp.MustCompile(`Arts\s?&\s?Entertainment|A&?E`)
+var AePattern = regexp.MustCompile(`Arts\s?&\s?Entertainment|A&?E`)
 
 // Paddings are patterns we want to remove from the desired value
 // (e.g. "Title: ", "Outquote(s): ").
@@ -62,7 +62,7 @@ func IsFocus(str string) bool {
 // department.
 // It returns true or false.
 func IsAE(str string) bool {
-	return len(aePattern.FindStringSubmatch(str)) > 0
+	return len(AePattern.FindStringSubmatch(str)) > 0
 }
 
 // CleanTitle rids a title of its paddings (e.g. "Title:").

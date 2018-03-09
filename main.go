@@ -4,6 +4,8 @@ package main
 
 import (
 	"github.com/stuyspec/uploader/driveclient"
+	"github.com/stuyspec/uploader/parser"
+	"github.com/stuyspec/uploader/parser/patterns"
 
 	"github.com/op/go-logging"
 	"github.com/patrickmn/go-cache"
@@ -108,32 +110,83 @@ func UploadIssue(volume, issue int) {
 	if issue > 9 {
 		issueRange = "10-18"
 	}
-	volumeFolder := DriveFileByName(
+	volumeFolder := MustFindDriveFileByName(
 		fmt.Sprintf("Volume %d No. %s", volume, issueRange),
 		"folder",
 	)
-	issueFolder := DriveFileByName(
+	issueFolder := MustFindDriveFileByName(
 		regexp.MustCompile(`Issue\s?`+strconv.Itoa(issue)),
 		"folder",
 		volumeFolder.Id,
 	)
-	fmt.Printf("%v\n\n%v\n", volumeFolder, issueFolder)
+	sbcFolder := MustFindDriveFileByName("SBC", "folder", issueFolder.Id)
+
+	// A slice of folder name matchers to be passed into DriveFileByName
+	departmentNames := []interface{}{
+		"News",
+		"Opinions",
+		"Features",
+		patterns.AePattern,
+		"Humor",
+		"Sports",
+	}
+	for _, deptName := range departmentNames {
+		deptFolder, found := DriveFileByName(deptName, "folder", sbcFolder.Id)
+		if !found {
+			log.Errorf(
+				"No folder found for department %v. Skipping department.",
+				deptName,
+			)
+			continue
+		}
+		UploadDepartment(deptFolder, volume, issue)
+	}
+}
+
+// UploadDepartment uploads a department of an issue of a volume.
+func UploadDepartment(deptFolder *drive.File, volume, issue int) {
+	children := DriveChildren(deptFolder.Id, "document")
+	log.Noticef(
+		"Uploading department %s of Volume %d Issue %d.",
+		deptFolder.Name,
+		volume,
+		issue,
+	)
+	for _, f := range children {
+		UploadArticle(f, volume, issue)
+	}
+}
+
+// UploadArticle uploads an article of an issue of a volume.
+func UploadArticle(file *drive.File, volume, issue int) {
+	rawText := driveclient.DownloadGoogleDoc(file.Id)
+	articleAttrs := parser.ArticleAttributes(rawText)
+}
+
+// DriveChildren finds all direct children of a Drive file.
+// It returns the children in a slice.
+func DriveChildren(parentID string, args ...string) []*drive.File {
+	var mimeType string
+	output := make([]*drive.File, 0)
+	if len(args) > 0 {
+		mimeType = GetMimeType(args[0])
+	}
+	for _, f := range DriveFilesMap {
+		if stringSliceContains(f.Parents, parentID) &&
+			(mimeType == "" || f.MimeType == mimeType) {
+			output = append(output, f)
+		}
+	}
+	return output
 }
 
 // DriveFileByName finds a Drive file by its name (and optional MIME type and
 // parent ID).
 // It returns the Drive file.
-func DriveFileByName(name interface{}, args ...string) *drive.File {
+func DriveFileByName(name interface{}, args ...string) (*drive.File, bool) {
 	var parentID, mimeType string
 	if len(args) > 0 {
-		switch args[0] {
-		case "folder":
-			mimeType = "application/vnd.google-apps.folder"
-		case "document":
-			mimeType = "application/vnd.google-apps.document"
-		default:
-			mimeType = args[0]
-		}
+		mimeType = GetMimeType(args[0])
 		if len(args) > 1 {
 			parentID = args[1]
 		}
@@ -141,7 +194,7 @@ func DriveFileByName(name interface{}, args ...string) *drive.File {
 	var matchFunc func(string) bool
 	switch name.(type) {
 	default:
-		log.Errorf("Unexpected matcher type in DriveFileByName: %T", name)
+		log.Fatalf("Unexpected matcher type in DriveFileByName: %T", name)
 	case string:
 		matchFunc = func(str string) bool {
 			return name == str
@@ -156,10 +209,33 @@ func DriveFileByName(name interface{}, args ...string) *drive.File {
 		if matchFunc(f.Name) &&
 			(parentID == "" || stringSliceContains(f.Parents, parentID)) &&
 			(mimeType == "" || mimeType == f.MimeType) {
-			return f
+			return f, true
 		}
 	}
-	return nil
+	return nil, false
+}
+
+// GetMimeType allows us to use shortcuts for MIME types
+// (e.g. "document" instead of "application/vnd.google-apps.document").
+// It returns the intended. MIME type.
+func GetMimeType(str string) string {
+	switch str {
+	case "folder":
+		return "application/vnd.google-apps.folder"
+	case "document":
+		return "application/vnd.google-apps.document"
+	default:
+		return str
+	}
+}
+// MustFindDriveFileByName is like DriveFileByName but panics if no file is
+// found. If one is found, it returns the Drive file.
+func MustFindDriveFileByName(name interface{}, args ...string) *drive.File {
+	file, found := DriveFileByName(name, args...)
+	if !found {
+		log.Fatalf("No Drive file of name %v found.", name)
+	}
+	return file
 }
 
 // stringSliceContains returns true if a string slice contains a specified

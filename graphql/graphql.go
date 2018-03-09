@@ -10,6 +10,16 @@ import (
 
 var client *graphql.Client
 
+// Article represents an article.
+type Article struct {
+	ID, Title, Content, Slug string
+}
+
+// Section represents a department/section of the newspaper.
+type Section struct {
+	ID, Name, Slug string
+}
+
 // InitClient initiates the graphql.Client with an optional port parameter.
 func InitClient(params ...int) {
 	if len(params) > 0 {
@@ -21,10 +31,6 @@ func InitClient(params ...int) {
 	}
 }
 
-// Section represents a department/section of the newspaper.
-type Section struct {
-	ID, Name, Slug string
-}
 
 type allSectionsResponse struct {
 	AllSections []Section

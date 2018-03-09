@@ -84,7 +84,7 @@ func Contributors(byline string) (contributors []map[string]string) {
 func Outquotes(lines []string, start, end int) (outquotes []string) {
 	outquotes = make([]string, 0)
 	for start <= end {
-		outquoteStr := patterns.CleanOutquote(rawLines[start])
+		outquoteStr := patterns.CleanOutquote(lines[start])
 
 		// If what we think is an outquote is actually another part of the
 		// slug, we know we have found all the outquotes.
