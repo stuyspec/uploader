@@ -24,7 +24,8 @@ const CacheFilename = "file.cache"
 // DriveFilesMap is a mapping of Drive files; map[file id]file
 var DriveFilesMap map[string]*drive.File
 
-var Volume, Issue int
+var volume int
+var issue int
 
 var cliApp *cli.App
 var log *logging.Logger
@@ -102,8 +103,8 @@ func main() {
 		log.Error(err)
 	}
 
-	println(Volume)
-	println(Issue)
+	println(volume)
+	println(issue)
 }
 
 // GenerateDriveFilesMap generates a map[string]*drive.File from the cache
@@ -135,10 +136,10 @@ func GenerateDriveFilesMap(shouldReload bool) map[string]*drive.File {
 // TransferFlags moves flags information to global variables.
 func TransferFlags(c *cli.Context) {
 	if c.IsSet("volume") {
-		Volume = c.Int("volume")
+		volume = c.Int("volume")
 	}
 	if c.IsSet("issue") {
-		Issue = c.Int("issue")
+		issue = c.Int("issue")
 	}
 }
 
