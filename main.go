@@ -161,6 +161,7 @@ func UploadDepartment(deptFolder *drive.File, volume, issue int) {
 func UploadArticle(file *drive.File, volume, issue int) {
 	rawText := driveclient.DownloadGoogleDoc(file.Id)
 	articleAttrs := parser.ArticleAttributes(rawText)
+
 }
 
 // DriveChildren finds all direct children of a Drive file.
@@ -228,6 +229,7 @@ func GetMimeType(str string) string {
 		return str
 	}
 }
+
 // MustFindDriveFileByName is like DriveFileByName but panics if no file is
 // found. If one is found, it returns the Drive file.
 func MustFindDriveFileByName(name interface{}, args ...string) *drive.File {
