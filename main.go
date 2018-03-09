@@ -5,9 +5,9 @@ package main
 import (
 	"github.com/stuyspec/uploader/driveclient"
 
-	"github.com/urfave/cli"
-	"github.com/patrickmn/go-cache"
 	"github.com/op/go-logging"
+	"github.com/patrickmn/go-cache"
+	"github.com/urfave/cli"
 
 	"encoding/gob"
 	"fmt"
@@ -113,7 +113,7 @@ func UploadIssue(volume, issue int) {
 		"folder",
 	)
 	issueFolder := DriveFileByName(
-		regexp.MustCompile(`Issue\s?` + strconv.Itoa(issue)),
+		regexp.MustCompile(`Issue\s?`+strconv.Itoa(issue)),
 		"folder",
 		volumeFolder.Id,
 	)
