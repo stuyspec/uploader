@@ -18,17 +18,17 @@ import (
 	"strings"
 )
 
-var Volume, Issue int
-
-var driveFilesMap map[string]*drive.File
-var cliApp *cli.App
-
-// TODO:
-// where declare log?
-// move cli action out of init9)?
-
 // CacheFilename is the name of the file where an encoded cache is saved.
 const CacheFilename = "file.cache"
+
+// DriveFilesMap is a mapping of Drive files; map[file id]file
+var DriveFilesMap map[string]*drive.File
+
+var Volume, Issue int
+
+var cliApp *cli.App
+var log *logging.Logger
+var uploaderCache *cache.Cache
 
 func init() {
 	gob.Register(map[string]*drive.File{})
@@ -36,39 +36,6 @@ func init() {
 	cliApp = CreateCliApp()
 	log = CreateLogger()
 	uploaderCache = CreateUploaderCache()
-
-	// Get Drive files from cache, if any exist
-	driveFiles, found := uploaderCache.Get("DriveFiles")
-
-	// Define app behavior
-	cliApp.Action = func(c *cli.Context) (err error) {
-		// Rescan and update cache with Drive files if reload flag or none found
-		// current cache.
-		if c.Bool("reload") || !found {
-			driveFiles = driveclient.ScanDriveFiles()
-			uploaderCache.Set("DriveFiles", driveFiles, cache.DefaultExpiration)
-			err = SaveCache(uploaderCache)
-			if err != nil {
-				log.Errorf("Unable to save cache. %v", err)
-			}
-		}
-
-		var typeErr bool
-		driveFilesMap, typeErr = driveFiles.(map[string]*drive.File)
-		if !typeErr {
-			log.Errorf("Unable to type driveFiles to map. %v", typeErr)
-		} else {
-			log.Info("Loaded Drive files into map.")
-		}
-
-		if port, err := strconv.Atoi(c.String("local")); err == nil {
-			graphql.InitClient(port)
-		} else {
-			graphql.InitClient()
-		}
-
-		return
-	}
 }
 
 // CreateCliApp creates a new CLI app for the uploader.
@@ -89,7 +56,7 @@ func CreateCliApp() *cli.App {
 		},
 
 		cli.IntFlag{
-			Name:  "volume, v",
+			Name:  "volume, m",
 			Usage: "volume number",
 		},
 		cli.IntFlag{
@@ -116,12 +83,67 @@ func CreateLogger() *logging.Logger {
 	backendFormatter := logging.NewBackendFormatter(backend, format)
 	logging.SetBackend(backendFormatter) // Set backends to be used
 
+	return log
 }
 
 func main() {
+	// Define app behavior
+	cliApp.Action = func(c *cli.Context) (err error) {
+		DriveFilesMap = GenerateDriveFilesMap(c.Bool("reload"))
+
+		if port, err := strconv.Atoi(c.String("local")); err == nil {
+			graphql.InitClient(port)
+		} else {
+			graphql.InitClient()
+		}
+
+		TransferFlags(c) // Move flag information to global variables
+
+		return
+	}
+
 	err := cliApp.Run(os.Args)
 	if err != nil {
 		log.Error(err)
+	}
+
+	println(Volume)
+	println(Issue)
+}
+
+// GenerateDriveFilesMap generates a map[string]*drive.File from the cache
+// (there is a reload option). It returns the map.
+func GenerateDriveFilesMap(shouldReload bool) map[string]*drive.File {
+	// Get Drive files from cache, if it exists.
+	driveFiles, found := uploaderCache.Get("DriveFiles")
+	// Rescan and update cache with Drive files if reload flag or none found
+	// current cache.
+	if shouldReload || !found {
+		driveFiles = driveclient.ScanDriveFiles()
+		uploaderCache.Set("DriveFiles", driveFiles, cache.DefaultExpiration)
+		err := SaveCache(uploaderCache)
+		if err != nil {
+			log.Errorf("Unable to save cache. %v", err)
+		}
+	}
+
+	filesMap, err := driveFiles.(map[string]*drive.File)
+	if !err {
+		log.Errorf("Unable to type driveFiles to map. %v", err)
+	} else {
+		log.Notice("Loaded Drive files into map.")
+	}
+
+	return filesMap
+}
+
+// TransferFlags moves flags information to global variables.
+func TransferFlags(c *cli.Context) {
+	if c.IsSet("volume") {
+		Volume = c.Int("volume")
+	}
+	if c.IsSet("issue") {
+		Issue = c.Int("issue")
 	}
 }
 
