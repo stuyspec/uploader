@@ -2,12 +2,29 @@
 package parser
 
 import (
+	"github.com/op/go-logging"
+	"github.com/stuyspec/uploader/graphql"
 	"github.com/stuyspec/uploader/parser/patterns"
 
 	"fmt"
-	"log"
+	"os"
 	"strings"
 )
+
+var log *logging.Logger
+
+func init() {
+	log = logging.MustGetLogger("stuy-spec-uploader-cli")
+
+	// Log format string. Everything except the message has a custom color
+	// which is dependent on the log level. Many fields have a custom output
+	// formatting too, eg. the time returns the hour down to the milli second.
+	var format = logging.MustStringFormatter(`%{message}%{color:reset}`)
+
+	backend := logging.NewLogBackend(os.Stderr, "", 0)
+	backendFormatter := logging.NewBackendFormatter(backend, format)
+	logging.SetBackend(backendFormatter) // Set backends to be used
+}
 
 // ArticleAttributes finds the articles of an article for posting.
 // It returns attributes.
@@ -19,6 +36,8 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 	content := make([]string, 0)
 
 	attrs["title"] = patterns.CleanTitle(rawLines[0])
+
+	// We can turn the below loop into a function by passing in the int's address.
 
 	// Start from the end of the article and add lines of content until we reach
 	// the slug (header).
@@ -51,8 +70,17 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 			attrs["summary"] = patterns.CleanFocus(line)
 		} else if patterns.IsOutquote(line) {
 			attrs["outquotes"] = Outquotes(rawLines, j, i)
+		} else if patterns.IsDepartmentMarker(line) {
+			sectionID, found := graphql.SectionIDByName(
+				patterns.DepartmentName(line),
+			)
+			if found {
+				attrs["sectionID"] = sectionID
+			}
 		}
 	}
+
+	WarnIfIncomplete(attrs)
 
 	return
 }
@@ -122,4 +150,25 @@ func nameVariables(name string) map[string]string {
 	variables["firstName"], variables["lastName"] = firstName, lastName
 
 	return variables
+}
+
+// WarnIfIncomplete warns the user if not all attributes of an article were
+// found.
+func WarnIfIncomplete(attrs map[string]interface{}) {
+	requiredKeys := []string{
+		"title",
+		"content",
+		"contributors",
+		"summary",
+		"sectionID",
+	}
+	badKeys := make([]string, 0)
+	for _, key := range requiredKeys {
+		if _, ok := attrs[key]; !ok {
+			badKeys = append(badKeys, key)
+		}
+	}
+	if len(badKeys) > 0 {
+		fmt.Printf("Uploader could not get %v from article text.\n", badKeys)
+	}
 }

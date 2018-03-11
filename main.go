@@ -4,6 +4,7 @@ package main
 
 import (
 	"github.com/stuyspec/uploader/driveclient"
+	"github.com/stuyspec/uploader/graphql"
 	"github.com/stuyspec/uploader/parser"
 	"github.com/stuyspec/uploader/parser/patterns"
 
@@ -101,6 +102,8 @@ func main() {
 		log.Error(err)
 	}
 
+	graphql.CreateStore()
+
 	UploadIssue(volume, issue)
 }
 
@@ -147,21 +150,22 @@ func UploadIssue(volume, issue int) {
 func UploadDepartment(deptFolder *drive.File, volume, issue int) {
 	children := DriveChildren(deptFolder.Id, "document")
 	log.Noticef(
-		"Uploading department %s of Volume %d Issue %d.",
+		"Uploading %s of Volume %d Issue %d.",
 		deptFolder.Name,
 		volume,
 		issue,
 	)
 	for _, f := range children {
-		UploadArticle(f, volume, issue)
+		UploadArticle(f.Id, volume, issue)
 	}
 }
 
-// UploadArticle uploads an article of an issue of a volume.
-func UploadArticle(file *drive.File, volume, issue int) {
-	rawText := driveclient.DownloadGoogleDoc(file.Id)
+// UploadArticle uploads an article of an issue of a volume via its ID.
+func UploadArticle(fileID string, volume, issue int) {
+	rawText := driveclient.DownloadGoogleDoc(fileID)
 	articleAttrs := parser.ArticleAttributes(rawText)
-
+	if articleAttrs != nil {
+	}
 }
 
 // DriveChildren finds all direct children of a Drive file.

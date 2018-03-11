@@ -2,13 +2,24 @@
 package graphql
 
 import (
+	"github.com/machinebox/graphql"
+
 	"context"
 	"fmt"
-	"github.com/machinebox/graphql"
 	"log"
+	"strconv"
 )
 
 var client *graphql.Client
+
+// Sections is an array of all the sections.
+var Sections []Section
+
+// CreateStore creates a store for commonly accessed information
+// (e.g. all sections, all users).
+func CreateStore() {
+	Sections = AllSections()
+}
 
 // Article represents an article.
 type Article struct {
@@ -55,4 +66,18 @@ func AllSections() []Section {
 	}
 
 	return res.AllSections
+}
+
+// SectionIDByName returns a section's ID by its name.
+func SectionIDByName(name string) (id int, found bool) {
+	for _, section := range Sections {
+		if section.Name == name {
+			intID, err := strconv.Atoi(section.ID)
+			if err != nil {
+				panic(err)
+			}
+			return intID, true
+		}
+	}
+	return -1, false
 }
