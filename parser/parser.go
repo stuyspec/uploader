@@ -37,7 +37,7 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 
 	attrs["title"] = patterns.CleanTitle(rawLines[0])
 
-	// We can turn the below loop into a function by passing in the int's address.
+	// TODO: Turn the below loop into a function by passing in the int's address.
 
 	// Start from the end of the article and add lines of content until we reach
 	// the slug (header).
@@ -159,7 +159,6 @@ func WarnIfIncomplete(attrs map[string]interface{}) {
 		"title",
 		"content",
 		"contributors",
-		"summary",
 		"sectionID",
 	}
 	badKeys := make([]string, 0)
