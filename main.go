@@ -104,7 +104,12 @@ func main() {
 
 	graphql.CreateStore()
 
-	UploadIssue(volume, issue)
+	// UploadIssue(volume, issue)
+	UploadArticle(
+		"1Y0Pt7CD3Ic29acfvK3C5BI6yW_fP787ASYGUbooexYw",
+		108,
+		9,
+	)
 }
 
 // UploadIssue uploads an issue of a volume.
@@ -163,9 +168,20 @@ func UploadDepartment(deptFolder *drive.File, volume, issue int) {
 // UploadArticle uploads an article of an issue of a volume via its ID.
 func UploadArticle(fileID string, volume, issue int) {
 	rawText := driveclient.DownloadGoogleDoc(fileID)
-	articleAttrs := parser.ArticleAttributes(rawText)
-	if articleAttrs != nil {
+	articleAttrs, missingAttrs := parser.ArticleAttributes(rawText)
+	if len(missingAttrs) > 0 {
+		log.Errorf(
+			"Unable to parse article with id %s; missing attributes %v.\n",
+			fileID,
+			missingAttrs,
+		)
+		return
 	}
+	article, err := graphql.CreateArticle(articleAttrs)
+	if err != nil {
+		log.Errorf("Unable to create article with id %s. %v\n", fileID,	err)
+	}
+	log.Infof("%v", article)
 }
 
 // DriveChildren finds all direct children of a Drive file.
