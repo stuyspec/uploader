@@ -31,6 +31,14 @@ type Section struct {
 	ID, Name, Slug string
 }
 
+type allSectionsResponse struct {
+	AllSections []Section
+}
+
+type createArticleResponse struct {
+	Article Article
+}
+
 // InitClient initiates the graphql.Client with an optional port parameter.
 func InitClient(params ...int) {
 	if len(params) > 0 {
@@ -40,11 +48,6 @@ func InitClient(params ...int) {
 	} else {
 		client = graphql.NewClient("https://api.stuyspec.com/graphql")
 	}
-}
-
-
-type allSectionsResponse struct {
-	AllSections []Section
 }
 
 // AllSections creates an allSections GraphQL query.
@@ -58,6 +61,7 @@ func AllSections() []Section {
       }
     }
   `)
+
 	ctx := context.Background()
 
 	var res allSectionsResponse
@@ -80,4 +84,47 @@ func SectionIDByName(name string) (id int, found bool) {
 		}
 	}
 	return -1, false
+}
+
+// CreateArticle constructs a GraphQL mutation and creates an article.
+// It returns an error if any is encountered.
+func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
+	req := graphql.NewRequest(`
+  mutation (
+    $title: String!,
+    $content: String!,
+    $summary: String,
+    $outquotes: [String],
+    $contributors: [Int]!,
+    $volume: Int!,
+    $issue: Int!,
+    $sectionID: Int!,
+  ) {
+    createArticle(
+      title: $title,
+      content: $content,
+      summary: $summary,
+      outquotes: $outquotes,
+      contributors: $contributors,
+      volume: $volume,
+      issue: $issue,
+      section_id: $sectionID
+    ) {
+      id
+    }
+  }
+`)
+	for k, v := range attrs {
+		fmt.Printf("(%T, %v), (%T, %v)", k, k, v, v)
+		req.Var(k, v)
+	}
+	req.Var("contributors", []int{1, 2})
+
+	ctx := context.Background()
+	var res createArticleResponse
+	if err = client.Run(ctx, req, &res); err != nil {
+		return article, err
+	}
+	article = res.Article
+	return
 }
