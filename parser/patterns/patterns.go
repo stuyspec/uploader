@@ -107,7 +107,7 @@ func BylineComponents(byline string) []string {
 // DepartmentName extracts the department name of a slug line.
 // It returns the department name.
 func DepartmentName(marker string) string {
-	name := strings.TrimSpace(departmentCapture.FindStringSubmatch(marker)[0])
+	name := strings.TrimSpace(departmentCapture.FindStringSubmatch(marker)[1])
 	if IsAE(marker) {
 		name = "Arts & Entertainment"
 	}

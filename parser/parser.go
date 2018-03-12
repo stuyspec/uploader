@@ -28,8 +28,8 @@ func init() {
 
 // ArticleAttributes finds the articles of an article for posting.
 // It returns attributes.
-func ArticleAttributes(text string) (attrs map[string]interface{}) {
-	attrs = make(map[string]interface{})
+func ArticleAttributes(text string) (map[string]interface{}, []string) {
+	attrs := make(map[string]interface{})
 	text = strings.TrimSpace(text)
 
 	rawLines := strings.Split(text, "\n")
@@ -80,9 +80,7 @@ func ArticleAttributes(text string) (attrs map[string]interface{}) {
 		}
 	}
 
-	WarnIfIncomplete(attrs)
-
-	return
+	return attrs, MissingAttributes(attrs)
 }
 
 // Contributors finds the contributors in a byline.
@@ -152,9 +150,9 @@ func nameVariables(name string) map[string]string {
 	return variables
 }
 
-// WarnIfIncomplete warns the user if not all attributes of an article were
+// MissingAttributes warns the user if not all attributes of an article were
 // found.
-func WarnIfIncomplete(attrs map[string]interface{}) {
+func MissingAttributes(attrs map[string]interface{}) []string {
 	requiredKeys := []string{
 		"title",
 		"content",
@@ -167,7 +165,5 @@ func WarnIfIncomplete(attrs map[string]interface{}) {
 			badKeys = append(badKeys, key)
 		}
 	}
-	if len(badKeys) > 0 {
-		fmt.Printf("Uploader could not get %v from article text.\n", badKeys)
-	}
+	return badKeys
 }
