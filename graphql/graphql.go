@@ -74,10 +74,9 @@ type Article struct {
 }
 
 func (a Article) String() string {
-	return fmt.Sprintf("{ID: %s, Slug: %s, Preview: %s}",
+	return fmt.Sprintf("{ID: %s, Slug: %s}",
 		a.ID,
 		a.Slug,
-		a.Preview,
 	)
 }
 
@@ -150,6 +149,45 @@ func SectionIDByName(name string) (id int, found bool) {
 		}
 	}
 	return -1, false
+}
+
+// UserIDByFirstLast returns a user's ID by his or her first and last names.
+func UserIDByFirstLast(first, last string) int {
+	req := graphql.NewRequest(`
+  query ($firstName: String!, $lastName: String!) {
+    userByFirstLast(first_name: $firstName, last_name: $lastName) {
+      id
+    }
+  }
+`)
+	req.Var("firstName", first)
+	req.Var("lastName", last)
+
+	ctx := context.Background()
+	var res userByFirstLastResponse
+	if err := client.Run(ctx, req, &res); err != nil {
+		return -1
+	}
+
+	var id int
+	if id, err = strconv.Atoi(res.UserByFirstLast.ID); err != nil {
+		return id
+	}
+
+	id, err = CreateUser(map[string]string{
+		firstName: first,
+		lastName: last,
+	})
+	if err != nil {
+		return id
+	}
+	return -1
+}
+
+// CreateUser constructs a GraphQL mutation and creates a user.
+// It returns an error if any is encountered.
+func CreateUser(first, last string) (int, err) {
+	// TODO: CREATE USER FUNCTIONALITY
 }
 
 // CreateArticle constructs a GraphQL mutation and creates an article.
