@@ -175,13 +175,23 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
       section_id: $sectionID
     ) {
       id
-      title
+      slug
     }
   }
 `)
 	req.Header.Set("uid", "jkao1@stuy.edu")
 	for k, v := range attrs {
-		req.Var(k, v)
+		if k == "contributors" {
+			contIDs := make([]int, 0)
+			for c := range v {
+				first, _ := c["firstName"]
+				last, _ := c["lastName"]
+				contIDs = append(contIDs, UserIDByFirstLast(first, last))
+			}
+			req.Var(k, contIDs)
+		} else {
+			req.Var(k, v)
+		}
 	}
 	req.Var("contributors", []int{1, 2})
 
