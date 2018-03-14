@@ -144,6 +144,13 @@ func SectionIDByName(name string) (id int, found bool) {
 // CreateArticle constructs a GraphQL mutation and creates an article.
 // It returns an error if any is encountered.
 func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
+	// We don't need to check for missing attributes because that is already done
+	// in main.UploadArticle before CreateArticle is called.
+	volume, _ := attrs["volume"]
+	issue, _ := attrs["issue"]
+
+	// We give the article a date based on the day it was printed and distributed.
+	attrs["created_at"] = PublicationTime(volume.(int), issue.(int))
 	req := graphql.NewRequest(`
   mutation (
     $title: String!,
@@ -153,6 +160,7 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
     $contributors: [Int]!,
     $volume: Int!,
     $issue: Int!,
+    $created_at: String!,
     $sectionID: Int!,
   ) {
     createArticle(
@@ -163,14 +171,16 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
       contributors: $contributors,
       volume: $volume,
       issue: $issue,
+      created_at: $created_at,
       section_id: $sectionID
     ) {
       id
+      title
     }
   }
 `)
+	req.Header.Set("uid", "jkao1@stuy.edu")
 	for k, v := range attrs {
-		fmt.Printf("(%T, %v), (%T, %v)", k, k, v, v)
 		req.Var(k, v)
 	}
 	req.Var("contributors", []int{1, 2})
