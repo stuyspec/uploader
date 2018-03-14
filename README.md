@@ -18,3 +18,7 @@ $ uploader
 ## Roadmap
 
 For information on the things which are currently being focused on, please visit the [ROADMAP.md](ROADMAP.md) file.
+
+## Manual Upload
+
+The code in this repository will never be perfect. There may be an article that will not upload no matter what you try. In this unfortunate case, refer to [UPLOADING.md](UPLOADING.md) to view instructions on how to use the Rails console to manually upload an article.
