@@ -90,17 +90,30 @@ type User struct {
 	ID string
 	FirstName string
 	LastName string
+	Email string
 }
 
-type allSectionsResponse struct {
+// AllSectionsResponse is a structure to unmarshall the JSON of an allSections
+// query.
+type AllSectionsResponse struct {
 	AllSections []Section
 }
 
-type createArticleResponse struct {
+// CreateArticleResponse is a structure to unmarshall the JSON of a
+// createArticle mutation.
+type CreateArticleResponse struct {
 	CreateArticle Article
 }
 
-type userByFirstLastResponse struct {
+// CreateUserResponse is a structure to unmarshall the JSON of a createUser
+// mutation.
+type CreateUserResponse struct {
+	CreateUser User
+}
+
+// UserByFirstLastResponse is a structure to unmarshall the JSON of an
+// userByFirstLast query.
+type UserByFirstLastResponse struct {
 	UserByFirstLast User
 }
 
