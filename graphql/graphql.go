@@ -52,6 +52,11 @@ var client *graphql.Client
 // Sections is an array of all the sections.
 var Sections []Section
 
+func init() {
+	// Initialize the generator with a random seed.
+	rand.Seed(time.Now().UTC().UnixNano())
+}
+
 // CreateStore creates a store for commonly accessed information
 // (e.g. all sections, all users).
 func CreateStore() {
@@ -305,7 +310,6 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 			req.Var(k, v)
 		}
 	}
-	req.Var("contributors", []int{1, 2})
 
 	ctx := context.Background()
 	var res CreateArticleResponse
