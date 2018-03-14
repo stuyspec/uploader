@@ -141,8 +141,7 @@ func AllSections() []Section {
   `)
 
 	ctx := context.Background()
-
-	var res allSectionsResponse
+	var res AllSectionsResponse
 	if err := client.Run(ctx, req, &res); err != nil {
 		log.Fatal(err)
 	}
@@ -177,30 +176,79 @@ func UserIDByFirstLast(first, last string) int {
 	req.Var("lastName", last)
 
 	ctx := context.Background()
-	var res userByFirstLastResponse
+	var res UserByFirstLastResponse
 	if err := client.Run(ctx, req, &res); err != nil {
 		return -1
 	}
 
-	var id int
-	if id, err = strconv.Atoi(res.UserByFirstLast.ID); err != nil {
+	if id, err := strconv.Atoi(res.UserByFirstLast.ID); err == nil {
 		return id
 	}
 
-	id, err = CreateUser(map[string]string{
-		firstName: first,
-		lastName: last,
-	})
-	if err != nil {
-		return id
+	// By now we know the user does not exist, so we create one.
+	if user, err := CreateUser(first, last); err == nil {
+		if id, err := strconv.Atoi(user.ID); err == nil {
+			return id
+		}
 	}
 	return -1
 }
 
 // CreateUser constructs a GraphQL mutation and creates a user.
 // It returns an error if any is encountered.
-func CreateUser(first, last string) (int, err) {
-	// TODO: CREATE USER FUNCTIONALITY
+func CreateUser(first, last string) (user User, err error)  {
+	fmt.Printf("Enter email for new user %s %s: ", first, last)
+	var email string
+	if _, err := fmt.Scan(&email); err != nil {
+		log.Fatalf("Unable to read email. %v", err)
+	}
+
+	req := graphql.NewRequest(`
+  mutation (
+    $firstName: String!,
+    $lastName: String!
+    $email: String!,
+    $password: String!,
+    $passwordConfirmation: String!
+  ) {
+    createUser(
+      first_name: $firstName,
+      last_name: $lastName,
+      email: $email,
+      password: $password,
+      password_confirmation: $passwordConfirmation,
+    ) {
+      id
+    }
+  }
+`)
+	req.Var("firstName", first)
+	req.Var("lastName", last)
+	req.Var("email", email)
+
+	pword := GeneratePassword()
+	req.Var("password", pword)
+	req.Var("passwordConfirmation", pword)
+
+	ctx := context.Background()
+	var res CreateUserResponse
+	if err := client.Run(ctx, req, &res); err != nil {
+		return user, err
+	}
+	user = res.CreateUser
+	return
+}
+
+// GeneratePassword creates a random sixteen-letter password.
+func GeneratePassword() string {
+	alphaNums := []rune(
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
+	)
+	pword := make([]rune, 16)
+	for i := range pword {
+		pword[i] = alphaNums[rand.Intn(len(alphaNums))]
+	}
+	return string(pword)
 }
 
 // CreateArticle constructs a GraphQL mutation and creates an article.
