@@ -110,6 +110,10 @@ func main() {
 		108,
 		9,
 	)
+
+	for i := 0; i < 10; i++ {
+		fmt.Println(graphql.GeneratePassword())
+	}
 }
 
 // UploadIssue uploads an issue of a volume.
