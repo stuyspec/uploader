@@ -177,11 +177,14 @@ func UploadArticle(fileID string, volume, issue int) {
 		)
 		return
 	}
+	articleAttrs["volume"] = volume
+	articleAttrs["issue"] = issue
+
 	article, err := graphql.CreateArticle(articleAttrs)
 	if err != nil {
 		log.Errorf("Unable to create article with id %s. %v\n", fileID,	err)
 	}
-	log.Infof("%v", article)
+	fmt.Println(article)
 }
 
 // DriveChildren finds all direct children of a Drive file.
