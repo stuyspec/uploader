@@ -86,12 +86,23 @@ type Section struct {
 	ID, Name, Slug string
 }
 
+// User represents a contributor, illustrator, or photographer.
+type User struct {
+	ID string
+	FirstName string
+	LastName string
+}
+
 type allSectionsResponse struct {
 	AllSections []Section
 }
 
 type createArticleResponse struct {
 	CreateArticle Article
+}
+
+type userByFirstLastResponse struct {
+	UserByFirstLast User
 }
 
 // InitClient initiates the graphql.Client with an optional port parameter.
