@@ -190,6 +190,20 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 	if err = client.Run(ctx, req, &res); err != nil {
 		return article, err
 	}
-	article = res.Article
+	article = res.CreateArticle
 	return
+}
+
+// PublicationTime returns the timestamp for an article of a volume and issue.
+// It uses the day the article was printed and distributed as the date and the
+// current time as the time.
+func PublicationTime(volume, issue int) string {
+	if volDates, found := IssueDates[volume]; found {
+		var issueDate string
+		if issueDate, found = volDates[issue]; found {
+			return fmt.Sprintf("%sT%s", issueDate, time.Now().Format("04:20:00"))
+		}
+	}
+	log.Fatalf("No issue date found for Volume %d, Issue %d.", volume, issue)
+	return ""
 }
