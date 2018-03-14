@@ -54,7 +54,7 @@ def textToP(content):
 If the user does not exist, create one, then use the resulting ID for the Authorship.
 ```rb
 > pword = (0...8).map { (65 + rand(26)).chr }.join
-> u = User.create(first_name: Jason, last_name: Kao, email: jkao1@stuy.edu, password: pword, password_confirmation: pword)
+> u = User.create(first_name: "Jason", last_name: "Kao", email: "jkao1@stuy.edu", password: "pword", password_confirmation: "pword")
 ```
 
 7. Save the article.
