@@ -177,6 +177,7 @@ func UploadArticle(fileID string, volume, issue int) {
 		)
 		return
 	}
+	fmt.Println(articleAttrs)
 	articleAttrs["volume"] = volume
 	articleAttrs["issue"] = issue
 
