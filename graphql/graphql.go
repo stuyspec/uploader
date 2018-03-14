@@ -293,7 +293,8 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 	for k, v := range attrs {
 		if k == "contributors" {
 			contIDs := make([]int, 0)
-			for c := range v {
+			contributors := v.([]map[string]string)
+			for _, c := range contributors {
 				first, _ := c["firstName"]
 				last, _ := c["lastName"]
 				contIDs = append(contIDs, UserIDByFirstLast(first, last))
@@ -306,7 +307,7 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 	req.Var("contributors", []int{1, 2})
 
 	ctx := context.Background()
-	var res createArticleResponse
+	var res CreateArticleResponse
 	if err = client.Run(ctx, req, &res); err != nil {
 		return article, err
 	}
@@ -317,13 +318,14 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 // PublicationTime returns the timestamp for an article of a volume and issue.
 // It uses the day the article was printed and distributed as the date and the
 // current time as the time.
-func PublicationTime(volume, issue int) string {
+func PublicationTime(volume, issue int) (timestamp string) {
 	if volDates, found := IssueDates[volume]; found {
 		var issueDate string
 		if issueDate, found = volDates[issue]; found {
-			return fmt.Sprintf("%sT%s", issueDate, time.Now().Format("04:20:00"))
+			timestamp = fmt.Sprintf("%sT%s", issueDate, time.Now().Format("04:20:00"))
+			return
 		}
 	}
 	log.Fatalf("No issue date found for Volume %d, Issue %d.", volume, issue)
-	return ""
+	return
 }
