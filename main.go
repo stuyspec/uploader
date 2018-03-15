@@ -3,12 +3,12 @@
 package main
 
 import (
+	"github.com/stuyspec/uploader/log"
 	"github.com/stuyspec/uploader/driveclient"
 	"github.com/stuyspec/uploader/graphql"
 	"github.com/stuyspec/uploader/parser"
 	"github.com/stuyspec/uploader/parser/patterns"
 
-	"github.com/op/go-logging"
 	"github.com/patrickmn/go-cache"
 	"github.com/urfave/cli"
 
@@ -31,14 +31,12 @@ var volume int
 var issue int
 
 var cliApp *cli.App
-var log *logging.Logger
 var uploaderCache *cache.Cache
 
 func init() {
 	gob.Register(map[string]*drive.File{})
 
 	cliApp = CreateCliApp()
-	log = CreateLogger()
 	uploaderCache = CreateUploaderCache()
 }
 
@@ -54,15 +52,15 @@ func GenerateDriveFilesMap(shouldReload bool) map[string]*drive.File {
 		uploaderCache.Set("DriveFiles", driveFiles, cache.DefaultExpiration)
 		err := SaveCache(uploaderCache)
 		if err != nil {
-			log.Errorf("Unable to save cache. %v", err)
+			log.Fatalf("Unable to save cache. %v", err)
 		}
 	}
 
 	filesMap, err := driveFiles.(map[string]*drive.File)
 	if !err {
-		log.Errorf("Unable to type driveFiles to map. %v", err)
+		log.Fatalf("Unable to type driveFiles to map. %v", err)
 	} else {
-		log.Notice("Loaded Drive files into map.")
+		log.Info("Loaded Drive files into map.")
 	}
 
 	return filesMap
@@ -99,17 +97,12 @@ func stringDriveFile(f *drive.File) (output string) {
 func main() {
 	err := cliApp.Run(os.Args)
 	if err != nil {
-		log.Error(err)
+		log.Fatal(err)
 	}
 
 	graphql.CreateStore()
 
-	// UploadIssue(volume, issue)
-	UploadArticle(
-		"1Y0Pt7CD3Ic29acfvK3C5BI6yW_fP787ASYGUbooexYw",
-		108,
-		9,
-	)
+	UploadIssue(volume, issue)
 }
 
 // UploadIssue uploads an issue of a volume.
@@ -169,6 +162,7 @@ func UploadDepartment(deptFolder *drive.File, volume, issue int) {
 func UploadArticle(fileID string, volume, issue int) {
 	rawText := driveclient.DownloadGoogleDoc(fileID)
 	articleAttrs, missingAttrs := parser.ArticleAttributes(rawText)
+	fmt.Println("")
 	if len(missingAttrs) > 0 {
 		log.Errorf(
 			"Unable to parse article with id %s; missing attributes %v.\n",
@@ -177,15 +171,15 @@ func UploadArticle(fileID string, volume, issue int) {
 		)
 		return
 	}
-	fmt.Println(articleAttrs)
 	articleAttrs["volume"] = volume
 	articleAttrs["issue"] = issue
 
 	article, err := graphql.CreateArticle(articleAttrs)
 	if err != nil {
 		log.Errorf("Unable to create article with id %s. %v\n", fileID,	err)
+	} else {
+		log.Noticef("Successfully created Article with ID %s.", article.ID)
 	}
-	fmt.Println(article)
 }
 
 // DriveChildren finds all direct children of a Drive file.

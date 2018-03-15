@@ -4,9 +4,10 @@ package graphql
 import (
 	"github.com/machinebox/graphql"
 
+	"github.com/stuyspec/uploader/log"
+
 	"context"
 	"fmt"
-	"log"
 	"math/rand"
 	"strconv"
 	"time"
@@ -241,6 +242,7 @@ func CreateUser(first, last string) (user User, err error)  {
 	if err := client.Run(ctx, req, &res); err != nil {
 		return user, err
 	}
+	log.Infof("Created user %s %s.\n", first, last)
 	user = res.CreateUser
 	return
 }
