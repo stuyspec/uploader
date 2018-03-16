@@ -37,7 +37,7 @@ func ArticleAttributes(text string) (map[string]interface{}, []string) {
 
 	attrs["title"] = patterns.CleanTitle(rawLines[0])
 
-	// TODO: Turn the below loop into a function by passing in the int's address.
+	// TODO: Turn the below loop into a function by passing &int.
 
 	// Start from the end of the article and add lines of content until we reach
 	// the slug (header).
@@ -85,8 +85,8 @@ func ArticleAttributes(text string) (map[string]interface{}, []string) {
 
 // Contributors finds the contributors in a byline.
 // It returns the contributors.
-func Contributors(byline string) (contributors []map[string]string) {
-	contributors = make([]map[string]string, 0)
+func Contributors(byline string) (contributors [][]string) {
+	contributors = make([][]string, 0)
 	components := patterns.BylineComponents(byline)
 
 	slicerIndex := 0
@@ -125,10 +125,10 @@ func Outquotes(lines []string, start, end int) (outquotes []string) {
 }
 
 // nameVariables splits a name of variable length into a first name and a last
-// name.
-// It returns the formatted name as a map with a firstName and lastName.
-func nameVariables(name string) map[string]string {
-	variables := make(map[string]string)
+// name. It returns a slice with the first element as the first name and the
+// second element as the last name.
+func nameVariables(name string) []string {
+	variables := make([]string, 2)
 
 	name = patterns.CleanName(name)
 
@@ -145,7 +145,7 @@ func nameVariables(name string) map[string]string {
 		firstName, lastName = components[0], components[1]
 	}
 
-	variables["firstName"], variables["lastName"] = firstName, lastName
+	variables[0], variables[1] = firstName, lastName
 
 	return variables
 }
