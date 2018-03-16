@@ -204,7 +204,7 @@ func UserIDByFirstLast(first, last string) int {
 // CreateUser constructs a GraphQL mutation and creates a user.
 // It returns an error if any is encountered.
 func CreateUser(first, last string) (user User, err error)  {
-	log.Promptf("Enter email for new user %s %s: ", first, last)
+	log.Promptf("Enter email for %s %s: ", first, last)
 	var email string
 	if _, err := fmt.Scan(&email); err != nil {
 		log.Fatalf("Unable to read email. %v", err)
@@ -242,7 +242,7 @@ func CreateUser(first, last string) (user User, err error)  {
 	if err := client.Run(ctx, req, &res); err != nil {
 		return user, err
 	}
-	log.Infof("Created user %s %s.\n", first, last)
+	log.Promptf("Created user %s %s.\n", first, last)
 	user = res.CreateUser
 	return
 }

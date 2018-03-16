@@ -22,4 +22,7 @@ var Error, Errorf = errorFace.PrintlnFunc(), errorFace.PrintfFunc()
 var promptFace = color.New(color.FgYellow)
 var Prompt, Promptf = promptFace.PrintlnFunc(), promptFace.PrintfFunc()
 
-var Info, Infof = fmt.Println, fmt.Printf
+var infoFace = color.New(color.FgGreen)
+var Info, Infof = infoFace.PrintlnFunc(), infoFace.PrintfFunc()
+
+var Println, Printf = fmt.Println, fmt.Printf
