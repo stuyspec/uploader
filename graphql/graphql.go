@@ -204,7 +204,7 @@ func UserIDByFirstLast(first, last string) int {
 // CreateUser constructs a GraphQL mutation and creates a user.
 // It returns an error if any is encountered.
 func CreateUser(first, last string) (user User, err error)  {
-	fmt.Printf("Enter email for new user %s %s: ", first, last)
+	log.Promptf("Enter email for new user %s %s: ", first, last)
 	var email string
 	if _, err := fmt.Scan(&email); err != nil {
 		log.Fatalf("Unable to read email. %v", err)
@@ -301,11 +301,9 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 	for k, v := range attrs {
 		if k == "contributors" {
 			contIDs := make([]int, 0)
-			contributors := v.([]map[string]string)
+			contributors := v.([][]string)
 			for _, c := range contributors {
-				first, _ := c["firstName"]
-				last, _ := c["lastName"]
-				contIDs = append(contIDs, UserIDByFirstLast(first, last))
+				contIDs = append(contIDs, UserIDByFirstLast(c[0], c[1]))
 			}
 			req.Var(k, contIDs)
 		} else {

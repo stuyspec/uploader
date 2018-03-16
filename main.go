@@ -148,8 +148,8 @@ func UploadIssue(volume, issue int) {
 func UploadDepartment(deptFolder *drive.File, volume, issue int) {
 	children := DriveChildren(deptFolder.Id, "document")
 	log.Noticef(
-		"Uploading %s of Volume %d Issue %d.",
-		deptFolder.Name,
+		"Uploading %s of Volume %d Issue %d...\n",
+		strings.ToUpper(deptFolder.Name),
 		volume,
 		issue,
 	)
@@ -162,7 +162,6 @@ func UploadDepartment(deptFolder *drive.File, volume, issue int) {
 func UploadArticle(fileID string, volume, issue int) {
 	rawText := driveclient.DownloadGoogleDoc(fileID)
 	articleAttrs, missingAttrs := parser.ArticleAttributes(rawText)
-	fmt.Println("")
 	if len(missingAttrs) > 0 {
 		log.Errorf(
 			"Unable to parse article with id %s; missing attributes %v.\n",
@@ -171,6 +170,9 @@ func UploadArticle(fileID string, volume, issue int) {
 		)
 		return
 	}
+	title, _ := articleAttrs["title"]
+	log.Header(title)
+	PrintArticleInfo(articleAttrs)
 	articleAttrs["volume"] = volume
 	articleAttrs["issue"] = issue
 
@@ -180,6 +182,19 @@ func UploadArticle(fileID string, volume, issue int) {
 	} else {
 		log.Noticef("Successfully created Article with ID %s.", article.ID)
 	}
+}
+
+// PrintArticleInfo prints article attributes, usually to prevent mistakes.
+func PrintArticleInfo(attrs map[string]interface{}) {
+	var contributors string
+	var contributors string
+	for i, nameVars := attrs["contributors"].([][]string) {
+		contributors += strings.Join(nameVars, " ")
+		if i > 0 {
+			contributors += ","
+		}
+	}
+	fmt.Println(fmt.Sprint(attrs["contributors"]))
 }
 
 // DriveChildren finds all direct children of a Drive file.

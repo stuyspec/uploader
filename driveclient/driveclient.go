@@ -147,7 +147,6 @@ func ScanDriveFiles() map[string]*drive.File {
 			break
 		}
 		if r.NextPageToken == "" {
-			fmt.Println("No more files.")
 			break
 		}
 
