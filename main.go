@@ -121,6 +121,8 @@ func UploadIssue(volume, issue int) {
 		volumeFolder.Id,
 	)
 	sbcFolder := MustFindDriveFileByName("SBC", "folder", issueFolder.Id)
+	photos := Photos(issueFolder)
+	art := Art(issueFolder)
 
 	// A slice of folder name matchers to be passed into DriveFileByName
 	departmentNames := []interface{}{
@@ -144,11 +146,33 @@ func UploadIssue(volume, issue int) {
 	}
 }
 
+// Photos returns an array of all the photos of an issue.
+func Photos(issueFolder *drive.File) []*drive.File {
+	photos := make([]*drive.File, 0)
+	photoFolder := MustFindDriveFileByName(
+		regex.MustCompile(`(?i)photo\s?(color)?`),
+		"folder",
+		issueFolder.Id
+	)
+	return DriveChildren(photoFolder.Id, "image")
+}
+
+// Art returns an array of all the art of an issue.
+func Art(issueFolder *drive.File) []*drive.File {
+	art := make([]*drive.File, 0)
+	artFolder := MustFindDriveFileByName(
+		regex.MustCompile(`(?i)photo\s?(color)?`),
+		"folder",
+		issueFolder.Id
+	)
+	return DriveChildren(artFolder.Id, "image")
+}
+
 // UploadDepartment uploads a department of an issue of a volume.
 func UploadDepartment(deptFolder *drive.File, volume, issue int) {
 	children := DriveChildren(deptFolder.Id, "document")
-	log.Noticef(
-		"Uploading %s of Volume %d Issue %d...\n",
+	log.Headerf(
+		"Uploading [%s], %d/%d\n\n",
 		strings.ToUpper(deptFolder.Name),
 		volume,
 		issue,
