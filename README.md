@@ -21,7 +21,7 @@ $ uploader -m 108 -i 11
 
 ## Uploading
 
-For specific instructions on how to clean Issue folders for uploading, please visit the [UPLOADING.md](UPLOADING.med) file.
+For specific instructions on how to clean Issue folders for uploading, please visit the [UPLOADING.md](UPLOADING.md) file.
 
 ## Roadmap
 
