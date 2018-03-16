@@ -19,6 +19,10 @@ func CreateCliApp() *cli.App {
 			Name:  "reload, r",
 			Usage: "should reload and cache Drive files?",
 		},
+		cli.BoolFlag{
+			Name: "window, w",
+			Usage: "should open core files when bulk uploading?",
+		},
 
 		cli.StringFlag{
 			Name:  "local, l",

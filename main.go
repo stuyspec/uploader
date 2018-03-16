@@ -28,11 +28,15 @@ const CacheFilename = "file.cache"
 // DriveFilesMap is a mapping of Drive files; map[file id]file
 var DriveFilesMap map[string]*drive.File
 
+var cliApp *cli.App
+var uploaderCache *cache.Cache
+
+// Global variables set by CLI
 var volume int
 var issue int
 
-var cliApp *cli.App
-var uploaderCache *cache.Cache
+// Refers to opening core files of the bulk uploading process (e.g. photo folders, newspaper PDF).
+var shouldOpenFiles bool
 
 func init() {
 	gob.Register(map[string]*drive.File{})
@@ -72,6 +76,9 @@ func TransferFlags(c *cli.Context) {
 	}
 	if c.IsSet("issue") {
 		issue = c.Int("issue")
+	}
+	if c.IsSet("window") {
+		shouldOpenFiles = c.Bool("window")
 	}
 }
 
@@ -120,7 +127,30 @@ func UploadIssue(volume, issue int) {
 		volumeFolder.Id,
 	)
 	sbcFolder := MustFindDriveFileByName("SBC", "folder", issueFolder.Id)
-	photos, art := Photos(issueFolder), Art(issueFolder)
+	newspaperPdf := MustFindDriveFileByName(
+		regexp.MustCompile(`(?i)Issue\s?\d{1,2}(\.pdf)$`),
+		"application/pdf",
+		issueFolder.Id,
+	)
+
+	photoFolder := MustFindDriveFileByName(
+		regexp.MustCompile(`(?i)photo\s?color`),
+		"folder",
+		issueFolder.Id,
+	)
+	photos := DriveChildren(photoFolder.Id, "image")
+
+	artFolder := MustFindDriveFileByName(
+		regexp.MustCompile(`(?i)art`),
+		"folder",
+		issueFolder.Id,
+	)
+	art := DriveChildren(artFolder.Id, "image")
+
+	// shouldOpenFiles was a global variable defined during CLI's run.
+	if shouldOpenFiles {
+		OpenDriveFiles(newspaperPdf, photoFolder, artFolder)
+	}
 
 	// A slice of folder name matchers to be passed into DriveFileByName
 	departmentNames := []interface{}{
@@ -144,15 +174,11 @@ func UploadIssue(volume, issue int) {
 	}
 }
 
-// Photos returns an array of all the photos of an issue.
-func Photos(issueFolder *drive.File) []*drive.File {
-	photoFolder := MustFindDriveFileByName(
-		regexp.MustCompile(`(?i)photo\s?(color)?`),
-		"folder",
-		issueFolder.Id,
-	)
-	OpenDriveFile(issueFolder)
-	return DriveChildren(photoFolder.Id, "image")
+// OpenDriveFiles opens several Drive files in the browser (for convenience).
+func OpenDriveFiles(files ...*drive.File) {
+	for _, f := range files {
+		OpenDriveFile(f)
+	}
 }
 
 // OpenDriveFile opens a Drive file in the browser.
@@ -163,21 +189,17 @@ func OpenDriveFile(f *drive.File) {
 	} else if strings.Contains(f.MimeType, "document") {
 		template = "https://docs.google.com/document/d/%s"
 	} else if strings.Contains(f.MimeType, "image") {
-		println(f.WebContentLink)
+		template = "https://drive.google.com/uc?id=%s"
+	} else if f.MimeType == "application/pdf" {
+		template = "https://drive.google.com/file/d/%s"
+	} else {
+		log.Errorf(
+			"I don't yet know how to open a Drive file of MIME type %s.\n",
+			f.MimeType,
+		)
 	}
 	open.Run(fmt.Sprintf(template, f.Id))
 }
-
-// Art returns an array of all the art of an issue.
-func Art(issueFolder *drive.File) []*drive.File {
-	artFolder := MustFindDriveFileByName(
-		regexp.MustCompile(`(?i)photo\s?(color)?`),
-		"folder",
-		issueFolder.Id,
-	)
-	return DriveChildren(artFolder.Id, "image")
-}
-
 // UploadDepartment uploads a department of an issue of a volume.
 func UploadDepartment(
 	deptFolder *drive.File,
@@ -345,7 +367,7 @@ func GetMimeType(str string) string {
 func MustFindDriveFileByName(name interface{}, args ...string) *drive.File {
 	file, found := DriveFileByName(name, args...)
 	if !found {
-		log.Fatalf("No Drive file of name %v found.", name)
+		log.Fatalf("No Drive file of name %v found.\n", name)
 	}
 	return file
 }
