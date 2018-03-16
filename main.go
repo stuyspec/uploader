@@ -9,8 +9,9 @@ import (
 	"github.com/stuyspec/uploader/parser"
 	"github.com/stuyspec/uploader/parser/patterns"
 
-	"github.com/patrickmn/go-cache"
 	"github.com/urfave/cli"
+	"github.com/patrickmn/go-cache"
+	"github.com/skratchdot/open-golang/open"
 
 	"encoding/gob"
 	"fmt"
@@ -119,8 +120,7 @@ func UploadIssue(volume, issue int) {
 		volumeFolder.Id,
 	)
 	sbcFolder := MustFindDriveFileByName("SBC", "folder", issueFolder.Id)
-	photos := Photos(issueFolder)
-	art := Art(issueFolder)
+	photos, art := Photos(issueFolder), Art(issueFolder)
 
 	// A slice of folder name matchers to be passed into DriveFileByName
 	departmentNames := []interface{}{
@@ -140,34 +140,50 @@ func UploadIssue(volume, issue int) {
 			)
 			continue
 		}
-		UploadDepartment(deptFolder, volume, issue)
+		UploadDepartment(deptFolder, volume, issue, photos, art)
 	}
 }
 
 // Photos returns an array of all the photos of an issue.
 func Photos(issueFolder *drive.File) []*drive.File {
-	photos := make([]*drive.File, 0)
 	photoFolder := MustFindDriveFileByName(
-		regex.MustCompile(`(?i)photo\s?(color)?`),
+		regexp.MustCompile(`(?i)photo\s?(color)?`),
 		"folder",
-		issueFolder.Id
+		issueFolder.Id,
 	)
+	OpenDriveFile(issueFolder)
 	return DriveChildren(photoFolder.Id, "image")
+}
+
+// OpenDriveFile opens a Drive file in the browser.
+func OpenDriveFile(f *drive.File) {
+	var template string
+	if strings.Contains(f.MimeType, "folder") {
+		template = "https://drive.google.com/drive/u/0/folders/%s"
+	} else if strings.Contains(f.MimeType, "document") {
+		template = "https://docs.google.com/document/d/%s"
+	} else if strings.Contains(f.MimeType, "image") {
+		println(f.WebContentLink)
+	}
+	open.Run(fmt.Sprintf(template, f.Id))
 }
 
 // Art returns an array of all the art of an issue.
 func Art(issueFolder *drive.File) []*drive.File {
-	art := make([]*drive.File, 0)
 	artFolder := MustFindDriveFileByName(
-		regex.MustCompile(`(?i)photo\s?(color)?`),
+		regexp.MustCompile(`(?i)photo\s?(color)?`),
 		"folder",
-		issueFolder.Id
+		issueFolder.Id,
 	)
 	return DriveChildren(artFolder.Id, "image")
 }
 
 // UploadDepartment uploads a department of an issue of a volume.
-func UploadDepartment(deptFolder *drive.File, volume, issue int) {
+func UploadDepartment(
+	deptFolder *drive.File,
+	volume, issue int,
+	photos, art []*drive.File,
+) {
 	children := DriveChildren(deptFolder.Id, "document")
 	log.Headerf(
 		"Uploading [%s], %d/%d\n\n",
@@ -176,12 +192,16 @@ func UploadDepartment(deptFolder *drive.File, volume, issue int) {
 		issue,
 	)
 	for _, f := range children {
-		UploadArticle(f.Id, volume, issue)
+		UploadArticle(f.Id, volume, issue, photos, art)
 	}
 }
 
 // UploadArticle uploads an article of an issue of a volume via its ID.
-func UploadArticle(fileID string, volume, issue int) {
+func UploadArticle(
+	fileID string,
+	volume, issue int,
+	photos, art []*drive.File,
+) {
 	rawText := driveclient.DownloadGoogleDoc(fileID)
 	articleAttrs, missingAttrs := parser.ArticleAttributes(rawText)
 	if len(missingAttrs) > 0 {
@@ -204,7 +224,7 @@ func UploadArticle(fileID string, volume, issue int) {
 		return
 	} else if uploadConfig == "r" {
 		log.Println()
-		UploadArticle(fileID, volume, issue)
+		UploadArticle(fileID, volume, issue, photos, art)
 		return
 	}
 	// TODO: case "o"
