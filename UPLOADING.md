@@ -1,5 +1,29 @@
 # Uploading
 
+### Table of Contents
+Topic | Description
+:---:| ---
+[Issue Folder Prep](#issue-folder-prep) | How to prep and clean an issue folder to minimize uploading errors and mistakes
+[Manual Upload](#manual-upload) | Uploader failed? How to create an article with Rails console
+
+------
+
+## Issue Folder Prep
+
+_Note: You need to know regex to understand these instructions. Any developer should know/learn regex._
+
+1. Make sure the following files will match these patterns in the issue folder:
+- Newspaper PDF: `(?i)Issue\s?\d{1,2}(\.pdf)$`
+- SBC ("seen by copy"/final drafts) folder: `SBC`
+- Photo Color folder: `(?i)photo\s?color`
+- Art folder: `(?i)art`
+
+2. Also make sure all photos you intend to use are the **direct children** of the Photo Color folder. For instance, SING! photos may be grouped in a folder inside Photo Color—move them outside.
+
+_Note: After changing any file structure (NOT FILE CONTENT), the changes will not appear in the uploader until you use the `--reload, -r` flag to reload them. This will take a while (almost 40 seconds) so reload minimally._
+
+------
+
 ## Manual Upload
 
 1. In the Rails console (setup instructions on the [API's README](https://github.com/stuyspec/stuy-spec-api)) create an article:
