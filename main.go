@@ -181,24 +181,31 @@ func OpenDriveFiles(files ...*drive.File) {
 	}
 }
 
-// OpenDriveFile opens a Drive file in the browser.
+// OpenDriveFile opens a Drive file in the browser with a Drive file as the
+// argument.
 func OpenDriveFile(f *drive.File) {
-	var template string
-	if strings.Contains(f.MimeType, "folder") {
-		template = "https://drive.google.com/drive/u/0/folders/%s"
-	} else if strings.Contains(f.MimeType, "document") {
-		template = "https://docs.google.com/document/d/%s"
-	} else if strings.Contains(f.MimeType, "image") {
-		template = "https://drive.google.com/uc?id=%s"
-	} else if f.MimeType == "application/pdf" {
-		template = "https://drive.google.com/file/d/%s"
+	OpenDriveFileManual(f.Id, f.MimeType)
+}
+
+// OpenDriveFileManual opens a Drive file in the browser with ID and MIME type
+// as arguments.
+func OpenDriveFileManual(id, mimeType string) {
+	var format string
+	if strings.Contains(mimeType, "folder") {
+		format = "https://drive.google.com/drive/u/0/folders/%s"
+	} else if strings.Contains(mimeType, "document") {
+		format = "https://docs.google.com/document/d/%s"
+	} else if strings.Contains(mimeType, "image") {
+		format = "https://drive.google.com/uc?id=%s"
+	} else if mimeType == "application/pdf" {
+		format = "https://drive.google.com/file/d/%s"
 	} else {
 		log.Errorf(
 			"I don't yet know how to open a Drive file of MIME type %s.\n",
-			f.MimeType,
+			mimeType,
 		)
 	}
-	open.Run(fmt.Sprintf(template, f.Id))
+	open.Run(fmt.Sprintf(format, id))
 }
 // UploadDepartment uploads a department of an issue of a volume.
 func UploadDepartment(
@@ -240,16 +247,26 @@ func UploadArticle(
 	articleAttrs["volume"] = volume
 	articleAttrs["issue"] = issue
 
-	uploadConfig := Input("upload? (y/n/r): ")
-	if uploadConfig == "n" {
-		log.Println()
-		return
-	} else if uploadConfig == "r" {
-		log.Println()
-		UploadArticle(fileID, volume, issue, photos, art)
-		return
+	for {
+		switch uploadConfig := Input("upload? (y/n/r): "); uploadConfig {
+		case "y":
+			// [YES]: Upload article
+			break
+		case "n":
+			// [NO]: Skip article
+			log.Println() // aesthetic line break between articles
+			return
+		case "r":
+			// [RELOAD]: Article content changed, download again
+			log.Println()
+			Article(fileID, volume, issue, photos, art)
+			return
+		case "o":
+			// [OPEN]: Open Drive file in browser
+			// (Often used to fix article content, then RELOAD)
+			OpenDriveFileManual(fileId, "folder")
+		}
 	}
-	// TODO: case "o"
 
 	article, err := graphql.CreateArticle(articleAttrs)
 	if err != nil {
