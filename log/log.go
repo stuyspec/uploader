@@ -7,13 +7,19 @@ import (
 	"fmt"
 )
 
+var headerFace = color.New(color.FgCyan).Add(color.Underline).Add(color.Bold)
+var Header, Headerf = headerFace.PrintlnFunc(), headerFace.PrintfFunc()
+
 var noticeFace = color.New(color.FgCyan)
 var Notice, Noticef = noticeFace.PrintlnFunc(), noticeFace.PrintfFunc()
 
 var fatalFace = color.New(color.FgRed).Add(color.Bold)
 var Fatal, Fatalf = fatalFace.PrintlnFunc(), fatalFace.PrintfFunc()
 
-var errorFace = color.New(color.FgRed).
+var errorFace = color.New(color.FgRed)
 var Error, Errorf = errorFace.PrintlnFunc(), errorFace.PrintfFunc()
+
+var promptFace = color.New(color.FgYellow)
+var Prompt, Promptf = promptFace.PrintlnFunc(), promptFace.PrintfFunc()
 
 var Info, Infof = fmt.Println, fmt.Printf
