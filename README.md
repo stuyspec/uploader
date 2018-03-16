@@ -11,9 +11,17 @@ A command line interface (CLI) for uploading articles from Google Drive Volume f
 # Compile program and create binary
 $ go install
 
-# Run program
-$ uploader
+# Run bulk upload for Volume 108 Issue 11
+$ uploader -m 108 -i 11
 ```
+
+#### Optional flags
+- **--window, -w:** open core files when bulk uploading (e.g. Photo/Art folders, Newspaper PDF)
+- **--local PORT, -l PORT:** use a locally hosted GraphQL server
+
+## Uploading
+
+For specific instructions on how to clean Issue folders for uploading, please visit the [UPLOADING.md](UPLOADING.med) file.
 
 ## Roadmap
 
