@@ -59,8 +59,6 @@ func GenerateDriveFilesMap(shouldReload bool) map[string]*drive.File {
 	filesMap, err := driveFiles.(map[string]*drive.File)
 	if !err {
 		log.Fatalf("Unable to type driveFiles to map. %v", err)
-	} else {
-		log.Info("Loaded Drive files into map.")
 	}
 
 	return filesMap
@@ -200,25 +198,57 @@ func UploadArticle(fileID string, volume, issue int) {
 	articleAttrs["volume"] = volume
 	articleAttrs["issue"] = issue
 
+	uploadConfig := Input("upload? (y/n/r): ")
+	if uploadConfig == "n" {
+		log.Println()
+		return
+	} else if uploadConfig == "r" {
+		log.Println()
+		UploadArticle(fileID, volume, issue)
+		return
+	}
+	// TODO: case "o"
+
 	article, err := graphql.CreateArticle(articleAttrs)
 	if err != nil {
 		log.Errorf("Unable to create article with id %s. %v\n", fileID,	err)
 	} else {
-		log.Noticef("Successfully created Article with ID %s.", article.ID)
+		log.Noticef("Successfully created Article (ID: %s).\n\n", article.ID)
 	}
+}
+
+// Input lets the user respond to a prompt. It returns the user's response.
+// If there was a scanning error, it returns an empty string.
+// TODO: maybe add function arg for color customization?
+func Input(prompt string) (response string) {
+	log.Infof(prompt)
+	if _, err := fmt.Scan(&response); err != nil {
+		log.Errorf("Unable to scan response. %v\n", err)
+	}
+	return
 }
 
 // PrintArticleInfo prints article attributes, usually to prevent mistakes.
 func PrintArticleInfo(attrs map[string]interface{}) {
+	log.Infof("contributors: ")
 	var contributors string
-	var contributors string
-	for i, nameVars := attrs["contributors"].([][]string) {
-		contributors += strings.Join(nameVars, " ")
+	for i, nameVars := range attrs["contributors"].([][]string) {
 		if i > 0 {
-			contributors += ","
+			contributors += ", "
 		}
+		contributors += strings.Join(nameVars, " ")
 	}
-	fmt.Println(fmt.Sprint(attrs["contributors"]))
+	log.Printf("%s\n", contributors)
+
+	log.Infof("summary: ")
+	log.Printf("%v\n", attrs["summary"])
+
+	log.Infof("content: ")
+	truncatedContent := attrs["content"].(string)
+	if words := strings.Split(truncatedContent, " "); len(words) > 20 {
+		truncatedContent = strings.Join(words[:20], " ") + "..."
+	}
+	log.Printf("%s\n", truncatedContent)
 }
 
 // DriveChildren finds all direct children of a Drive file.
@@ -230,9 +260,12 @@ func DriveChildren(parentID string, args ...string) []*drive.File {
 		mimeType = GetMimeType(args[0])
 	}
 	for _, f := range DriveFilesMap {
-		if stringSliceContains(f.Parents, parentID) &&
-			(mimeType == "" || f.MimeType == mimeType) {
-			output = append(output, f)
+		if stringSliceContains(f.Parents, parentID) {
+			if mimeType == "" ||
+				mimeType == "image" && strings.Contains(f.MimeType, mimeType) ||
+				mimeType == f.MimeType {
+				output = append(output, f)
+			}
 		}
 	}
 	return output
