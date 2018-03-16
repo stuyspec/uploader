@@ -5,6 +5,7 @@ import (
 	"github.com/fatih/color"
 
 	"fmt"
+	"os"
 )
 
 var headerFace = color.New(color.FgCyan).Add(color.Underline).Add(color.Bold)
@@ -14,7 +15,14 @@ var noticeFace = color.New(color.FgCyan)
 var Notice, Noticef = noticeFace.PrintlnFunc(), noticeFace.PrintfFunc()
 
 var fatalFace = color.New(color.FgRed).Add(color.Bold)
-var Fatal, Fatalf = fatalFace.PrintlnFunc(), fatalFace.PrintfFunc()
+func Fatal(a ...interface{}) {
+	fatalFace.Println(a...)
+	os.Exit(1)
+}
+func Fatalf(format string, a ...interface{}) {
+	fatalFace.Printf(format, a...)
+	os.Exit(1)
+}
 
 var errorFace = color.New(color.FgRed)
 var Error, Errorf = errorFace.PrintlnFunc(), errorFace.PrintfFunc()
