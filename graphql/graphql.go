@@ -8,6 +8,7 @@ import (
 
 	"context"
 	"fmt"
+	"net/http"
 	"math/rand"
 	"strconv"
 	"time"
@@ -50,19 +51,10 @@ var IssueDates = map[int]map[int]string{
 
 var client *graphql.Client
 
+var deviseHeader http.Header
+
 // Sections is an array of all the sections.
 var Sections []Section
-
-func init() {
-	// Initialize the generator with a random seed.
-	rand.Seed(time.Now().UTC().UnixNano())
-}
-
-// CreateStore creates a store for commonly accessed information
-// (e.g. all sections, all users).
-func CreateStore() {
-	Sections = AllSections()
-}
 
 // Article represents an article.
 type Article struct {
@@ -124,6 +116,23 @@ type UserByFirstLastResponse struct {
 	UserByFirstLast User
 }
 
+func init() {
+	// Initialize the generator with a random seed.
+	rand.Seed(time.Now().UTC().UnixNano())
+
+	deviseHeader := http.Header{}
+	deviseHeader.Set("access-token", "8QjAUIIqP1WT854CI0NrhA")
+	deviseHeader.Set("client", "7dAQ7HWLsmFZyMWCXBiPBQ")
+	deviseHeader.Set("expiry", "1522439406")
+	deviseHeader.Set("uid", "jkao1@stuy.edu")
+}
+
+// CreateStore creates a store for commonly accessed information
+// (e.g. all sections, all users).
+func CreateStore() {
+	Sections = AllSections()
+}
+
 // InitClient initiates the graphql.Client with an optional port parameter.
 func InitClient(params ...int) {
 	if len(params) > 0 {
@@ -133,6 +142,7 @@ func InitClient(params ...int) {
 	} else {
 		client = graphql.NewClient("https://api.stuyspec.com/graphql")
 	}
+	client.Log = func(s string) { log.Println(s) }
 }
 
 // AllSections creates an allSections GraphQL query.
@@ -229,6 +239,7 @@ func CreateUser(first, last string) (user User, err error)  {
     }
   }
 `)
+	req.Header.Set("uid", "jkao1@stuy.edu")
 	req.Var("firstName", first)
 	req.Var("lastName", last)
 	req.Var("email", email)
@@ -242,10 +253,13 @@ func CreateUser(first, last string) (user User, err error)  {
 	if err := client.Run(ctx, req, &res); err != nil {
 		return user, err
 	}
+	fmt.Println(res.CreateUser)
 	log.Promptf("Created user %s %s.\n", first, last)
 	user = res.CreateUser
 	return
 }
+
+// TODO: UNIVERSAL RUN FUNC W AUTH
 
 // GeneratePassword creates a random sixteen-letter password.
 func GeneratePassword() string {
@@ -334,3 +348,5 @@ func PublicationTime(volume, issue int) (timestamp string) {
 	log.Fatalf("No issue date found for Volume %d, Issue %d.", volume, issue)
 	return
 }
+
+// RunRequest

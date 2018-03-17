@@ -35,7 +35,8 @@ var uploaderCache *cache.Cache
 var volume int
 var issue int
 
-// Refers to opening core files of the bulk uploading process (e.g. photo folders, newspaper PDF).
+// Refers to opening core files of the bulk uploading process
+// (e.g. photo folders, newspaper PDF).
 var shouldOpenFiles bool
 
 func init() {
@@ -248,23 +249,25 @@ func UploadArticle(
 	articleAttrs["issue"] = issue
 
 	for {
-		switch uploadConfig := Input("upload? (y/n/r): "); uploadConfig {
-		case "y":
+		uploadConfig := Input("upload? (y/n/r/o): ")
+		if uploadConfig == "y" {
 			// [YES]: Upload article
 			break
-		case "n":
+		} else if uploadConfig == "n" {
 			// [NO]: Skip article
 			log.Println() // aesthetic line break between articles
 			return
-		case "r":
+		} else if uploadConfig == "r" {
 			// [RELOAD]: Article content changed, download again
 			log.Println()
-			Article(fileID, volume, issue, photos, art)
+			UploadArticle(fileID, volume, issue, photos, art)
 			return
-		case "o":
+		} else if uploadConfig == "o" {
 			// [OPEN]: Open Drive file in browser
 			// (Often used to fix article content, then RELOAD)
-			OpenDriveFileManual(fileId, "folder")
+			OpenDriveFileManual(fileID, "document")
+		} else {
+			log.Errorf("[%s] is not a valid option.\n", uploadConfig)
 		}
 	}
 
@@ -272,8 +275,10 @@ func UploadArticle(
 	if err != nil {
 		log.Errorf("Unable to create article with id %s. %v\n", fileID,	err)
 	} else {
-		log.Noticef("Successfully created Article (ID: %s).\n\n", article.ID)
+		log.Noticef("Successfully created Article (ID: %s).\n", article.ID)
 	}
+
+	log.Println()
 }
 
 // Input lets the user respond to a prompt. It returns the user's response.
