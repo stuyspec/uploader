@@ -10,8 +10,8 @@ A command line interface (CLI) for uploading articles from Google Drive Volume f
 
 You must have an admin account (security level > 0) in the database to be able to use the uploader. Put the credentials to the account in a dotenv file like so:
 ```
-email=YOUR_EMAIL
-password=YOUR_PASSWORD
+EMAIL=YOUR_EMAIL
+PASSWORD=YOUR_PASSWORD
 ```
 
 ## Usage
