@@ -130,10 +130,10 @@ type CreateMediumResponse struct {
 	CreateMedium Medium
 }
 
-// UserByFirstLastResponse is a structure to unmarshall the JSON of an
-// userByFirstLast query.
-type UserByFirstLastResponse struct {
-	UserByFirstLast User
+// UserByFirstLastNameResponse is a structure to unmarshall the JSON of an
+// userByFirstLastName query.
+type UserByFirstLastNameResponse struct {
+	UserByFirstLastName User
 }
 
 func init() {
@@ -217,11 +217,11 @@ func SectionIDByName(name string) (id int, found bool) {
 	return -1, false
 }
 
-// UserIDByFirstLast returns a user's ID by his or her first and last names.
-func UserIDByFirstLast(first, last string) (id int, err error) {
+// UserIDByFirstLastName returns a user's ID by his or her first and last names.
+func UserIDByFirstLastName(first, last string) (id int, err error) {
 	req := graphql.NewRequest(`
   query ($firstName: String!, $lastName: String!) {
-    userByFirstLast(first_name: $firstName, last_name: $lastName) {
+    userByFirstLastName(first_name: $firstName, last_name: $lastName) {
       id
     }
   }
@@ -229,11 +229,11 @@ func UserIDByFirstLast(first, last string) (id int, err error) {
 	req.Var("firstName", first)
 	req.Var("lastName", last)
 
-	var res UserByFirstLastResponse
+	var res UserByFirstLastNameResponse
 	if err = RunGraphqlQuery(req, &res); err != nil {
 		return
 	}
-	if id, err = strconv.Atoi(res.UserByFirstLast.ID); err == nil {
+	if id, err = strconv.Atoi(res.UserByFirstLastName.ID); err == nil {
 		return
 	}
 
@@ -346,7 +346,7 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 			contributors := v.([][]string)
 			for _, c := range contributors {
 				var userID int
-				if userID, err = UserIDByFirstLast(c[0], c[1]); err != nil {
+				if userID, err = UserIDByFirstLastName(c[0], c[1]); err != nil {
 					return
 				} else {
 					contIDs = append(contIDs, userID)
@@ -408,7 +408,7 @@ func CreateMedium(attrs map[string]string) (medium Medium, err error) {
 	nameVars := patterns.NameVariables(attrs["artistName"])
 	delete(attrs, "artistName")
 	var userID int
-	userID, err = UserIDByFirstLast(nameVars[0], nameVars[1])
+	userID, err = UserIDByFirstLastName(nameVars[0], nameVars[1])
 	if err != nil {
 		return
 	}

@@ -96,6 +96,7 @@ func CreateArticleMedia(article graphql.Article, photos, art []*drive.File) {
 		}
 		for _, p := range photos {
 			if p.Name == filename {
+				mediaAttrs["mediaType"] = "photo"
 				mediaAttrs["webContentLink"] = p.WebContentLink
 				mediaAttrs["mimeType"] = p.MimeType
 			}
