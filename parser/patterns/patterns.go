@@ -2,6 +2,8 @@
 package patterns
 
 import (
+	"github.com/stuyspec/uploader/log"
+
 	"regexp"
 	"strings"
 )
@@ -112,4 +114,30 @@ func DepartmentName(marker string) string {
 		name = "Arts & Entertainment"
 	}
 	return name
+}
+
+// NameVariables splits a name of variable length into a first name and a last
+// name. It returns a slice with the first element as the first name and the
+// second element as the last name.
+func NameVariables(name string) []string {
+	variables := make([]string, 2)
+
+	name = CleanName(name)
+
+	var firstName, lastName string
+	components := strings.Split(name, " ")
+	if len(name) == 0 {
+		log.Fatalf("No name given or cleaning cleared the entire name.")
+	} else if len(components) == 1 {
+		firstName, lastName = name, name
+	} else if len(components) > 2 {
+		firstName = strings.Join(components[0:len(components)-1], " ")
+		lastName = components[len(components)-1]
+	} else {
+		firstName, lastName = components[0], components[1]
+	}
+
+	variables[0], variables[1] = firstName, lastName
+
+	return variables
 }

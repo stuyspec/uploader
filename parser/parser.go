@@ -93,12 +93,12 @@ func Contributors(byline string) (contributors [][]string) {
 	for i, symbol := range components {
 		if symbol == "&" || symbol == "," || symbol == "and" {
 			name := strings.Join(components[slicerIndex:i], " ")
-			contributors = append(contributors, NameVariables(name))
+			contributors = append(contributors, patterns.NameVariables(name))
 			slicerIndex = i + 1
 		}
 	}
 	remainingName := strings.Join(components[slicerIndex:], " ")
-	contributors = append(contributors, NameVariables(remainingName))
+	contributors = append(contributors, patterns.NameVariables(remainingName))
 
 	return
 }
@@ -122,32 +122,6 @@ func Outquotes(lines []string, start, end int) (outquotes []string) {
 		start++
 	}
 	return
-}
-
-// NameVariables splits a name of variable length into a first name and a last
-// name. It returns a slice with the first element as the first name and the
-// second element as the last name.
-func NameVariables(name string) []string {
-	variables := make([]string, 2)
-
-	name = patterns.CleanName(name)
-
-	var firstName, lastName string
-	components := strings.Split(name, " ")
-	if len(name) == 0 {
-		log.Fatalf("No name given or cleaning cleared the entire name.")
-	} else if len(components) == 1 {
-		firstName, lastName = name, name
-	} else if len(components) > 2 {
-		firstName = strings.Join(components[0:len(components)-1], " ")
-		lastName = components[len(components)-1]
-	} else {
-		firstName, lastName = components[0], components[1]
-	}
-
-	variables[0], variables[1] = firstName, lastName
-
-	return variables
 }
 
 // MissingAttributes warns the user if not all attributes of an article were

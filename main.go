@@ -107,7 +107,6 @@ func main() {
 	}
 
 	graphql.CreateStore()
-
 	UploadIssue(volume, issue)
 }
 
