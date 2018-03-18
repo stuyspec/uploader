@@ -6,8 +6,10 @@ import (
 	"github.com/jkao1/go-graphql"
 
 	"github.com/stuyspec/uploader/log"
+	"github.com/stuyspec/uploader/parser"
 
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -58,7 +60,7 @@ var deviseHeader = http.Header{}
 
 var apiEndpoint string
 
-// Sections is an array of all the sections.
+// Sections is a slice of all the sections.
 var Sections []Section
 
 // Article represents an article.
@@ -97,6 +99,11 @@ type User struct {
 	Email string
 }
 
+// Medium represents an illustration or photograph.
+type Medium struct {
+	ID, Title, AttachmentUrl string
+}
+
 // AllSectionsResponse is a structure to unmarshall the JSON of an allSections
 // query.
 type AllSectionsResponse struct {
@@ -113,6 +120,12 @@ type CreateArticleResponse struct {
 // mutation.
 type CreateUserResponse struct {
 	CreateUser User
+}
+
+// CreateMediumResponse is a structure to unmarshall the JSON of a createMedium
+// mutation.
+type CreateMediumResponse struct {
+	CreateMedium Medium
 }
 
 // UserByFirstLastResponse is a structure to unmarshall the JSON of an
