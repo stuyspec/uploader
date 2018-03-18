@@ -6,7 +6,6 @@ import (
 	"github.com/stuyspec/uploader/log"
 	"github.com/stuyspec/uploader/driveclient"
 	"github.com/stuyspec/uploader/graphql"
-	"github.com/stuyspec/uploader/parser"
 	"github.com/stuyspec/uploader/parser/patterns"
 
 	"github.com/urfave/cli"
@@ -297,7 +296,9 @@ func GetMimeType(str string) string {
 }
 
 // MustFindDriveFileByName is like DriveFileByName but panics if no file is
-// found. If one is found, it returns the Drive file.
+// found. It takes the optional arguments MIME type and parent ID. If a Drive
+// file is found, it returns the Drive file. If one is not found, the program
+// exits.
 func MustFindDriveFileByName(name interface{}, args ...string) *drive.File {
 	file, found := DriveFileByName(name, args...)
 	if !found {

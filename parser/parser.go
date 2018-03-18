@@ -93,12 +93,12 @@ func Contributors(byline string) (contributors [][]string) {
 	for i, symbol := range components {
 		if symbol == "&" || symbol == "," || symbol == "and" {
 			name := strings.Join(components[slicerIndex:i], " ")
-			contributors = append(contributors, nameVariables(name))
+			contributors = append(contributors, NameVariables(name))
 			slicerIndex = i + 1
 		}
 	}
 	remainingName := strings.Join(components[slicerIndex:], " ")
-	contributors = append(contributors, nameVariables(remainingName))
+	contributors = append(contributors, NameVariables(remainingName))
 
 	return
 }
@@ -124,10 +124,10 @@ func Outquotes(lines []string, start, end int) (outquotes []string) {
 	return
 }
 
-// nameVariables splits a name of variable length into a first name and a last
+// NameVariables splits a name of variable length into a first name and a last
 // name. It returns a slice with the first element as the first name and the
 // second element as the last name.
-func nameVariables(name string) []string {
+func NameVariables(name string) []string {
 	variables := make([]string, 2)
 
 	name = patterns.CleanName(name)
