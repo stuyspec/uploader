@@ -175,6 +175,24 @@ func UploadIssue(volume, issue int) {
 	}
 }
 
+// UploadDepartment uploads a department of an issue of a volume.
+func UploadDepartment(
+	deptFolder *drive.File,
+	volume, issue int,
+	photos, art []*drive.File,
+) {
+	children := DriveChildren(deptFolder.Id, "document")
+	log.Headerf(
+		"Uploading [%s], %d/%d\n\n",
+		strings.ToUpper(deptFolder.Name),
+		volume,
+		issue,
+	)
+	for _, f := range children {
+		UploadArticle(f.Id, volume, issue, photos, art)
+	}
+}
+
 // OpenDriveFiles opens several Drive files in the browser (for convenience).
 func OpenDriveFiles(files ...*drive.File) {
 	for _, f := range files {
@@ -207,118 +225,6 @@ func OpenDriveFileManual(id, mimeType string) {
 		)
 	}
 	open.Run(fmt.Sprintf(format, id))
-}
-// UploadDepartment uploads a department of an issue of a volume.
-func UploadDepartment(
-	deptFolder *drive.File,
-	volume, issue int,
-	photos, art []*drive.File,
-) {
-	children := DriveChildren(deptFolder.Id, "document")
-	log.Headerf(
-		"Uploading [%s], %d/%d\n\n",
-		strings.ToUpper(deptFolder.Name),
-		volume,
-		issue,
-	)
-	for _, f := range children {
-		UploadArticle(f.Id, volume, issue, photos, art)
-	}
-}
-
-// UploadArticle uploads an article of an issue of a volume via its ID.
-func UploadArticle(
-	fileID string,
-	volume, issue int,
-	photos, art []*drive.File,
-) {
-	rawText := driveclient.DownloadGoogleDoc(fileID)
-	articleAttrs, missingAttrs := parser.ArticleAttributes(rawText)
-	if len(missingAttrs) > 0 {
-		log.Errorf(
-			"Unable to parse article with id %s; missing attributes %v.\n",
-			fileID,
-			missingAttrs,
-		)
-		return
-	}
-	title, _ := articleAttrs["title"]
-	log.Header(title)
-	PrintArticleInfo(articleAttrs)
-	articleAttrs["volume"] = volume
-	articleAttrs["issue"] = issue
-
-	for {
-		uploadConfig := Input("upload? (y/n/r/o): ")
-		if uploadConfig == "y" {
-			// [YES]: Upload article
-			break
-		} else if uploadConfig == "n" {
-			// [NO]: Skip article
-			log.Println() // aesthetic line break between articles
-			return
-		} else if uploadConfig == "r" {
-			// [RELOAD]: Article content changed, download again
-			log.Println()
-			UploadArticle(fileID, volume, issue, photos, art)
-			return
-		} else if uploadConfig == "o" {
-			// [OPEN]: Open Drive file in browser
-			// (Often used to fix article content, then RELOAD)
-			OpenDriveFileManual(fileID, "document")
-		} else {
-			log.Errorf("[%s] is not a valid option.\n", uploadConfig)
-		}
-	}
-
-	article, err := graphql.CreateArticle(articleAttrs)
-	if err != nil {
-		log.Errorf("Unable to create article with id %s. %v\n", fileID,	err)
-
-		// If there is an error, reload the article. It could be solved by a simple
-		// open -> edit -> reload. If not, then it can be skipped.
-		log.Println()
-		UploadArticle(fileID, volume, issue, photos, art)
-		return
-	} else {
-		log.Noticef("Successfully created Article (ID: %s).\n", article.ID)
-	}
-
-	log.Println()
-}
-
-// Input lets the user respond to a prompt. It returns the user's response.
-// If there was a scanning error, it returns an empty string.
-// TODO: maybe add function arg for color customization?
-func Input(prompt string) (response string) {
-	log.Infof(prompt)
-	if _, err := fmt.Scan(&response); err != nil {
-		log.Errorf("Unable to scan response. %v\n", err)
-	}
-	return
-}
-
-// PrintArticleInfo prints article attributes, usually to prevent mistakes.
-func PrintArticleInfo(attrs map[string]interface{}) {
-	log.Infof("contributors: ")
-	var contributors string
-	for i, nameVars := range attrs["contributors"].([][]string) {
-		if i > 0 {
-			contributors += ", "
-		}
-		contributors += strings.Join(nameVars, " ")
-	}
-	log.Printf("%s\n", contributors)
-
-	log.Infof("summary: ")
-	log.Printf("%v\n", attrs["summary"])
-
-	log.Infof("content: ")
-	truncatedContent := attrs["content"].(string)
-	if words := strings.Split(truncatedContent, " "); len(words) > 20 {
-		truncatedContent = strings.Join(words[:20], " ") + "..."
-	}
-	log.Printf("%s\n", truncatedContent)
 }
 
 // DriveChildren finds all direct children of a Drive file.
