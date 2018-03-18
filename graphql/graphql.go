@@ -170,15 +170,13 @@ func init() {
 	} {
 		deviseHeader.Set(authHeader, resp.Header.Get(authHeader))
 	}
-	fmt.Println(deviseHeader)
 
 	// Initialize GraphQL client
 	client = graphql.NewClient(fmt.Sprintf(apiEndpoint + "/graphql"))
-	client.Log = func(s string) { log.Println(s) }
 }
 
 // CreateStore creates a store for commonly accessed information
-// (e.g. all sections, all users).
+// (e.g. all sections, all roles).
 func CreateStore() {
 	Sections = AllSections()
 }
@@ -285,8 +283,8 @@ func CreateUser(first, last string) (user User, err error)  {
 	if err = RunGraphqlQuery(req, &res); err != nil {
 		return
 	}
-	log.Promptf("Created user %s %s.\n", first, last)
 	user = res.CreateUser
+	log.Promptf("Created user #%s: %s %s.\n", user.ID, first, last)
 	return
 }
 
