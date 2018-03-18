@@ -205,7 +205,7 @@ func SectionIDByName(name string) (id int, found bool) {
 }
 
 // UserIDByFirstLast returns a user's ID by his or her first and last names.
-func UserIDByFirstLast(first, last string) int {
+func UserIDByFirstLast(first, last string) (id int, err error) {
 	req := graphql.NewRequest(`
   query ($firstName: String!, $lastName: String!) {
     userByFirstLast(first_name: $firstName, last_name: $lastName) {
@@ -217,20 +217,19 @@ func UserIDByFirstLast(first, last string) int {
 	req.Var("lastName", last)
 
 	var res UserByFirstLastResponse
-	if err := RunGraphqlQuery(req, &res); err != nil {
-		return -1
+	if err = RunGraphqlQuery(req, &res); err != nil {
+		return
 	}
-	if id, err := strconv.Atoi(res.UserByFirstLast.ID); err == nil {
-		return id
+	if id, err = strconv.Atoi(res.UserByFirstLast.ID); err == nil {
+		return
 	}
 
 	// By now we know the user does not exist, so we create one.
-	if user, err := CreateUser(first, last); err == nil {
-		if id, err := strconv.Atoi(user.ID); err == nil {
-			return id
-		}
+	var user User
+	if user, err = CreateUser(first, last); err != nil {
+		return
 	}
-	return -1
+	return strconv.Atoi(user.ID)
 }
 
 // CreateUser constructs a GraphQL mutation and creates a user.
@@ -273,13 +272,12 @@ func CreateUser(first, last string) (user User, err error)  {
 	if err = RunGraphqlQuery(req, &res); err != nil {
 		return
 	}
-	fmt.Println(res.CreateUser)
 	log.Promptf("Created user %s %s.\n", first, last)
 	user = res.CreateUser
 	return
 }
 
-// GeneratePassword creates a random sixteen-letter password.
+// GeneratePassword creates a random alphanumeric, 16-letter password.
 func GeneratePassword() string {
 	alphaNums := []rune(
 		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
@@ -334,7 +332,12 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 			contIDs := make([]int, 0)
 			contributors := v.([][]string)
 			for _, c := range contributors {
-				contIDs = append(contIDs, UserIDByFirstLast(c[0], c[1]))
+				var userID int
+				if userID, err = UserIDByFirstLast(c[0], c[1]); err != nil {
+					return
+				} else {
+					contIDs = append(contIDs, userID)
+				}
 			}
 			req.Var(k, contIDs)
 		} else {
