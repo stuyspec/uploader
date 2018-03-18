@@ -274,6 +274,12 @@ func UploadArticle(
 	article, err := graphql.CreateArticle(articleAttrs)
 	if err != nil {
 		log.Errorf("Unable to create article with id %s. %v\n", fileID,	err)
+
+		// If there is an error, reload the article. It could be solved by a simple
+		// open -> edit -> reload. If not, then it can be skipped.
+		log.Println()
+		UploadArticle(fileID, volume, issue, photos, art)
+		return
 	} else {
 		log.Noticef("Successfully created Article (ID: %s).\n", article.ID)
 	}
