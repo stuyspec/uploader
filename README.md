@@ -1,4 +1,4 @@
-# cli-uploader
+# uploader
 
 [![GoDoc](https://godoc.org/github.com/stuyspec/uploader?status.svg)](https://godoc.org/github.com/stuyspec/uploader)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stuyspec/uploader)](https://goreportcard.com/report/github.com/stuyspec/uploader)
@@ -6,7 +6,16 @@
 
 A command line interface (CLI) for uploading articles from Google Drive Volume folders to our Rails API.
 
+## Setup
+
+You must have an admin account (security level > 0) in the database to be able to use the uploader. Put the credentials to the account in a dotenv file like so:
+```
+EMAIL=YOUR_EMAIL
+PASSWORD=YOUR_PASSWORD
+```
+
 ## Usage
+
 ```sh
 # Compile program and create binary
 $ go install
@@ -15,18 +24,12 @@ $ go install
 $ uploader -m 108 -i 11
 ```
 
+For specific instructions on how to clean Issue folders for uploading (a must for every issue), please visit the [UPLOADING.md](UPLOADING.md) file.
+
 #### Optional flags
 - **--window, -w:** open core files when bulk uploading (e.g. Photo/Art folders, Newspaper PDF)
 - **--local PORT, -l PORT:** use a locally hosted GraphQL server
 
-## Uploading
-
-For specific instructions on how to clean Issue folders for uploading, please visit the [UPLOADING.md](UPLOADING.md) file.
-
 ## Roadmap
 
 For information on the things which are currently being focused on, please visit the [ROADMAP.md](ROADMAP.md) file.
-
-## Manual Upload
-
-The code in this repository will never be perfect. There may be an article that will not upload no matter what you try. In this unfortunate case, refer to [UPLOADING.md](UPLOADING.md) to view instructions on how to use the Rails console to manually upload an article.
