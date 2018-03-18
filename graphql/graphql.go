@@ -2,14 +2,17 @@
 package graphql
 
 import (
-	"github.com/machinebox/graphql"
+	"github.com/joho/godotenv"
+	"github.com/jkao1/go-graphql"
 
 	"github.com/stuyspec/uploader/log"
 
 	"context"
 	"fmt"
-	"net/http"
 	"math/rand"
+	"net/http"
+	"net/url"
+	"os"
 	"strconv"
 	"time"
 )
@@ -52,6 +55,8 @@ var IssueDates = map[int]map[int]string{
 var client *graphql.Client
 
 var deviseHeader http.Header
+
+var apiEndpoint string
 
 // Sections is an array of all the sections.
 var Sections []Section
@@ -117,32 +122,44 @@ type UserByFirstLastResponse struct {
 }
 
 func init() {
-	// Initialize the generator with a random seed.
+	err := godotenv.Load()
+  if err != nil {
+    log.Fatal("Error loading .env file.")
+  }
+
+	if endpoint := os.Getenv("API_ENDPOINT"); endpoint == "" {
+		apiEndpoint = "https://api.stuyspec.com"
+	} else {
+		apiEndpoint = endpoint
+	}
+
+	// Initialize the generator with a random seed
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	deviseHeader := http.Header{}
-	deviseHeader.Set("access-token", "8QjAUIIqP1WT854CI0NrhA")
-	deviseHeader.Set("client", "7dAQ7HWLsmFZyMWCXBiPBQ")
-	deviseHeader.Set("expiry", "1522439406")
-	deviseHeader.Set("uid", "jkao1@stuy.edu")
+	// Initialize Devise header by signing in
+	authVals := url.Values{}
+	authVals.Set("email", os.Getenv("EMAIL"))
+	authVals.Set("password", os.Getenv("PASSWORD"))
+	resp, err := http.PostForm(apiEndpoint + "/auth/sign_in", authVals)
+	if err != nil {
+		log.Fatal("Unable to sign in.")
+	} else if resp.StatusCode == 401 {
+		log.Fatal("Sign in unauthorized.")
+	} else if resp.StatusCode != 200 {
+		log.Fatal("Unknown error occurred during sign-in. Check the API logs.")
+	}
+	deviseHeader = resp.Header
+	fmt.Println(deviseHeader)
+
+	// Initialize GraphQL client
+	client = graphql.NewClient(fmt.Sprintf(apiEndpoint + "/graphql"))
+	client.Log = func(s string) { log.Println(s) }
 }
 
 // CreateStore creates a store for commonly accessed information
 // (e.g. all sections, all users).
 func CreateStore() {
 	Sections = AllSections()
-}
-
-// InitClient initiates the graphql.Client with an optional port parameter.
-func InitClient(params ...int) {
-	if len(params) > 0 {
-		client = graphql.NewClient(
-			fmt.Sprintf("http://localhost:%d/graphql", params[0]),
-		)
-	} else {
-		client = graphql.NewClient("https://api.stuyspec.com/graphql")
-	}
-	client.Log = func(s string) { log.Println(s) }
 }
 
 // AllSections creates an allSections GraphQL query.
@@ -157,9 +174,8 @@ func AllSections() []Section {
     }
   `)
 
-	ctx := context.Background()
 	var res AllSectionsResponse
-	if err := client.Run(ctx, req, &res); err != nil {
+	if err := RunGraphqlQuery(req, &res); err != nil {
 		log.Fatal(err)
 	}
 
@@ -192,12 +208,10 @@ func UserIDByFirstLast(first, last string) int {
 	req.Var("firstName", first)
 	req.Var("lastName", last)
 
-	ctx := context.Background()
 	var res UserByFirstLastResponse
-	if err := client.Run(ctx, req, &res); err != nil {
+	if err := RunGraphqlQuery(req, &res); err != nil {
 		return -1
 	}
-
 	if id, err := strconv.Atoi(res.UserByFirstLast.ID); err == nil {
 		return id
 	}
@@ -248,18 +262,15 @@ func CreateUser(first, last string) (user User, err error)  {
 	req.Var("password", pword)
 	req.Var("passwordConfirmation", pword)
 
-	ctx := context.Background()
 	var res CreateUserResponse
-	if err := client.Run(ctx, req, &res); err != nil {
-		return user, err
+	if err = RunGraphqlQuery(req, &res); err != nil {
+		return err
 	}
 	fmt.Println(res.CreateUser)
 	log.Promptf("Created user %s %s.\n", first, last)
 	user = res.CreateUser
 	return
 }
-
-// TODO: UNIVERSAL RUN FUNC W AUTH
 
 // GeneratePassword creates a random sixteen-letter password.
 func GeneratePassword() string {
@@ -325,10 +336,9 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 		}
 	}
 
-	ctx := context.Background()
 	var res CreateArticleResponse
-	if err = client.Run(ctx, req, &res); err != nil {
-		return article, err
+	if err = RunGraphqlQuery(req, &res); err != nil {
+		return err
 	}
 	article = res.CreateArticle
 	return
@@ -349,4 +359,11 @@ func PublicationTime(volume, issue int) (timestamp string) {
 	return
 }
 
-// RunRequest
+// RunGraphqlQuery takes a GraphQL request and executes it. It pours the
+// response into a given address.
+func RunGraphqlQuery(req *graphql.Request, resp interface{}) error {
+	ctx := context.Background()
+	if err = client.Run(ctx, req, resp, &deviseHeader); err != nil {
+		return err
+	}
+}
