@@ -6,16 +6,18 @@ import (
 	"github.com/jkao1/go-graphql"
 
 	"github.com/stuyspec/uploader/log"
-	"github.com/stuyspec/uploader/parser"
+	"github.com/stuyspec/uploader/parser/patterns"
 
 	"context"
-	"errors"
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -403,18 +405,27 @@ func CreateMedium(attrs map[string]string) (medium Medium, err error) {
     }
   }
 `)
-	nameVars := parser.NameVariables(attrs["artistName"])
+	nameVars := patterns.NameVariables(attrs["artistName"])
 	delete(attrs, "artistName")
-	var userID
+	var userID int
 	userID, err = UserIDByFirstLast(nameVars[0], nameVars[1])
 	if err != nil {
 		return
 	}
-	attrs["userID"] = userID
-	attrs["attachmentBase64"] := Base64Image(attrs["webContentLink"])
+	attrs["userID"] = strconv.Itoa(userID)
+	attrs["attachmentBase64"] = Base64Image(
+		attrs["webContentLink"],
+		attrs["mimeType"],
+	)
 	delete(attrs, "webContentLink")
+	delete(attrs, "mimeType")
 	for k, v := range attrs {
-		req.Var(k, v)
+		if strings.Contains(k, "ID") {
+			id, _ := strconv.Atoi(v)
+			req.Var(k, id)
+		} else {
+			req.Var(k, v)
+		}
 	}
 	var res CreateMediumResponse
 	if err = RunGraphqlQuery(req, &res); err != nil {
@@ -425,14 +436,15 @@ func CreateMedium(attrs map[string]string) (medium Medium, err error) {
 }
 
 // Base64Image returns the base 64 encoding of an image at a URL.
-func Base64Image(url string) string {
+func Base64Image(url, mimeType string) string {
 	response, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer response.Body.Close()
-	fmt.Println(response.Body)
-	return response.Body
+	bodyBytes, _ := ioutil.ReadAll(response.Body)
+	sEnc := base64.StdEncoding.EncodeToString(bodyBytes)
+	return fmt.Sprintf("data:%s;base64,%s", mimeType, sEnc)
 }
 
 // RunGraphqlQuery takes a GraphQL request and executes it. It pours the
