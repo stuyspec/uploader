@@ -368,6 +368,62 @@ func PublicationTime(volume, issue int) (timestamp string) {
 	return
 }
 
+// CreateMedium constructs a GraphQL mutation and creates a type of media.
+// It returns an error if any is encountered.
+func CreateMedium(attrs map[string]string) (medium Medium, err error) {
+	req := graphql.NewRequest(`
+  mutation (
+    $title: String,
+    $caption: String,
+    $articleID: Int!,
+    $userID: Int!,
+    $mediaType: String!,
+    $attachmentBase64: String!,
+  ) {
+    createMedium(
+      title: $title,
+      caption: $caption,
+      article_id: $articleID,
+      user_id: $userID,
+      media_type: $mediaType,
+      attachment_b64: $attachmentBase64,
+    ) {
+      id
+    }
+  }
+`)
+	nameVars := parser.NameVariables(attrs["artistName"])
+	delete(attrs, "artistName")
+	var userID
+	userID, err = UserIDByFirstLast(nameVars[0], nameVars[1])
+	if err != nil {
+		return
+	}
+	attrs["userID"] = userID
+	attrs["attachmentBase64"] := Base64Image(attrs["webContentLink"])
+	delete(attrs, "webContentLink")
+	for k, v := range attrs {
+		req.Var(k, v)
+	}
+	var res CreateMediumResponse
+	if err = RunGraphqlQuery(req, &res); err != nil {
+		return
+	}
+	medium = res.CreateMedium
+	return
+}
+
+// Base64Image returns the base 64 encoding of an image at a URL.
+func Base64Image(url string) string {
+	response, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+	fmt.Println(response.Body)
+	return response.Body
+}
+
 // RunGraphqlQuery takes a GraphQL request and executes it. It pours the
 // response into a given address.
 func RunGraphqlQuery(req *graphql.Request, resp interface{}) error {
