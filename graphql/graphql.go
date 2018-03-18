@@ -54,7 +54,7 @@ var IssueDates = map[int]map[int]string{
 
 var client *graphql.Client
 
-var deviseHeader http.Header
+var deviseHeader = http.Header{}
 
 var apiEndpoint string
 
@@ -148,7 +148,15 @@ func init() {
 	} else if resp.StatusCode != 200 {
 		log.Fatal("Unknown error occurred during sign-in. Check the API logs.")
 	}
-	deviseHeader = resp.Header
+
+	for _, authHeader := range []string{
+		"Access-Token",
+		"Client",
+		"Expiry",
+		"Uid",
+	} {
+		deviseHeader.Set(authHeader, resp.Header.Get(authHeader))
+	}
 	fmt.Println(deviseHeader)
 
 	// Initialize GraphQL client
@@ -253,7 +261,6 @@ func CreateUser(first, last string) (user User, err error)  {
     }
   }
 `)
-	req.Header.Set("uid", "jkao1@stuy.edu")
 	req.Var("firstName", first)
 	req.Var("lastName", last)
 	req.Var("email", email)
@@ -264,7 +271,7 @@ func CreateUser(first, last string) (user User, err error)  {
 
 	var res CreateUserResponse
 	if err = RunGraphqlQuery(req, &res); err != nil {
-		return err
+		return
 	}
 	fmt.Println(res.CreateUser)
 	log.Promptf("Created user %s %s.\n", first, last)
@@ -322,7 +329,6 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
     }
   }
 `)
-	req.Header.Set("uid", "jkao1@stuy.edu")
 	for k, v := range attrs {
 		if k == "contributors" {
 			contIDs := make([]int, 0)
@@ -338,7 +344,7 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 
 	var res CreateArticleResponse
 	if err = RunGraphqlQuery(req, &res); err != nil {
-		return err
+		return
 	}
 	article = res.CreateArticle
 	return
@@ -363,7 +369,27 @@ func PublicationTime(volume, issue int) (timestamp string) {
 // response into a given address.
 func RunGraphqlQuery(req *graphql.Request, resp interface{}) error {
 	ctx := context.Background()
-	if err = client.Run(ctx, req, resp, &deviseHeader); err != nil {
+	for _, authHeader := range []string{
+		"Access-Token",
+		"Client",
+		"Expiry",
+		"Uid",
+	} {
+		req.Header.Set(authHeader, deviseHeader.Get(authHeader))
+	}
+	var headers http.Header
+	if err := client.Run(ctx, req, resp, &headers); err != nil {
 		return err
 	}
+	for _, authHeader := range []string{
+		"Access-Token",
+		"Client",
+		"Expiry",
+		"Uid",
+	} {
+		if headers.Get(authHeader) != "" {
+			deviseHeader.Set(authHeader, headers.Get(authHeader))
+		}
+	}
+	return nil
 }
