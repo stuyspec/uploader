@@ -136,6 +136,12 @@ type UserByFirstLastNameResponse struct {
 	UserByFirstLastName User
 }
 
+// ArticleByContentResponse is a structure to unmarshall the JSON of an
+// articleByContent query.
+type ArticleByContentResponse struct {
+	ArticleByContent Article
+}
+
 func init() {
 	err := godotenv.Load()
   if err != nil {
@@ -474,4 +480,24 @@ func RunGraphqlQuery(req *graphql.Request, resp interface{}) error {
 		}
 	}
 	return nil
+}
+
+// ArticleByContent gets an article by its content. This function is mainly
+// used to determine if an article exists already.
+func ArticleByContent(content string) (article Article, found bool) {
+	req := graphql.NewRequest(`
+  query ($content: String!) {
+    articleByContent(content: $content) {
+      id
+    }
+  }
+`)
+	req.Var("content", content)
+
+	var res ArticleByContentResponse
+	if err := RunGraphqlQuery(req, &res); err != nil {
+		return
+	}
+	article = res.ArticleByContent
+	return article, true
 }
