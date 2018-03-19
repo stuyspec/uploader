@@ -187,6 +187,10 @@ func UploadDepartment(
 		issue,
 	)
 	for _, f := range children {
+		if patterns.IsFileUnwanted(f.Name) {
+			log.Errorf("Skipping unwanted file: %s.", f.Name)
+			continue
+		}
 		UploadArticle(f.Id, volume, issue, photos, art)
 	}
 }

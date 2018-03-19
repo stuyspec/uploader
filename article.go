@@ -7,6 +7,7 @@ import (
 	"github.com/stuyspec/uploader/parser"
 
 	"bufio"
+	"fmt"
 	"google.golang.org/api/drive/v3"
 	"os"
 	"strings"
@@ -26,6 +27,14 @@ func UploadArticle(
 			fileID,
 			missingAttrs,
 		)
+		return
+	}
+
+	// TODO : DECODE
+	fmt.Printf("%q\n", articleAttrs["title"])
+	if _, found := graphql.ArticleByContent(articleAttrs["content"].(string));
+	  found {
+		log.Errorf("%s already exists.\n", articleAttrs["title"])
 		return
 	}
 	PrintArticleInfo(articleAttrs)
