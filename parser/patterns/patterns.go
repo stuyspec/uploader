@@ -15,6 +15,9 @@ var slugPattern = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentenc
 // department.
 var AePattern = regexp.MustCompile(`Arts\s?&\s?Entertainment|A&?E`)
 
+// UnwantedFilePattern matches any Drive file's name that is unwanted.
+var UnwantedFilePattern = regexp.MustCompile(`(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`)
+
 // Paddings are patterns we want to remove from the desired value
 // (e.g. "Title: ", "Outquote(s): ").
 var titlePadding = regexp.MustCompile(`Title:\s+`)
@@ -67,10 +70,17 @@ func IsAE(str string) bool {
 	return len(AePattern.FindStringSubmatch(str)) > 0
 }
 
+// IsFileUnwanted determines whether the name of a Drive file contains an
+// unwanted article.
+func IsFileUnwanted(filename string) bool {
+	return len(UnwantedFilePattern.FindStringSubmatch(filename)) > 0
+}
+
 // CleanTitle rids a title of its paddings (e.g. "Title:").
 // It returns the cleaned title.
 func CleanTitle(title string) string {
-	return titlePadding.ReplaceAllString(title, "")
+	title = titlePadding.ReplaceAllString(title, "")
+	return strings.Replace(title, "\r", -1)
 }
 
 // CleanByline rids a byline of its paddings (e.g. "By:").
