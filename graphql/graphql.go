@@ -4,6 +4,7 @@ package graphql
 import (
 	"github.com/joho/godotenv"
 	"github.com/jkao1/go-graphql"
+	"github.com/gosimple/slug"
 
 	"github.com/stuyspec/uploader/log"
 	"github.com/stuyspec/uploader/parser/patterns"
@@ -268,7 +269,7 @@ func CreateUser(first, last string) (user User, err error)  {
 	req := graphql.NewRequest(`
   mutation (
     $firstName: String!,
-    $lastName: String!
+    $lastName: String!,
     $email: String!,
     $password: String!,
     $passwordConfirmation: String!
@@ -276,6 +277,7 @@ func CreateUser(first, last string) (user User, err error)  {
     createUser(
       first_name: $firstName,
       last_name: $lastName,
+      slug: $slug,
       email: $email,
       password: $password,
       password_confirmation: $passwordConfirmation,
@@ -286,6 +288,7 @@ func CreateUser(first, last string) (user User, err error)  {
 `)
 	req.Var("firstName", first)
 	req.Var("lastName", last)
+	req.Var("slug", slug.Make(fmt.Sprintf("%s %s", first, last)))
 	req.Var("email", email)
 
 	pword := GeneratePassword()
