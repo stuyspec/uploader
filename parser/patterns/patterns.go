@@ -4,6 +4,7 @@ package patterns
 import (
 	"github.com/stuyspec/uploader/log"
 
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -28,7 +29,9 @@ var nicknamePadding = regexp.MustCompile(`\([\w\s-]*\)\s`)
 
 // Captures are the opposite of paddings. For some information, it is easier to
 // extract it than to remove the padding of it.
-var departmentCapture = regexp.MustCompile(`The Spectator\s*\/([^\/]+)\s*\/`)
+var departmentCapture1 = regexp.MustCompile(`The Spectator\s*\/([^\/\d]+)\s*\/`)
+var departmentCapture2 = regexp.MustCompile(`The Spectator\s*\/Issue\s*\d{1,2}\s*\/(.*)`)
+var hrefCapture = regexp.MustCompile(`(?i)<a href="([^"]*)">`)
 
 // Components are patterns that can split a string into easy-to-read components.
 var bylineComponent = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!-?;]`)
@@ -42,7 +45,8 @@ func IsSlugMember(str string) bool {
 // IsDepartmentMarker determines whether a string marks the department.
 // (e.g. "The Spectator/Opinions/Issue 10")
 func IsDepartmentMarker(str string) bool {
-	return len(departmentCapture.FindStringSubmatch(str)) > 0
+	return len(departmentCapture1.FindStringSubmatch(str)) > 0 ||
+		len(departmentCapture2.FindStringSubmatch(str)) > 0
 }
 
 // IsByline determines whether a string is a byline.
@@ -80,7 +84,7 @@ func IsFileUnwanted(filename string) bool {
 // It returns the cleaned title.
 func CleanTitle(title string) string {
 	title = titlePadding.ReplaceAllString(title, "")
-	return strings.Replace(title, "\r", -1)
+	return strings.TrimSpace(strings.Replace(title, "\r", "", -1))
 }
 
 // CleanByline rids a byline of its paddings (e.g. "By:").
@@ -116,22 +120,35 @@ func BylineComponents(byline string) []string {
 	return bylineComponent.FindAllString(byline, -1)
 }
 
+// HrefCapture extracts the href of an a tag in HTML. It returns the href.
+func HrefCapture(html string) string {
+	fmt.Println(hrefCapture.FindStringSubmatch(html))
+	return hrefCapture.FindStringSubmatch(html)[1]
+}
+
 // DepartmentName extracts the department name of a slug line.
 // It returns the department name.
 func DepartmentName(marker string) string {
-	name := strings.TrimSpace(departmentCapture.FindStringSubmatch(marker)[1])
+	matches := departmentCapture1.FindStringSubmatch(marker)
+	if len(matches) == 0 {
+		matches = departmentCapture2.FindStringSubmatch(marker)
+	}
+	name := matches[1]
 	if IsAE(marker) {
 		name = "Arts & Entertainment"
 	}
-	return name
+	return strings.TrimSpace(name)
 }
 
 // NameVariables splits a name of variable length into a first name and a last
 // name. It returns a slice with the first element as the first name and the
 // second element as the last name.
 func NameVariables(name string) []string {
-	variables := make([]string, 2)
+	if strings.Contains(name, "Department") {
+		return []string{name, ""}
+	}
 
+	variables := make([]string, 2)
 	name = CleanName(name)
 
 	var firstName, lastName string

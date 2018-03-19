@@ -53,6 +53,7 @@ var IssueDates = map[int]map[int]string{
 		8: "2018-01-19",
 		9: "2018-02-02",
 		10: "2018-02-15",
+		11: "2018-03-19",
 	},
 }
 
@@ -90,7 +91,10 @@ func (a Article) String() string {
 
 // Section represents a department/section of the newspaper.
 type Section struct {
-	ID, Name, Slug string
+	ID string
+	Name string
+	Slug string
+	Parent_ID string
 }
 
 // User represents a contributor, illustrator, or photographer.
@@ -197,9 +201,10 @@ func AllSections() []Section {
       allSections {
         id
         name
+        parent_id
       }
     }
-  `)
+`)
 
 	var res AllSectionsResponse
 	if err := RunGraphqlQuery(req, &res); err != nil {

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"google.golang.org/api/drive/v3"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -23,23 +24,22 @@ func UploadArticle(
 	articleAttrs, missingAttrs := parser.ArticleAttributes(rawText)
 	if len(missingAttrs) > 0 {
 		log.Errorf(
-			"Unable to parse article with id %s; missing attributes %v.\n",
+			"Unable to parse article with id %s; missing attributes %v.\n\n",
 			fileID,
 			missingAttrs,
 		)
 		return
 	}
 
-	// TODO : DECODE
-	fmt.Printf("%q\n", articleAttrs["title"])
 	if _, found := graphql.ArticleByContent(articleAttrs["content"].(string));
 	  found {
-		log.Errorf("%s already exists.\n", articleAttrs["title"])
+		log.Errorf("%s already exists.\n\n", articleAttrs["title"])
 		return
 	}
 	PrintArticleInfo(articleAttrs)
 	articleAttrs["volume"] = volume
 	articleAttrs["issue"] = issue
+	articleAttrs["sectionID"] = PickSubsection(articleAttrs["sectionID"].(int))
 
 	for {
 		uploadConfig := Input("upload? (y/n/r/o): ")
@@ -74,12 +74,41 @@ func UploadArticle(
 		UploadArticle(fileID, volume, issue, photos, art)
 		return
 	} else {
-		log.Noticef("Created Article #%s.\n", article.ID)
+		log.Noticef("Created article #%s.\n", article.ID)
 	}
 
 	CreateArticleMedia(article, photos, art)
 
 	log.Println()
+}
+
+// PickSubsection lets the user choose to which subsection an article belongs.
+func PickSubsection(sectionID int) int {
+	var section graphql.Section
+	subsections := make([]graphql.Section, 0)
+	for _, s := range graphql.Sections {
+		strID := strconv.Itoa(sectionID)
+		if s.ID == strID && section == (graphql.Section{}) {
+			section = s
+		}
+		if s.Parent_ID == strID {
+			subsections = append(subsections, s)
+		}
+	}
+	if len(subsections) == 0 { // Section is already a subsection
+		return sectionID
+	}
+	log.Info("optional subsections ->")
+	for i, s := range subsections {
+		fmt.Printf("  [%d] %s\n", i, s.Name)
+	}
+	choice := Input("subsection (leave blank if none): ")
+	index, err := strconv.Atoi(choice)
+	if choice == "" || err != nil {
+		return sectionID
+	}
+	id, _ := strconv.Atoi(subsections[index].ID)
+	return id
 }
 
 // CreateArticleMedia lets the user choose which media accompanies an article.
