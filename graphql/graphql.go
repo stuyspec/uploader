@@ -4,7 +4,6 @@ package graphql
 import (
 	"github.com/joho/godotenv"
 	"github.com/jkao1/go-graphql"
-	"github.com/gosimple/slug"
 
 	"github.com/stuyspec/uploader/log"
 	"github.com/stuyspec/uploader/parser/patterns"
@@ -186,6 +185,7 @@ func init() {
 
 	// Initialize GraphQL client
 	client = graphql.NewClient(fmt.Sprintf(apiEndpoint + "/graphql"))
+	client.Log = func(s string) { log.Println(s) }
 }
 
 // CreateStore creates a store for commonly accessed information
@@ -277,7 +277,6 @@ func CreateUser(first, last string) (user User, err error)  {
     createUser(
       first_name: $firstName,
       last_name: $lastName,
-      slug: $slug,
       email: $email,
       password: $password,
       password_confirmation: $passwordConfirmation,
@@ -288,7 +287,6 @@ func CreateUser(first, last string) (user User, err error)  {
 `)
 	req.Var("firstName", first)
 	req.Var("lastName", last)
-	req.Var("slug", slug.Make(fmt.Sprintf("%s %s", first, last)))
 	req.Var("email", email)
 
 	pword := GeneratePassword()
