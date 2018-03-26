@@ -9,14 +9,9 @@ import (
 	"strings"
 )
 
-// slugPattern matches any line that is part of an article slug.
+// Patterns are used to determine whether a string matches.
 var slugPattern = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?`)
-
-// AePattern matches any string that may represent the Arts & Entertainment
-// department.
 var AePattern = regexp.MustCompile(`Arts\s?&\s?Entertainment|A&?E`)
-
-// UnwantedFilePattern matches any Drive file's name that is unwanted.
 var UnwantedFilePattern = regexp.MustCompile(`(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`)
 
 // Paddings are patterns we want to remove from the desired value
@@ -32,6 +27,7 @@ var nicknamePadding = regexp.MustCompile(`\([\w\s-]*\)\s`)
 var departmentCapture1 = regexp.MustCompile(`The Spectator\s*\/([^\/\d]+)\s*\/`)
 var departmentCapture2 = regexp.MustCompile(`The Spectator\s*\/Issue\s*\d{1,2}\s*\/(.*)`)
 var hrefCapture = regexp.MustCompile(`(?i)<a href="([^"]*)">`)
+var driveIDCapture = regexp.MustCompile(`[-\w]{25,}`)
 
 // Components are patterns that can split a string into easy-to-read components.
 var bylineComponent = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!-?;]`)
@@ -122,8 +118,11 @@ func BylineComponents(byline string) []string {
 
 // HrefCapture extracts the href of an a tag in HTML. It returns the href.
 func HrefCapture(html string) string {
-	fmt.Println(hrefCapture.FindStringSubmatch(html))
-	return hrefCapture.FindStringSubmatch(html)[1]
+	matches := hrefCapture.FindStringSubmatch(html)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
 }
 
 // DepartmentName extracts the department name of a slug line.
@@ -138,6 +137,18 @@ func DepartmentName(marker string) string {
 		name = "Arts & Entertainment"
 	}
 	return strings.TrimSpace(name)
+}
+
+// DriveID extracts the Drive ID of a URL of a Google Apps Script.
+// It returns the ID.
+func DriveID(url string) (id string, err error) {
+	matches := driveIDCapture.FindStringSubmatch(url)
+	if len(matches) > 0 {
+		id = matches[0]
+	} else {
+		err = errors.New("No Drive ID found.")
+	}
+	return
 }
 
 // NameVariables splits a name of variable length into a first name and a last

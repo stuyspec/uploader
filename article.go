@@ -39,7 +39,10 @@ func UploadArticle(
 	PrintArticleInfo(articleAttrs)
 	articleAttrs["volume"] = volume
 	articleAttrs["issue"] = issue
-	articleAttrs["sectionID"] = PickSubsection(articleAttrs["sectionID"].(int))
+	articleAttrs["sectionID"] = PickSubsectionByIssueNumber(
+		articleAttrs["sectionID"].(int),
+		issue,
+	)
 
 	for {
 		uploadConfig := Input("upload? (y/n/r/o): ")
@@ -84,14 +87,29 @@ func UploadArticle(
 
 // PickSubsection lets the user choose to which subsection an article belongs.
 func PickSubsection(sectionID int) int {
+	return PickSubsectionByIssue(sectionID, -1)
+}
+
+// PickSubsectionByIssue lets the user choose to which subsection an article
+// belongs. The issue number can reduce the number of choices.
+func PickSubsectionByIssue(sectionID, issue int) int {
 	var section graphql.Section
 	subsections := make([]graphql.Section, 0)
+	for i, s := range graphql.Sections {
+		strID := strconv.Itoa(sectionID)
+		if s.ID == strID {
+			section = s
+			break
+		}
+	}
 	for _, s := range graphql.Sections {
 		strID := strconv.Itoa(sectionID)
-		if s.ID == strID && section == (graphql.Section{}) {
-			section = s
-		}
 		if s.Parent_ID == strID {
+			if issue == 4 && s.Name == "Spooktator" ||
+				issue == 12 && s.Name == "Disrespectator" {
+				id, _ := strconv.Atoi(s.ID)
+				return id
+			}
 			subsections = append(subsections, s)
 		}
 	}

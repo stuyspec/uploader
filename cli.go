@@ -28,10 +28,22 @@ func CreateCliApp() *cli.App {
 			Name:  "issue, i",
 			Usage: "issue number",
 		},
+
+		cli.StringFlag{
+      Name: "url",
+      Usage: "individual article Drive url",
+    },
 	}
 	app.Action = func(c *cli.Context) (err error) {
+		if !app.IsSet("volume")  && !app.IsSet("issue") {
+			log.Fatalf("Must provide both a volume and an issue.")
+		}
 		DriveFilesMap = GenerateDriveFilesMap(c.Bool("reload"))
 		TransferFlags(c) // Move flag information to global variables
+
+		if app.IsSet("url") {
+			UploadArticleByUrl(id)
+		}
 		return
 	}
 	return app

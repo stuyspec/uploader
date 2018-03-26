@@ -101,54 +101,23 @@ func stringDriveFile(f *drive.File) (output string) {
 }
 
 func main() {
+	graphql.CreateStore()
 	err := cliApp.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	graphql.CreateStore()
 	UploadIssue(volume, issue)
 }
 
+
 // UploadIssue uploads an issue of a volume.
-func UploadIssue(volume, issue int) {
-	issueRange := "1-9"
-	if issue > 9 {
-		issueRange = "10-18"
-	}
-	volumeFolder := MustFindDriveFileByName(
-		fmt.Sprintf("Volume %d No. %s", volume, issueRange),
-		"folder",
-	)
-	issueFolder := MustFindDriveFileByName(
-		regexp.MustCompile(`Issue\s?`+strconv.Itoa(issue)),
-		"folder",
-		volumeFolder.Id,
-	)
-	sbcFolder := MustFindDriveFileByName("SBC", "folder", issueFolder.Id)
-	newspaperPdf := MustFindDriveFileByName(
-		regexp.MustCompile(`(?i)Issue\s?\d{1,2}(\.pdf)$`),
-		"application/pdf",
-		issueFolder.Id,
-	)
+func UploadIssue(volumeNum, issueNum int) {
+	issue := NewIssue(volumeNum, issueNum)
 
-	photoFolder := MustFindDriveFileByName(
-		regexp.MustCompile(`(?i)photo\s?color`),
-		"folder",
-		issueFolder.Id,
-	)
-	photos := DriveChildren(photoFolder.Id, "image")
-
-	artFolder := MustFindDriveFileByName(
-		regexp.MustCompile(`(?i)art`),
-		"folder",
-		issueFolder.Id,
-	)
-	art := DriveChildren(artFolder.Id, "image")
-
-	// shouldOpenFiles was a global variable defined during CLI's run.
+	// shouldOpenFiles is a global variable defined during CLI's run.
 	if shouldOpenFiles {
-		OpenDriveFiles(newspaperPdf, photoFolder, artFolder)
+		OpenDriveFiles(issue.NewspaperPdf, issue.PhotoFolder, issue.ArtFolder)
 	}
 
 	// A slice of folder name matchers to be passed into DriveFileByName
@@ -161,7 +130,7 @@ func UploadIssue(volume, issue int) {
 		"Sports",
 	}
 	for _, deptName := range departmentNames {
-		deptFolder, found := DriveFileByName(deptName, "folder", sbcFolder.Id)
+		deptFolder, found := DriveFileByName(deptName, "folder", issue.SbcFolder.Id)
 		if !found {
 			log.Errorf(
 				"No folder found for department %v. Skipping department.",
@@ -169,7 +138,7 @@ func UploadIssue(volume, issue int) {
 			)
 			continue
 		}
-		UploadDepartment(deptFolder, volume, issue, photos, art)
+		UploadDepartment(deptFolder, volumeNum, issueNum, issue.Photos, issue.Art)
 	}
 }
 
@@ -192,6 +161,14 @@ func UploadDepartment(
 			continue
 		}
 		UploadArticle(f.Id, volume, issue, photos, art)
+	}
+}
+
+// UploadArticleByUrl uploads an article by its url.
+func UploadArticleByUrl(volume, issue int, url string) {
+  id, err := patterns.DriveID(url)
+	if err != nil {
+		log.Fatalf("No Drive ID found in url %s.\n", url)
 	}
 }
 
