@@ -30,7 +30,7 @@ var hrefCapture = regexp.MustCompile(`(?i)<a href="([^"]*)">`)
 var driveIDCapture = regexp.MustCompile(`[-\w]{25,}`)
 
 // Components are patterns that can split a string into easy-to-read components.
-var bylineComponent = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!-?;]`)
+var bylineComponent = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!?;]`)
 
 // IsSlugMember determines whether a string is a member of an article slug.
 // It returns true or false.
