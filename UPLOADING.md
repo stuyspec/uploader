@@ -18,7 +18,44 @@ _Note: You need to know regex to understand these instructions. Any developer sh
 - Photo Color folder: `(?i)photo\s?color`
 - Art folder: `(?i)art`
 
-2. Also make sure all photos you intend to use are the **direct children** of the Photo Color folder. For instance, SING! photos may be grouped in a folder inside Photo Color—move them outside.
+2. Make sure all photos you intend to use are the **direct children** of the Photo Color folder. For instance, SING! photos may be grouped in a folder inside Photo Color—move them outside.
+
+3. Ensure that all department folders in SBC are spelled correctly. The editors like to meme around sometimes.
+
+4. For EVERY non-ignored Google Doc article (ignored Docs have filenames that match this pattern: `orldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`):
+- Make sure the end of the slug (a.k.a. article header) looks like it's part of the header (e.g. the line is a focus sentence, word count, etc.) This is the exact pattern for an element of a slug:
+```
+(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?
+```
+In the below example, the focus sentence needs to be moved below the outquotes because the second outquote could actually be part of the article. If there were no focus sentence, "1111 words" could also be moved below the outquote.
+```
+Art’s Accessibility is Technically Amazing
+The Spectator / A&E / Issue 12
+By Jacqueline Thom and Andrew Ng
+jthom00@stuy.edu, ang00@stuy.edu
+1111 words
+Focus Sentence: Art is an enriching experience, but what has technology done to change our views and use of it?
+Outquotes: Creating art is no longer being limited to wealthy or upper-middle class families who can afford to send their children to private classes.
+There are numerous artists who embrace non-traditional mediums in creating art that strives to bring an important issue to light, rather than to entertain.
+```
+-  Any emphasized text needs to be wrapped in markup.
+  - `<t></t>`: indent, useful for faking a `<ul>` (hopefully we'll add `<ul>` into this list at a later point)
+  - `<hr/>`: horizontal rule/line, often used to separate footer notes from content
+  - `<h5> ... </h5>`: bold and uppercase
+  - `<h4> ... </h4>`: bold, uppercase, and centered
+ 
+  
+5. Resolve all comments and suggestions.
+
+6. There MUST be a byline, and it MUST start with the word "By". If no byline exists, add "By The XXX Department" to the slug. (Spell A&E by its full name, Arts & Entertainment.)
+
+7. To ignore an article, put [IGNORE] in the filename ([example](https://docs.google.com/document/d/1Mxiiiq6KShSGRP446Hnvhh6U1Q0Rkz9CMnUVEXLoeO8/edit?usp=sharing)).
+
+### Special Cases
+
+#### Disrespectator
+
+Move all Disrespectator articles into the Humor folder of SBC.
 
 _Note: After changing any file structure (NOT FILE CONTENT), the changes will not appear in the uploader until you use the `--reload, -r` flag to reload them. This will take a while (almost 40 seconds) so reload minimally._
 
