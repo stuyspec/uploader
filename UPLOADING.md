@@ -22,7 +22,7 @@ _Note: You need to know regex to understand these instructions. Any developer sh
 
 3. Ensure that all department folders in SBC are spelled correctly. The editors like to meme around sometimes.
 
-4. For EVERY non-ignored Google Doc article (ignored Docs have filenames that match this pattern: `orldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`):
+4. For EVERY non-ignored Google Doc article (ignored Docs have filenames that match this pattern: `(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`):
 - Make sure the end of the slug (a.k.a. article header) looks like it's part of the header (e.g. the line is a focus sentence, word count, etc.) This is the exact pattern for an element of a slug:
 ```
 (?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?
@@ -34,15 +34,15 @@ The Spectator / A&E / Issue 12
 By Jacqueline Thom and Andrew Ng
 jthom00@stuy.edu, ang00@stuy.edu
 1111 words
-Focus Sentence: Art is an enriching experience, but what has technology done to change our views and use of it?
-Outquotes: Creating art is no longer being limited to wealthy or upper-middle class families who can afford to send their children to private classes.
-There are numerous artists who embrace non-traditional mediums in creating art that strives to bring an important issue to light, rather than to entertain.
+Focus Sentence: Art is an enriching experience.
+Outquotes: Creating art is no longer being limited.
+There are numerous artists who embrace non-traditional mediums.
 ```
 -  Any emphasized text needs to be wrapped in markup.
-  - `<t></t>`: indent, useful for faking a `<ul>` (hopefully we'll add `<ul>` into this list at a later point)
-  - `<hr/>`: horizontal rule/line, often used to separate footer notes from content
-  - `<h5> ... </h5>`: bold and uppercase
-  - `<h4> ... </h4>`: bold, uppercase, and centered
+  * `<t></t>`: indent, useful for faking a `<ul>` (hopefully we'll add `<ul>` into this list at a later point)
+  * `<hr/>`: horizontal rule/line, often used to separate footer notes from content
+  * `<h5> ... </h5>`: bold and uppercase
+  * `<h4> ... </h4>`: bold, uppercase, and centered
  
   
 5. Resolve all comments and suggestions.
