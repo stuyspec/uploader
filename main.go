@@ -17,7 +17,6 @@ import (
 	"google.golang.org/api/drive/v3"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -165,11 +164,12 @@ func UploadDepartment(
 }
 
 // UploadArticleByUrl uploads an article by its url.
-func UploadArticleByUrl(volume, issue int, url string) {
+func UploadArticleByUrl(url string) {
   id, err := patterns.DriveID(url)
 	if err != nil {
 		log.Fatalf("No Drive ID found in url %s.\n", url)
 	}
+	log.Println(id)
 }
 
 // OpenDriveFiles opens several Drive files in the browser (for convenience).

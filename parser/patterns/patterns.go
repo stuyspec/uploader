@@ -4,7 +4,7 @@ package patterns
 import (
 	"github.com/stuyspec/uploader/log"
 
-	"fmt"
+	"errors"
 	"regexp"
 	"strings"
 )

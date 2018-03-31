@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/urfave/cli"
+	"github.com/stuyspec/uploader/log"
 )
 
 // CreateCliApp creates a new CLI app for the uploader.
@@ -35,14 +36,14 @@ func CreateCliApp() *cli.App {
     },
 	}
 	app.Action = func(c *cli.Context) (err error) {
-		if !app.IsSet("volume")  && !app.IsSet("issue") {
+		if !c.IsSet("volume")  && !c.IsSet("issue") {
 			log.Fatalf("Must provide both a volume and an issue.")
 		}
 		DriveFilesMap = GenerateDriveFilesMap(c.Bool("reload"))
 		TransferFlags(c) // Move flag information to global variables
 
-		if app.IsSet("url") {
-			UploadArticleByUrl(id)
+		if c.IsSet("url") {
+			UploadArticleByUrl(c.String("url"))
 		}
 		return
 	}

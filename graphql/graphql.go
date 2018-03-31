@@ -54,6 +54,7 @@ var IssueDates = map[int]map[int]string{
 		9: "2018-02-02",
 		10: "2018-02-15",
 		11: "2018-03-19",
+		12: "2018-03-29",
 	},
 }
 
@@ -185,7 +186,6 @@ func init() {
 
 	// Initialize GraphQL client
 	client = graphql.NewClient(fmt.Sprintf(apiEndpoint + "/graphql"))
-	client.Log = func(s string) { log.Println(s) }
 }
 
 // CreateStore creates a store for commonly accessed information

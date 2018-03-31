@@ -1,6 +1,7 @@
 package main
 
 import (
+	"google.golang.org/api/drive/v3"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -12,7 +13,7 @@ type Issue struct {
 	PhotoFolder *drive.File
 	ArtFolder *drive.File
 	Photos []*drive.File
-	Art [](drive.File)
+	Art []*drive.File
 }
 
 func NewIssue(volumeNum, issueNum int) *Issue {
@@ -35,7 +36,7 @@ func NewIssue(volumeNum, issueNum int) *Issue {
 
 	// Find SBC and newspaper PDF
 	issue.SbcFolder = MustFindDriveFileByName("SBC", "folder", issueFolder.Id)
-	issue.NewspaperPdf := MustFindDriveFileByName(
+	issue.NewspaperPdf = MustFindDriveFileByName(
 		regexp.MustCompile(`(?i)Issue\s?\d{1,2}(\.pdf)$`),
 		"application/pdf",
 		issueFolder.Id,
