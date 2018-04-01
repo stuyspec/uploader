@@ -70,17 +70,13 @@ var Sections []Section
 // Article represents an article.
 type Article struct {
 	ID string
-	Title string
-	Content string
 	Slug string
-	CreatedAt string
 
 	// We create articles with summaries, but article records initiate themselves
 	// with Previews. This resolves the many problems with simply using article
 	// focus sentences as previews on the website (if focus sentences are empty,
   // Rails can generate a Preview using the article's content).
 	Preview string
-	Outquotes []string
 }
 
 func (a Article) String() string {
