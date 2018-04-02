@@ -3,14 +3,14 @@
 package main
 
 import (
-	"github.com/stuyspec/uploader/log"
 	"github.com/stuyspec/uploader/driveclient"
 	"github.com/stuyspec/uploader/graphql"
+	"github.com/stuyspec/uploader/log"
 	"github.com/stuyspec/uploader/parser/patterns"
 
-	"github.com/urfave/cli"
 	"github.com/patrickmn/go-cache"
 	"github.com/skratchdot/open-golang/open"
+	"github.com/urfave/cli"
 
 	"encoding/gob"
 	"fmt"
@@ -109,7 +109,6 @@ func main() {
 	UploadIssue(volume, issue)
 }
 
-
 // UploadIssue uploads an issue of a volume.
 func UploadIssue(volumeNum, issueNum int) {
 	issue := NewIssue(volumeNum, issueNum)
@@ -132,7 +131,7 @@ func UploadIssue(volumeNum, issueNum int) {
 		deptFolder, found := DriveFileByName(deptName, "folder", issue.SbcFolder.Id)
 		if !found {
 			log.Errorf(
-				"No folder found for department %v. Skipping department.",
+				"No folder found for department %v. Skipping department.\n",
 				deptName,
 			)
 			continue
@@ -165,7 +164,7 @@ func UploadDepartment(
 
 // UploadArticleByUrl uploads an article by its url.
 func UploadArticleByUrl(url string) {
-  id, err := patterns.DriveID(url)
+	id, err := patterns.DriveID(url)
 	if err != nil {
 		log.Fatalf("No Drive ID found in url %s.\n", url)
 	}
