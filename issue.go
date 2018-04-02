@@ -52,7 +52,7 @@ func NewIssue(volumeNum, issueNum int) *Issue {
 	issue.PhotoFolder = photoFolder
 
 	artFolder := MustFindDriveFileByName(
-		regexp.MustCompile(`(?i)art`),
+		"Art",
 		"folder",
 		issueFolder.Id,
 	)
