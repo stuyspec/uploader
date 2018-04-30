@@ -86,6 +86,7 @@ func ArticleAttributes(text string) (map[string]interface{}, []string) {
 // Contributors finds the contributors in a byline.
 // It returns the contributors.
 func Contributors(byline string) (contributors [][]string) {
+	println(byline)
 	contributors = make([][]string, 0)
 	components := patterns.BylineComponents(byline)
 

@@ -12,6 +12,7 @@ type Issue struct {
 	NewspaperPdf *drive.File
 	PhotoFolder *drive.File
 	ArtFolder *drive.File
+	StaffEd *drive.File
 	Photos []*drive.File
 	Art []*drive.File
 }
@@ -34,12 +35,17 @@ func NewIssue(volumeNum, issueNum int) *Issue {
 		volumeFolder.Id,
 	)
 
-	// Find SBC and newspaper PDF
+	// Find SBC, newspaper PDF, and staff-ed
 	issue.SbcFolder = MustFindDriveFileByName("SBC", "folder", issueFolder.Id)
 	issue.NewspaperPdf = MustFindDriveFileByName(
 		regexp.MustCompile(`(?i)Issue\s?\d{1,2}(\.pdf)$`),
 		"application/pdf",
 		issueFolder.Id,
+	)
+	issue.StaffEd = MustFindDriveFileByName(
+		regexp.MustCompile(`(?i)staff\s?ed`),
+		"document",
+		issue.SbcFolder.Id,
 	)
 
 	// Find photos and art

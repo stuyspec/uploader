@@ -19,16 +19,32 @@ func UploadArticle(
 	fileID string,
 	volume, issue int,
 	photos, art []*drive.File,
+	options ...string,
 ) {
+	println(fileID)
 	rawText := driveclient.DownloadGoogleDoc(fileID)
 	articleAttrs, missingAttrs := parser.ArticleAttributes(rawText)
 	if len(missingAttrs) > 0 {
-		log.Errorf(
-			"Unable to parse article with id %s; missing attributes %v.\n\n",
-			fileID,
-			missingAttrs,
-		)
-		return
+		// If we know this article is a staff-ed (which have irregular slugs)
+		// we patch up articleAttrs.
+		if options[0] == "staff-ed" &&
+			len(missingAttrs) == 1 &&
+			missingAttrs[0] == "sectionID" {
+			sectionID, found := graphql.SectionIDByName("Staff Editorials")
+			if found {
+				articleAttrs["sectionID"] = sectionID
+			} else {
+				log.Error("Unable to find section with name \"Staff Editorials.\"")
+				return
+			}
+		} else {
+			log.Errorf(
+				"Unable to parse article with id %s; missing attributes %v.\n\n",
+				fileID,
+				missingAttrs,
+			)
+			return
+		}
 	}
 
 	if _, found := graphql.ArticleByContent(articleAttrs["content"].(string));
