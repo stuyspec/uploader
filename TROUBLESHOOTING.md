@@ -38,13 +38,13 @@ http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/customize-containers-ec2.h
 [ec2-user@ip-172-31-84-126 ~]$ 
 ```
 
-After ssh-ing into our EC2 instance, check to see if your nginx configuration has the correct maxiumum size: `20M` (20 megabytes).
+After ssh-ing into our EC2 instance, check to see if your nginx configuration has the correct maxiumum size: `40M` (40 megabytes).
 ```sh
 # nano the proxy.conf
 
 $ cd /etc/nginx/conf.d
 $ cat proxy.conf
-client_max_body_size 20M;
+client_max_body_size 40M;
 ```
 
 If proxy.conf does not exist or `cat`-ing it does not have the output, create it/modify it with `sudo nano proxy.conf`. Then, test the new config (`sudo nginx -t`).
