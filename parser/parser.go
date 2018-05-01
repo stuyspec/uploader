@@ -86,7 +86,6 @@ func ArticleAttributes(text string) (map[string]interface{}, []string) {
 // Contributors finds the contributors in a byline.
 // It returns the contributors.
 func Contributors(byline string) (contributors [][]string) {
-	println(byline)
 	contributors = make([][]string, 0)
 	components := patterns.BylineComponents(byline)
 
@@ -94,8 +93,11 @@ func Contributors(byline string) (contributors [][]string) {
 	for i, symbol := range components {
 		if symbol == "&" || symbol == "," || symbol == "and" {
 			name := strings.Join(components[slicerIndex:i], " ")
-			contributors = append(contributors, patterns.NameVariables(name))
 			slicerIndex = i + 1
+			if len(name) == 0 {
+				continue
+			}
+			contributors = append(contributors, patterns.NameVariables(name))
 		}
 	}
 	remainingName := strings.Join(components[slicerIndex:], " ")

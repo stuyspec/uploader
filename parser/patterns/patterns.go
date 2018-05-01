@@ -10,9 +10,9 @@ import (
 )
 
 // Patterns are used to determine whether a string matches.
-var slugPattern = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?`)
+var slugPattern = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?`)
 var AePattern = regexp.MustCompile(`Arts\s?&\s?Entertainment|A&?E`)
-var UnwantedFilePattern = regexp.MustCompile(`(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`)
+var UnwantedFilePattern = regexp.MustCompile(`(?i)worldbeat|survey|newsbeat|spookbeat|sportsbeat|playlist|calendar|\[IGNORE\]|corrections`)
 
 // Paddings are patterns we want to remove from the desired value
 // (e.g. "Title: ", "Outquote(s): ").
@@ -30,7 +30,7 @@ var hrefCapture = regexp.MustCompile(`(?i)<a href="([^"]*)">`)
 var driveIDCapture = regexp.MustCompile(`[-\w]{25,}`)
 
 // Components are patterns that can split a string into easy-to-read components.
-var bylineComponent = regexp.MustCompile(`[\w\p{L}\p{M}']+|[.,!?;]`)
+var bylineComponent = regexp.MustCompile(`[\w\p{L}\p{M}'-]+|[.,!?;]`)
 
 // IsSlugMember determines whether a string is a member of an article slug.
 // It returns true or false.

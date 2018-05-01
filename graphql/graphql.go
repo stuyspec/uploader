@@ -183,6 +183,7 @@ func init() {
 
 	// Initialize GraphQL client
 	client = graphql.NewClient(fmt.Sprintf(apiEndpoint + "/graphql"))
+	// client.Log = func(s string) { log.Println(s) }
 }
 
 // CreateStore creates a store for commonly accessed information

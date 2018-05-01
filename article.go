@@ -21,7 +21,6 @@ func UploadArticle(
 	photos, art []*drive.File,
 	options ...string,
 ) {
-	println(fileID)
 	rawText := driveclient.DownloadGoogleDoc(fileID)
 	articleAttrs, missingAttrs := parser.ArticleAttributes(rawText)
 	if len(missingAttrs) > 0 {
@@ -142,8 +141,11 @@ func PickSubsectionByIssue(sectionID, issue int) int {
 	if choice == "" || err != nil {
 		return sectionID
 	}
-	id, _ := strconv.Atoi(subsections[index].ID)
-	return id
+	if index < len(subsections) && index >= 0 {
+		id, _ := strconv.Atoi(subsections[index].ID)
+		return id
+	}
+	return sectionID
 }
 
 // CreateArticleMedia lets the user choose which media accompanies an article.
