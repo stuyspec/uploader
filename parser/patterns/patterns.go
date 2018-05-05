@@ -16,7 +16,7 @@ var UnwantedFilePattern = regexp.MustCompile(`(?i)worldbeat|survey|newsbeat|spoo
 
 // Paddings are patterns we want to remove from the desired value
 // (e.g. "Title: ", "Outquote(s): ").
-var titlePadding = regexp.MustCompile(`^Title:\s+`)
+var titlePadding = regexp.MustCompile(`Title:\s+`)
 var bylinePadding = regexp.MustCompile(`^By:?\s+`)
 var focusPadding = regexp.MustCompile(`(?i)^Focus Sentence:?\s+`)
 var outquotePadding = regexp.MustCompile(`(?i)^outquote\(?s?\)?:?`)
