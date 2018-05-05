@@ -26,15 +26,22 @@ func UploadArticle(
 	if len(missingAttrs) > 0 {
 		// If we know this article is a staff-ed (which have irregular slugs)
 		// we patch up articleAttrs.
-		if options[0] == "staff-ed" &&
-			len(missingAttrs) == 1 &&
-			missingAttrs[0] == "sectionID" {
+		if len(options) > 0 && options[0] == "staff-ed" {
 			sectionID, found := graphql.SectionIDByName("Staff Editorials")
 			if found {
 				articleAttrs["sectionID"] = sectionID
 			} else {
-				log.Error("Unable to find section with name \"Staff Editorials.\"")
+				log.Error("Unable to find section with name 'Staff Editorials'.")
 				return
+			}
+			if stringSliceContains(missingAttrs, "contributors") {
+				contributors := parser.Contributors("By The Editorial Board")
+				if len(contributors) > 0 {
+					articleAttrs["contributors"] = contributors
+				} else {
+					log.Error("No contributors found in 'By The Editorial Board'.")
+					return
+				}
 			}
 		} else {
 			log.Errorf(
@@ -54,6 +61,7 @@ func UploadArticle(
 	PrintArticleInfo(articleAttrs)
 	articleAttrs["volume"] = volume
 	articleAttrs["issue"] = issue
+
 	articleAttrs["sectionID"] = PickSubsectionByIssue(
 		articleAttrs["sectionID"].(int),
 		issue,
@@ -120,8 +128,15 @@ func PickSubsectionByIssue(sectionID, issue int) int {
 	if section.ID == "" { // No section found
 		return sectionID
 	}
+	if section.Name == "Humor" && issue != 12 && issue != 4 {
+		// Humor only has subsections Disrespectator and Spooktator in issues 12 and
+		// 4, respectively.
+		return sectionID
+	}
 	for _, s := range graphql.Sections {
-		if issue == 12 && section.Name == "Humor" && s.Name == "Disrespectator" {
+		if section.Name == "Humor" &&
+			((issue == 12 && s.Name == "Disrespectator") ||
+			(issue == 4 && s.Name == "Spooktator")) {
 			sID, _ := strconv.Atoi(s.ID)
 			return sID
 		}

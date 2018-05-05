@@ -35,7 +35,9 @@ var bylineComponent = regexp.MustCompile(`[\w\p{L}\p{M}'-]+|[.,!?;]`)
 // IsSlugMember determines whether a string is a member of an article slug.
 // It returns true or false.
 func IsSlugMember(str string) bool {
-	return len(slugPattern.FindStringSubmatch(str)) > 0 || IsByline(str)
+	return len(slugPattern.FindStringSubmatch(str)) > 0 ||
+		IsByline(str) ||
+		IsDepartmentMarker(str)
 }
 
 // IsDepartmentMarker determines whether a string marks the department.

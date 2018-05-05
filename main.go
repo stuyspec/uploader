@@ -119,6 +119,9 @@ func UploadIssue(volumeNum, issueNum int) {
 	}
 
 	// Upload staff-ed
+	log.Headerf(
+		"\nUploading [STAFF EDITORIAL]\n\n",
+	)
 	UploadArticle(issue.StaffEd.Id, volumeNum, issueNum, issue.Photos, issue.Art, "staff-ed")
 
 	// A slice of folder name matchers to be passed into DriveFileByName
