@@ -49,7 +49,21 @@ func UploadArticle(
 				fileID,
 				missingAttrs,
 			)
-			return
+			for {
+				uploadConfig := Input("open/reload? (o/r/n): ")
+				if uploadConfig == "r" {
+					// [RELOAD]: Article content changed, download again
+					log.Println()
+					UploadArticle(fileID, volume, issue, photos, art)
+					return
+				} else if uploadConfig == "o" {
+					// [OPEN]: Open Drive file in browser (often used before RELOAD for
+					// fixing article content).
+					OpenDriveFileManual(fileID, "document")
+				} else {
+					log.Errorf("[%s] is not a valid option.\n", uploadConfig)
+				}
+			}
 		}
 	}
 
