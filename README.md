@@ -33,3 +33,7 @@ For specific instructions on how to clean Issue folders for uploading (a must fo
 ## Roadmap
 
 For information on the things which are currently being focused on, please visit the [ROADMAP.md](ROADMAP.md) file.
+
+## Troubleshooting
+
+For troubleshooting instructions, please visit the [TROUBLESHOOTING.md](TROUBLESHOOTING.md) file.
