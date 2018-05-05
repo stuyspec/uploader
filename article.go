@@ -161,6 +161,11 @@ func PickSubsectionByIssue(sectionID, issue int) int {
 	if len(subsections) == 0 { // Section is already a subsection
 		return sectionID
 	}
+	if section.Name == "Opinions" && len(subsections) == 1 {
+		// We upload the staff editorial separately from the Opinions section.
+		// Therefore, if there is no other subsection, we don't need to pick one.
+		return sectionID
+	}
 	log.Info("optional subsections ->")
 	for i, s := range subsections {
 		fmt.Printf("  [%d] %s\n", i, s.Name)
