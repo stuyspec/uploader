@@ -19,7 +19,7 @@ var UnwantedFilePattern = regexp.MustCompile(`(?i)worldbeat|survey|newsbeat|spoo
 var titlePadding = regexp.MustCompile(`Title:\s+`)
 var bylinePadding = regexp.MustCompile(`^By:?\s+`)
 var focusPadding = regexp.MustCompile(`(?i)^Focus Sentence:?\s+`)
-var outquotePadding = regexp.MustCompile(`(?i)^outquote\(?s?\)?:?`)
+var outquotePadding = regexp.MustCompile(`(?i)^outquote\(?s?\)?:?[\s]*`)
 var nicknamePadding = regexp.MustCompile(`\([\w\s-]*\)\s`)
 
 // Captures are the opposite of paddings. For some information, it is easier to
