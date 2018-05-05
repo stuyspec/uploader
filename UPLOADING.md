@@ -12,7 +12,7 @@ Topic | Description
 
 _Note: You need to know regex to understand these instructions. Any developer should know/learn regex._
 
-1. Make sure the following files will match these patterns in the issue folder:
+1. Make sure the following files are direct children of the issue folder and have names that match these patterns:
 - Newspaper PDF: `(?i)Issue\s?\d{1,2}(\.pdf)$`
 - SBC ("seen by copy"/final drafts) folder: `SBC`
 - Photo Color folder: `(?i)photo\s?color`
@@ -20,10 +20,11 @@ _Note: You need to know regex to understand these instructions. Any developer sh
 
 2. Make sure all photos you intend to use are the **direct children** of the Photo Color folder. For instance, SING! photos may be grouped in a folder inside Photo Color—move them outside.
 
-3. Ensure that all department folders in SBC are spelled correctly. The editors like to meme around sometimes.
+3. Ensure that all department folders in SBC are spelled correctly. (The editors like to meme sometimes.)
 
 4. For EVERY non-ignored Google Doc article (ignored Docs have filenames that match this pattern: `(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`):
-- Make sure the end of the slug (a.k.a. article header) looks like it's part of the header (e.g. the line is a focus sentence, word count, etc.) This is the exact pattern for an element of a slug:
+- Below the title must be the article label. Those look something like: `The Spectator/Humor/Issue 14`.
+- Make sure the end of the slug (a.k.a. article header) looks like it's part of the header (e.g. the line is a focus sentence, word count, byline, etc.) This is the exact pattern for an element of a slug:
 ```
 (?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords[^\.])|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?
 ```
@@ -38,13 +39,12 @@ Focus Sentence: Art is an enriching experience.
 Outquotes: Creating art is no longer being limited.
 There are numerous artists who embrace non-traditional mediums.
 ```
--  Any emphasized text needs to be wrapped in markup.
+-  Any emphasized text needs to be wrapped in hypertext markup.
   * `<t></t>`: indent, useful for faking a `<ul>` (hopefully we'll add `<ul>` into this list at a later point)
   * `<hr/>`: horizontal rule/line, often used to separate footer notes from content
   * `<h5> ... </h5>`: bold and uppercase
   * `<h4> ... </h4>`: bold, uppercase, and centered
  
-  
 5. Resolve all comments and suggestions.
 
 6. There MUST be a byline, and it MUST start with the word "By". If no byline exists, add "By The XXX Department" to the slug. (Spell A&E by its full name, Arts & Entertainment.)
@@ -57,7 +57,7 @@ There are numerous artists who embrace non-traditional mediums.
 
 Move all Disrespectator articles into the Humor folder of SBC.
 
-_Note: After changing any file structure (NOT FILE CONTENT), the changes will not appear in the uploader until you use the `--reload, -r` flag to reload them. This will take a while (almost 40 seconds) so reload minimally._
+_Note: After changing any file structure (NOT FILE CONTENT), the changes will not appear in the uploader until you use the `--reload, -r` flag to reload them. This will take a while (almost 30 seconds) so reload minimally._
 
 ------
 
