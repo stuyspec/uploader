@@ -378,14 +378,22 @@ func CreateArticle(attrs map[string]interface{}) (article Article, err error) {
 	return
 }
 
-// PublicationTime returns the timestamp for an article of a volume and issue.
+// PublicationTime returns the datetime for an article of a volume and issue.
 // It uses the day the article was printed and distributed as the date and the
 // current time as the time.
-func PublicationTime(volume, issue int) (timestamp string) {
+func PublicationTime(volume, issue int) (datetime string) {
 	if volDates, found := IssueDates[volume]; found {
 		var issueDate string
 		if issueDate, found = volDates[issue]; found {
-			timestamp = fmt.Sprintf("%sT%s", issueDate, time.Now().Format("04:20:00"))
+			now := time.Now()
+			timestamp := fmt.Sprintf(
+				"%d:%d:%d",
+				now.Hour(),
+				now.Minute(),
+				now.Second(),
+			)
+			fmt.Println(timestamp)
+			datetime = fmt.Sprintf("%sT%s", issueDate, timestamp)
 			return
 		}
 	}
