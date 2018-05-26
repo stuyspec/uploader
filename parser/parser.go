@@ -87,6 +87,12 @@ func ArticleAttributes(text string) (map[string]interface{}, []string) {
 // It returns the contributors.
 func Contributors(byline string) (contributors [][]string) {
 	contributors = make([][]string, 0)
+
+	if strings.Contains(byline, "Arts & Entertainment Department") ||
+		strings.Contains(byline, "Arts and Entertainment Department") {
+		contributors = append(contributors, patterns.NameVariables("The Arts & Entertainment Department"))
+		return
+	}
 	components := patterns.BylineComponents(byline)
 
 	slicerIndex := 0

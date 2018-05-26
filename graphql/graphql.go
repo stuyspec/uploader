@@ -392,7 +392,6 @@ func PublicationTime(volume, issue int) (datetime string) {
 				now.Minute(),
 				now.Second(),
 			)
-			fmt.Println(timestamp)
 			datetime = fmt.Sprintf("%sT%s", issueDate, timestamp)
 			return
 		}
