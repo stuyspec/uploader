@@ -121,7 +121,7 @@ func Outquotes(lines []string, start, end int) (outquotes []string) {
 			break
 		}
 
-		if len(outquoteStr > 0) {
+		if len(outquoteStr) > 0 {
 			outquotes = append(outquotes, outquoteStr)
 		}
 		start++
