@@ -24,7 +24,7 @@ func UploadArticle(
 	rawText := driveclient.DownloadGoogleDoc(fileID)
 	articleAttrs, missingAttrs := parser.ArticleAttributes(rawText)
 	if len(missingAttrs) > 0 {
-		// If we know this article is a staff-ed (which have irregular slugs)
+		// If we know this article is a staff-ed (which have irregular slugs),
 		// we patch up articleAttrs.
 		if len(options) > 0 && options[0] == "staff-ed" {
 			sectionID, found := graphql.SectionIDByName("Staff Editorials")
