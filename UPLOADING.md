@@ -32,7 +32,7 @@ _Note: You need to know regex to understand these instructions. Any developer sh
 
 4. Ensure that the Staff Editorial is a direct child of the SBC folder (it may be in the `SBC/Opinions` folder). The staff editorial matches this pattern: `(?i)staff\s?ed`.
 
-5. For EVERY non-ignored Google Doc article (ignored Docs have filenames that match this pattern: `(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`):
+5. For EVERY non-ignored Google Doc article (ignored Docs have filenames that match this pattern: `(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]|corrections|timeline`):
 - Below the title must be the article label. Those look something like: `The Spectator/Humor/Issue 14`.
 - Make sure the end of the slug (a.k.a. article header) looks like it's part of the header (e.g. the line is a focus sentence, word count, byline, etc.) This is the exact pattern for an element of a slug:
 ```
