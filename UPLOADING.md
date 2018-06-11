@@ -3,10 +3,17 @@
 ### Table of Contents
 Topic | Description
 :---:| ---
+[Program Prep](#program-prep) | Add information to the program to make it run smoothly
 [Issue Folder Prep](#issue-folder-prep) | How to prep and clean an issue folder to minimize uploading errors and mistakes
 [Manual Upload](#manual-upload) | Uploader failed? How to create an article with Rails console
 
 ------
+
+## Program Prep
+
+In `/graphql/graphql.go`, locate the `IssueDates` map. The key of the map is the volume number, and the value of the map is a map with the issue number as the key and date of distribution as the value. (You can find the date of distribution at the top of the paper.)
+
+Add an entry to the map matching the volume and issue numbers of the newspaper you are about to upload.
 
 ## Issue Folder Prep
 
@@ -22,7 +29,9 @@ _Note: You need to know regex to understand these instructions. Any developer sh
 
 3. Ensure that all department folders in SBC are spelled correctly. (The editors like to meme sometimes.)
 
-4. For EVERY non-ignored Google Doc article (ignored Docs have filenames that match this pattern: `(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`):
+4. Ensure that the Staff Editorial is a direct child of the SBC folder (it may be in the `SBC/Opinions` folder). The staff editorial matches this pattern: `(?i)staff\s?ed`.
+
+5. For EVERY non-ignored Google Doc article (ignored Docs have filenames that match this pattern: `(?i)worldbeat|survey|newsbeat|spookbeat|playlist|calendar|\[IGNORE\]`):
 - Below the title must be the article label. Those look something like: `The Spectator/Humor/Issue 14`.
 - Make sure the end of the slug (a.k.a. article header) looks like it's part of the header (e.g. the line is a focus sentence, word count, byline, etc.) This is the exact pattern for an element of a slug:
 ```
@@ -45,11 +54,11 @@ There are numerous artists who embrace non-traditional mediums.
   * `<h5> ... </h5>`: bold and uppercase
   * `<h4> ... </h4>`: bold, uppercase, and centered
  
-5. Resolve all comments and suggestions.
+6. Resolve all comments and suggestions.
 
-6. There MUST be a byline, and it MUST start with the word "By". If no byline exists, add "By The XXX Department" to the slug. (Spell A&E by its full name, Arts & Entertainment.)
+7. There MUST be a byline, and it MUST start with the word "By". If no byline exists, add "By The XXX Department" to the slug. (Spell A&E by its full name, Arts & Entertainment.)
 
-7. To ignore an article, put [IGNORE] in the filename ([example](https://docs.google.com/document/d/1Mxiiiq6KShSGRP446Hnvhh6U1Q0Rkz9CMnUVEXLoeO8/edit?usp=sharing)).
+8. To ignore an article, put [IGNORE] in the filename ([example](https://docs.google.com/document/d/1Mxiiiq6KShSGRP446Hnvhh6U1Q0Rkz9CMnUVEXLoeO8/edit?usp=sharing)).
 
 ### Special Cases
 
