@@ -3,10 +3,17 @@
 ### Table of Contents
 Topic | Description
 :---:| ---
+[Program Prep](#program-prep) | Add information to the program to make it run smoothly
 [Issue Folder Prep](#issue-folder-prep) | How to prep and clean an issue folder to minimize uploading errors and mistakes
 [Manual Upload](#manual-upload) | Uploader failed? How to create an article with Rails console
 
 ------
+
+## Program Prep
+
+In `/graphql/graphql.go`, locate the `IssueDates` map. The key of the map is the volume number, and the value of the map is a map with the issue number as the key and date of distribution as the value. (You can find the date of distribution at the top of the paper.)
+
+Add an entry to the map matching the volume and issue numbers of the newspaper you are about to upload.
 
 ## Issue Folder Prep
 
