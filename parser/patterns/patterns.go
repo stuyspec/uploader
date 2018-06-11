@@ -25,7 +25,7 @@ var nicknamePadding = regexp.MustCompile(`\([\w\s-]*\)\s`)
 // Captures are the opposite of paddings. For some information, it is easier to
 // extract it than to remove the padding of it.
 var departmentCapture1 = regexp.MustCompile(`The Spectator\s*\/([^\/\d]+)\s*\/`)
-var departmentCapture2 = regexp.MustCompile(`The Spectator\s*\/\s*Issue\s*\d{1,2}\s*\/(.*)`)
+var departmentCapture2 = regexp.MustCompile(`The Spectator\s*\/\s*Issue\s*#?\d{1,2}\s*\/(.*)`)
 var hrefCapture = regexp.MustCompile(`(?i)<a href="([^"]*)">`)
 var driveIDCapture = regexp.MustCompile(`[-\w]{25,}`)
 
