@@ -2,8 +2,8 @@
 package graphql
 
 import (
-	"github.com/joho/godotenv"
 	"github.com/jkao1/go-graphql"
+	"github.com/joho/godotenv"
 
 	"github.com/stuyspec/uploader/log"
 	"github.com/stuyspec/uploader/parser/patterns"
@@ -32,9 +32,9 @@ var IssueDates = map[int]map[int]string{
 		6: "2015-12-02",
 	},
 	107: map[int]string{
-		1: "2017-09-09",
-		2: "2017-09-30",
-		3: "2016-10-17",
+		1:  "2017-09-09",
+		2:  "2017-09-30",
+		3:  "2016-10-17",
 		11: "2017-03-10",
 		12: "2017-03-31",
 		13: "2017-04-21",
@@ -43,21 +43,22 @@ var IssueDates = map[int]map[int]string{
 		16: "2017-06-09",
 	},
 	108: map[int]string{
-		1: "2017-09-11",
-		2: "2017-09-29",
-		3: "2017-10-17",
-		4: "2017-10-31",
-		5: "2017-11-10",
-		6: "2017-12-01",
-		7: "2017-12-20",
-		8: "2018-01-19",
-		9: "2018-02-02",
+		1:  "2017-09-11",
+		2:  "2017-09-29",
+		3:  "2017-10-17",
+		4:  "2017-10-31",
+		5:  "2017-11-10",
+		6:  "2017-12-01",
+		7:  "2017-12-20",
+		8:  "2018-01-19",
+		9:  "2018-02-02",
 		10: "2018-02-15",
 		11: "2018-03-19",
 		12: "2018-03-29",
 		13: "2018-04-20",
 		14: "2018-05-04",
 		15: "2018-05-25",
+		16: "2018-06-08",
 	},
 }
 
@@ -72,13 +73,13 @@ var Sections []Section
 
 // Article represents an article.
 type Article struct {
-	ID string
+	ID   string
 	Slug string
 
 	// We create articles with summaries, but article records initiate themselves
 	// with Previews. This resolves the many problems with simply using article
 	// focus sentences as previews on the website (if focus sentences are empty,
-  // Rails can generate a Preview using the article's content).
+	// Rails can generate a Preview using the article's content).
 	Preview string
 }
 
@@ -91,18 +92,18 @@ func (a Article) String() string {
 
 // Section represents a department/section of the newspaper.
 type Section struct {
-	ID string
-	Name string
-	Slug string
+	ID        string
+	Name      string
+	Slug      string
 	Parent_ID string
 }
 
 // User represents a contributor, illustrator, or photographer.
 type User struct {
-	ID string
+	ID        string
 	FirstName string
-	LastName string
-	Email string
+	LastName  string
+	Email     string
 }
 
 // Medium represents an illustration or photograph.
@@ -148,9 +149,9 @@ type ArticleByContentResponse struct {
 
 func init() {
 	err := godotenv.Load()
-  if err != nil {
-    log.Fatal("Error loading .env file.")
-  }
+	if err != nil {
+		log.Fatal("Error loading .env file.")
+	}
 
 	if endpoint := os.Getenv("API_ENDPOINT"); endpoint == "" {
 		apiEndpoint = "https://api.stuyspec.com"
@@ -165,7 +166,7 @@ func init() {
 	authVals := url.Values{}
 	authVals.Set("email", os.Getenv("EMAIL"))
 	authVals.Set("password", os.Getenv("PASSWORD"))
-	resp, err := http.PostForm(apiEndpoint + "/auth/sign_in", authVals)
+	resp, err := http.PostForm(apiEndpoint+"/auth/sign_in", authVals)
 	if err != nil {
 		log.Fatal("Unable to sign in.")
 	} else if resp.StatusCode == 401 {
@@ -259,7 +260,7 @@ func UserIDByFirstLastName(first, last string) (id int, err error) {
 
 // CreateUser constructs a GraphQL mutation and creates a user.
 // It returns an error if any is encountered.
-func CreateUser(first, last string) (user User, err error)  {
+func CreateUser(first, last string) (user User, err error) {
 	log.Promptf("Enter email for %s %s: ", first, last)
 	var email string
 	if _, err := fmt.Scan(&email); err != nil {
