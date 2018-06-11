@@ -12,7 +12,7 @@ import (
 // Patterns are used to determine whether a string matches.
 var slugPattern = regexp.MustCompile(`(?i)(outquote(\(s\))?s?:)|(focus\s+sentence:)|(word(s)?:?\s\d{2,4})|(\d{2,4}\swords)|(word count:?\s?\d{2,4})|focus:|article:|(Art|Photo)(\/Art|\/Photo)? Request:?`)
 var AePattern = regexp.MustCompile(`Arts\s?&\s?Entertainment|A&?E`)
-var UnwantedFilePattern = regexp.MustCompile(`(?i)worldbeat|survey|newsbeat|spookbeat|sportsbeat|playlist|calendar|\[IGNORE\]|corrections`)
+var UnwantedFilePattern = regexp.MustCompile(`(?i)worldbeat|survey|newsbeat|spookbeat|sportsbeat|playlist|calendar|\[IGNORE\]|corrections|timeline`)
 
 // Paddings are patterns we want to remove from the desired value
 // (e.g. "Title: ", "Outquote(s): ").

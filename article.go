@@ -60,6 +60,10 @@ func UploadArticle(
 					// [OPEN]: Open Drive file in browser (often used before RELOAD for
 					// fixing article content).
 					OpenDriveFileManual(fileID, "document")
+				} else if uploadConfig == "n" {
+					// [NO]: Ignore article, do not upload.
+					log.Println()
+					return
 				} else {
 					log.Errorf("[%s] is not a valid option.\n", uploadConfig)
 				}
