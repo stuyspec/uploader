@@ -5,6 +5,7 @@ Topic | Description
 :---:| ---
 [Program Prep](#program-prep) | Add information to the program to make it run smoothly
 [Issue Folder Prep](#issue-folder-prep) | How to prep and clean an issue folder to minimize uploading errors and mistakes
+[Start the Uploader!](#start-the-uploader) | After program and issue prep, we can finally run the uploader
 [Manual Upload](#manual-upload) | Uploader failed? How to create an article with Rails console
 
 ------
@@ -67,6 +68,15 @@ There are numerous artists who embrace non-traditional mediums.
 Move all Disrespectator articles into the Humor folder of SBC.
 
 _Note: After changing any file structure (NOT FILE CONTENT), the changes will not appear in the uploader until you use the `--reload, -r` flag to reload them. This will take a while (almost 30 seconds) so reload minimally._
+
+## Start the Uploader!
+
+After program and issue prep, we can finally start the uploader. In this repository's directory, use `go install` to create the program's binary. This allows us to use the `uploader` command (in the repo's directory only).
+
+Once the binary has been built, use `uploader` with the `-m`, `-i`, and `--rescan` flags (volume number, issue number, and rescan option respectively) to start the program.
+```
+$ uploader -m VOLUME_NUM -i ISSUE_NUM --rescan
+```
 
 ------
 
