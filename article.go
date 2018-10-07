@@ -279,5 +279,5 @@ func Input(prompt string) string {
 	if err != nil {
 		log.Fatalf("Unable to read response. %v\n", err)
 	}
-	return strings.Trim(text, "\n")
+	return strings.Trim(text, "\r\n")
 }
